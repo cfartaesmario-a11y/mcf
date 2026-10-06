@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MCF Nota PAU</title>
+<meta name="theme-color" content="#000000">
+<meta name="description" content="MCF Nota PAU: calcula tu nota de acceso y de admisión a la universidad en Cataluña.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f766e'/%3E%3Cpath d='M32 14 10 24l22 10 22-10z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+:root{
+  --bg:#000;--sheet:#0f0f0f;--sheet-2:#171717;--line:#232323;--line-2:#333;
+  --ink:#F4F4F4;--ink-2:#A3A3A3;--ink-3:#626262;--acc:#FFC21A;--ok:#4ADE80;--red:#FF5C63;
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --body:"Instrument Sans","Helvetica Neue","Segoe UI",system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;min-height:100%;background:#000;color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+body{background-image:radial-gradient(rgba(255,255,255,.055) 1px,transparent 1.4px);background-size:22px 22px;background-attachment:fixed}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0}
+:focus-visible{outline:2px solid #fff;outline-offset:2px;border-radius:8px}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,40px)}
+/* Barra superior */
+.top{position:sticky;top:0;z-index:30;background:rgba(0,0,0,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid #161616}
+.topin{display:flex;align-items:center;gap:12px;height:64px;position:relative;padding-top:env(safe-area-inset-top,0px)}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:-.02em;text-decoration:none;white-space:nowrap}
+.brand .bi{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:var(--g,#fff);color:#fff;box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
+.brand .bi svg{width:18px;height:18px}
+.tools{margin-left:auto;display:flex;align-items:center;gap:8px}
+.acct{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--sheet);border-radius:99px;padding:4px 12px 4px 4px;font-weight:600;font-size:13.5px;text-decoration:none;white-space:nowrap}
+.acct .av{width:28px;height:28px;border-radius:50%;background:#fff;color:#000;display:grid;place-items:center;font-weight:800;font-size:13px}
+.acct.login{padding:9px 15px}
+.wsbtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--sheet);display:grid;place-items:center;color:var(--ink-2);transition:transform .2s,color .15s}
+.wsbtn svg{width:17px;height:17px}
+.wsbtn:hover,.wsbtn[aria-expanded=true]{color:var(--ink)}
+.wsbtn[aria-expanded=true]{transform:rotate(45deg)}
+.wspanel{position:absolute;right:0;top:calc(100% + 6px);z-index:60;width:min(370px,calc(100vw - 24px));background:#0c0c0c;border:1px solid #2a2a2a;border-radius:26px;padding:16px;box-shadow:0 30px 80px -20px rgba(0,0,0,.95);animation:wsin .18s ease;transform-origin:top right}
+@keyframes wsin{from{opacity:0;transform:scale(.96) translateY(-6px)}}
+.wshead{display:flex;align-items:center;gap:9px;padding:2px 4px 14px;border-bottom:1px solid #1f1f1f;margin-bottom:14px;font-family:var(--display);font-weight:800;font-size:18px}
+.wshead .pl{width:30px;height:30px;border-radius:10px;background:#fff;color:#000;display:grid;place-items:center}
+.wshead .pl svg{width:16px;height:16px}
+.wshead small{display:block;font-family:var(--body);font-weight:500;font-size:12px;color:var(--ink-3)}
+.wsgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.wsapp{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 4px 10px;border-radius:18px;text-decoration:none;color:var(--ink);font-size:12.5px;font-weight:600;text-align:center;border:1px solid transparent}
+.wsapp:hover{background:#161616;border-color:#232323}
+.wsapp.here{background:#151515;border-color:#2c2c2c}
+.wsico{width:50px;height:50px;border-radius:16px;display:grid;place-items:center;background:var(--g);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.25)}
+.wsico svg{width:24px;height:24px;color:#fff}
+.wstag{position:absolute;top:6px;right:6px;font-size:9.5px;font-weight:800;border-radius:99px;padding:2px 6px;background:#fff;color:#000}
+.wsfoot{margin-top:12px;padding:12px 6px 2px;border-top:1px solid #1f1f1f;color:var(--ink-3);font-size:12.5px;display:flex;justify-content:space-between;gap:10px}
+.wsfoot a{color:var(--ink);font-weight:700;text-decoration:none}
+/* Piezas comunes */
+h1,h2,h3{font-family:var(--display);letter-spacing:-.03em;margin:0}
+.kick{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.panel{background:var(--sheet);border:1px solid var(--line);border-radius:22px;padding:20px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--sheet-2);border-radius:99px;padding:10px 18px;font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap}
+.btn:hover{border-color:var(--line-2)}
+.btn.pri{background:#fff;color:#000;border-color:#fff}
+.btn.pri:hover{background:#e7e7e7}
+.btn.sm{padding:7px 13px;font-size:13px}
+.btn.ghost{background:none}
+.btn.danger{color:var(--red)}
+.btn svg{width:16px;height:16px}
+.field{width:100%;background:var(--sheet-2);border:1px solid var(--line);border-radius:14px;padding:11px 14px;color:var(--ink);font-size:15px}
+.field:focus{outline:2px solid #fff;outline-offset:-1px}
+textarea.field{resize:vertical;min-height:90px}
+select.field{appearance:none;-webkit-appearance:none;background:var(--sheet-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23999' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 14px center;padding-right:36px}
+label.lb{display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight:700;color:var(--ink-2)}
+.tagp{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;border-radius:99px;padding:3px 10px;background:color-mix(in srgb,var(--c,#888) 22%,transparent);color:#fff}
+.tagp i{width:7px;height:7px;border-radius:50%;background:var(--c,#888)}
+.empty{color:var(--ink-3);text-align:center;padding:26px 10px;font-size:14px}
+.note{display:flex;gap:12px;align-items:center;border:1px solid #2c2512;background:#14110a;border-radius:16px;padding:12px 16px;font-size:14px;color:#e9d9a6}
+.note a{font-weight:800;color:#fff}
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#fff;color:#000;font-weight:700;border-radius:99px;padding:11px 18px;z-index:100;box-shadow:0 14px 40px -10px rgba(0,0,0,.7);animation:wsin .2s ease}
+.scrim{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:grid;place-items:center;padding:16px}
+.modal{width:min(620px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:26px;padding:22px}
+.modal h3{font-size:24px;margin-bottom:14px}
+.mfoot{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+@media (max-width:620px){.brand .bn{display:none}.acct .dl{display:none}.acct{padding:4px}.acct.login{padding:9px 13px}.scrim{place-items:end center;padding:0}.modal{border-radius:24px 24px 0 0;max-height:92dvh}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.9fr);gap:18px;margin:28px 0 60px;align-items:start}
+.intro h1{font-size:clamp(34px,5vw,52px);font-weight:800;line-height:.95;margin:8px 0 10px}
+.intro p{color:var(--ink-2);margin:0 0 20px;font-size:15.5px;max-width:560px}
+.block{border:1px solid var(--line);background:var(--sheet);border-radius:24px;padding:20px;margin-bottom:14px}
+.bhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:14px}
+.bhead h2{font-size:21px;font-weight:800}
+.bhead span{font-size:13px;color:var(--ink-3)}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #1c1c1c}
+.row:first-of-type{border-top:0}
+.row.adm{grid-template-columns:minmax(0,1fr) 110px 110px}
+.rname{font-weight:600;font-size:15px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.rname small{color:var(--ink-3);font-weight:500;font-size:12.5px}
+.rname select{background:none;border:0;color:var(--ink);font-weight:600;font-size:15px;padding:0;max-width:100%}
+.gin{width:100%;text-align:center;font-family:var(--display);font-weight:800;font-size:22px;background:var(--sheet-2);border:1px solid var(--line);border-radius:14px;padding:8px 6px;color:#fff}
+.gin.bad{color:var(--red)}
+.gin:focus{outline:2px solid #fff;outline-offset:-1px}
+.pond{width:100%;background:var(--sheet-2);border:1px solid var(--line);border-radius:14px;padding:11px 8px;text-align:center;font-weight:700;color:var(--ink)}
+.help{font-size:12.5px;color:var(--ink-3);margin-top:8px}
+.calhint{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:12px;padding:12px 14px;border-radius:16px;background:#0b1714;border:1px solid #173a31;font-size:13.5px;color:#a7e3cf}
+.result{position:sticky;top:84px}
+.rcard{border-radius:28px;padding:24px;background:radial-gradient(500px 300px at 100% 0%,rgba(53,208,127,.22),transparent 60%),linear-gradient(160deg,#0b1a15,#070707);border:1px solid #173a31}
+.gauge{position:relative;width:min(260px,100%);aspect-ratio:1;margin:8px auto 4px}
+.gauge svg{width:100%;height:100%;transform:rotate(135deg)}
+.gauge .t{fill:none;stroke:#132620;stroke-width:12;stroke-linecap:round}
+.gauge .p{fill:none;stroke:url(#gg);stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset .5s ease}
+.gnum{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gnum b{font-family:var(--display);font-weight:800;font-size:58px;letter-spacing:-.04em;line-height:1}
+.gnum span{color:var(--ink-2);font-size:13px;font-weight:600}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.kv div{border:1px solid #1d2f29;background:rgba(0,0,0,.35);border-radius:16px;padding:12px 14px}
+.kv b{display:block;font-family:var(--display);font-weight:800;font-size:26px;letter-spacing:-.03em}
+.kv span{font-size:12px;color:var(--ink-2);font-weight:600}
+.status{margin-top:14px;padding:12px 14px;border-radius:16px;font-size:14px;font-weight:600}
+.status.ok{background:rgba(74,222,128,.1);color:#86efac;border:1px solid rgba(74,222,128,.25)}
+.status.bad{background:rgba(255,92,99,.1);color:#ff9ea2;border:1px solid rgba(255,92,99,.3)}
+.target{margin-top:14px;border:1px solid #1d2f29;border-radius:18px;padding:14px;background:rgba(0,0,0,.35)}
+.target .tr{display:flex;gap:10px;align-items:center}
+.target .gin{max-width:110px;font-size:20px}
+.target p{margin:10px 0 0;font-size:14px;color:var(--ink-2)}
+.target p b{color:#fff}
+.formula{font-size:12.5px;color:var(--ink-3);margin-top:14px;line-height:1.6}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.result{position:static}}
+@media (max-width:520px){.row{grid-template-columns:minmax(0,1fr) 92px}.row.adm{grid-template-columns:minmax(0,1fr) 78px 84px}.gin{font-size:19px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap topin">
+  <a class="brand" href="#" style="--g:linear-gradient(145deg,#35d07f,#0f766e)"><span class="bi"><svg viewBox="0 0 24 24"><path d="M12 4 2.5 8.5 12 13l9.5-4.5z" fill="currentColor"/><path d="M6 10.6v4.2c0 1.5 2.7 2.7 6 2.7s6-1.2 6-2.7v-4.2M21 9v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="bn">MCF Nota PAU</span></a>
+  <div class="tools"><button class="wsbtn" id="wsBtn" aria-label="MCF Workspace" aria-expanded="false"><svg viewBox="0 0 24 24"><g fill="currentColor"><circle cx="5" cy="5" r="2.2"/><circle cx="12" cy="5" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="12" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/></g></svg></button><div id="acct"></div></div>
+  <div class="wspanel" id="wsPanel" hidden></div>
+</div></header>
+
+<main class="wrap">
+ <div class="layout">
+  <div>
+   <section class="intro"><div class="kick" style="color:#35d07f">PAU Catalunya</div><h1>¿Qué nota de acceso vas a sacar?</h1>
+    <p>Pon tus notas y lo calculamos como lo hacen las universidades: el 60 % es tu media de Bachillerato y el 40 % la fase de acceso. Con la fase de admisión puedes llegar hasta 14.</p></section>
+
+   <section class="block"><div class="bhead"><h2>Bachillerato</h2><span>Media de 1º y 2º</span></div>
+    <div class="row"><div class="rname">Nota media de Bachillerato<small>Si aún no la sabes, pon la que esperas</small></div><input class="gin" id="nmb" inputmode="decimal" placeholder="—"></div>
+    <div id="calHint"></div>
+   </section>
+
+   <section class="block"><div class="bhead"><h2>Fase de acceso</h2><span>Obligatoria · 5 exámenes · media mínima 4</span></div><div id="acc"></div></section>
+
+   <section class="block"><div class="bhead"><h2>Fase de admisión</h2><span>Opcional · suben nota</span></div>
+    <div class="help" style="margin:-4px 0 10px">Cuentan las 2 materias que más suben con su ponderación (0,1 o 0,2 según la carrera). La materia de modalidad de la fase de acceso también puede contar. Hace falta un 5 para que pondere.</div>
+    <div id="adm"></div><button class="btn sm" id="addAdm" style="margin-top:10px">＋ Añadir materia</button></section>
+  </div>
+
+  <aside class="result"><div class="rcard">
+    <div class="kick" style="color:#35d07f">Tu nota de admisión</div>
+    <div class="gauge"><svg viewBox="0 0 200 200"><defs><linearGradient id="gg" x1="0" x2="1"><stop offset="0" stop-color="#35d07f"/><stop offset="1" stop-color="#ffc21a"/></linearGradient></defs><circle class="t" cx="100" cy="100" r="84" stroke-dasharray="395.8 527.8"/><circle class="p" id="gp" cx="100" cy="100" r="84" stroke-dasharray="395.8 527.8" stroke-dashoffset="395.8"/></svg>
+      <div class="gnum"><b id="rAdm">—</b><span>sobre 14</span></div></div>
+    <div class="kv"><div><b id="rAcc">—</b><span>Nota de acceso (sobre 10)</span></div><div><b id="rQfa">—</b><span>Media fase de acceso</span></div><div><b id="rM1">—</b><span>Suma por admisión</span></div><div><b id="rNmb">—</b><span>Bachillerato × 0,6</span></div></div>
+    <div id="rStatus"></div>
+    <div class="target"><div class="tr"><b style="flex:1;font-size:14px">Nota de corte de tu carrera</b><input class="gin" id="cut" inputmode="decimal" placeholder="—"></div><p id="rTarget">Ponla y te digo qué media necesitas en la fase de acceso.</p></div>
+    <div class="formula">Acceso = 0,6 × Bachillerato + 0,4 × media de la fase de acceso (si es 4 o más).<br>Admisión = Acceso + a × M1 + b × M2 (las dos materias aprobadas que más suben).</div>
+  </div></aside>
+ </div>
+</main>
+<div id="layer"></div>
+
+<script>
+/* ===================== MCF Core: cuenta, datos y menú de apps ===================== */
+const MCF_BASE='https://cfartaesmario-a11y.github.io';
+const MCF_URLS={home:MCF_BASE+'/mcf/',calendar:MCF_BASE+'/2batx/',games:MCF_BASE+'/mcf/games/',focus:MCF_BASE+'/mcf/focus/',flashcards:MCF_BASE+'/mcf/flashcards/',pau:MCF_BASE+'/mcf/pau/'};
+const MCF_LOGIN=MCF_URLS.calendar;
+const PLANE_D='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z';
+const MCF_APPS=[
+  {id:'calendar',name:'MCF Calendar',desc:'Deberes, exámenes, notas y horario',g:'linear-gradient(145deg,#2b2b2b,#0a0a0a)',ico:'<path d="M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8 13h3v3H8z" fill="currentColor"/>'},
+  {id:'focus',name:'MCF Focus',desc:'Cronómetro y vuelos de concentración',g:'linear-gradient(145deg,#4cc9ff,#1d4ed8)',ico:'<circle cx="12" cy="13" r="7.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 13V9.2M10 3h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
+  {id:'flashcards',name:'MCF Flashcards',desc:'Tarjetas de repaso para tus exámenes',g:'linear-gradient(145deg,#ffc21a,#f97316)',ico:'<rect x="3.5" y="7" width="13" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(-8 10 12)"/><rect x="7.5" y="6" width="13" height="10" rx="2" fill="currentColor"/>'},
+  {id:'pau',name:'MCF Nota PAU',desc:'Calcula tu nota de acceso y admisión',g:'linear-gradient(145deg,#35d07f,#0f766e)',ico:'<path d="M12 4 2.5 8.5 12 13l9.5-4.5z" fill="currentColor"/><path d="M6 10.6v4.2c0 1.5 2.7 2.7 6 2.7s6-1.2 6-2.7v-4.2M21 9v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
+  {id:'games',name:'MCF Games',desc:'Juegos rápidos para los descansos',g:'linear-gradient(145deg,#ff5c63,#b36bff)',ico:'<path d="M7 9h10a4 4 0 0 1 3.9 4.9l-.6 2.6a2.3 2.3 0 0 1-3.9 1L14.6 15H9.4l-1.8 2.5a2.3 2.3 0 0 1-3.9-1l-.6-2.6A4 4 0 0 1 7 9z" fill="currentColor"/>'},
+  {id:'home',name:'Inicio',desc:'Tu resumen de MCF Workspace',g:'linear-gradient(145deg,#ffffff,#9a9a9a)',ico:'<g transform="rotate(45 12 12)"><path fill="#000" d="'+PLANE_D+'"/></g>'}
+];
+const mcfEsc=s=>String(s==null?'':s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+const MCF={app:null,user:null,ready:false,cal:null,listeners:[],
+  name(){const u=this.user;return u?(u.displayName||(u.email||'').split('@')[0]||'Piloto'):''},
+  onChange(fn){this.listeners.push(fn)},
+  emit(){this.listeners.forEach(f=>{try{f()}catch(e){console.error(e)}})},
+  lsKey(k){return 'mcf.'+(this.user?this.user.uid:'anon')+'.'+k},
+  getLocal(k,d){try{const v=localStorage.getItem(this.lsKey(k));return v==null?d:JSON.parse(v)}catch(e){return d}},
+  setLocal(k,v){try{localStorage.setItem(this.lsKey(k),JSON.stringify(v))}catch(e){}},
+  db(){try{return window.firebase&&(firebase.apps||[]).length&&firebase.database?firebase.database():null}catch(e){return null}},
+  /* Datos propios de cada app: mcf/{uid}/{app} (texto JSON) */
+  async load(k,d){const loc=this.getLocal(k,null);if(!this.user||!this.db())return loc==null?d:loc;
+    try{const s=await this.db().ref('mcf/'+this.user.uid+'/'+k).get();const v=s.val();if(v){const r=JSON.parse(v);if(!loc||(r._t||0)>=(loc._t||0)){this.setLocal(k,r);return r}}}catch(e){}
+    return loc==null?d:loc},
+  _st:{},
+  save(k,v){v._t=Date.now();this.setLocal(k,v);if(!this.user||!this.db())return;clearTimeout(this._st[k]);this._st[k]=setTimeout(()=>{try{this.db().ref('mcf/'+this.user.uid+'/'+k).set(JSON.stringify(v)).catch(()=>{})}catch(e){}},600)},
+  /* Datos de MCF Calendar (solo lectura): asignaturas, exámenes, deberes y notas */
+  async loadCalendar(){if(!this.user||!this.db())return null;
+    try{const s=await this.db().ref('dietari/'+this.user.uid+'/json').get();const v=s.val();if(!v)return null;const st=JSON.parse(v);
+      const clean=x=>String(x==null?'':x).slice(0,200);const okC=c=>/^#[0-9a-fA-F]{3,8}$/.test(c||'')?c:'#94A3B8';
+      const subjects=(st.subjects||[]).map(s=>({id:String(s.id),name:clean(s.name),color:okC(s.color)}));
+      const exams=(st.exams||[]).filter(e=>e&&e.title).map(e=>({id:String(e.id),subj:String(e.subj||''),title:clean(e.title),date:/^\d{4}-\d{2}-\d{2}$/.test(e.date||'')?e.date:null,kind:clean(e.kind),topics:(e.topics||[]).map(t=>clean(t&&t.t)).filter(Boolean),grade:e.grade==null||isNaN(+e.grade)?null:+e.grade}));
+      const grades=[...(st.grades||[]).map(g=>({subj:String(g.subj||''),title:clean(g.title),grade:+g.grade})),...exams.filter(e=>e.grade!=null).map(e=>({subj:e.subj,title:e.title,grade:e.grade}))].filter(g=>!isNaN(g.grade));
+      const tasks=(st.tasks||[]).map(t=>({id:String(t.id),subj:String(t.subj||''),title:clean(t.title),due:t.due,time:t.time,done:!!t.done}));
+      this.cal={subjects,exams,grades,tasks,perfil:st.perfil||null,course:st.course||null};return this.cal}catch(e){return null}},
+  subj(id){const s=this.cal&&this.cal.subjects.find(x=>x.id===id);return s||{id:'',name:'General',color:'#94A3B8'}},
+  init(app){this.app=app;this.renderChrome();
+    try{if(window.firebase&&!(firebase.apps||[]).length)firebase.initializeApp({apiKey:"AIzaSyAS2sEiZ3vh3DpvG-Vx85w73zoAOdaFCNs",authDomain:"marela-8d4e5.firebaseapp.com",databaseURL:"https://marela-8d4e5-default-rtdb.europe-west1.firebasedatabase.app",projectId:"marela-8d4e5",storageBucket:"marela-8d4e5.firebasestorage.app",messagingSenderId:"107896274524",appId:"1:107896274524:web:3015709404862e0c58b099"})}catch(e){}
+    if(window.firebase&&(firebase.apps||[]).length&&firebase.auth){firebase.auth().onAuthStateChanged(async u=>{this.user=u&&!u.isAnonymous?u:null;if(this.user)await this.loadCalendar();else this.cal=null;this.ready=true;this.renderChrome();this.emit()})}
+    else{this.ready=true;setTimeout(()=>this.emit(),0)}},
+  renderChrome(){const a=document.getElementById('acct');if(a){if(this.user){const n=mcfEsc(this.name());a.innerHTML=`<a class="acct" href="${MCF_LOGIN}" title="Tu cuenta MCF"><span class="av">${n.charAt(0).toUpperCase()}</span><span class="dl">${n}</span></a>`}else a.innerHTML=`<a class="acct login" href="${MCF_LOGIN}">Entrar</a>`}
+    const p=document.getElementById('wsPanel');if(p&&!p.hidden)this.renderWS()},
+  renderWS(){const p=document.getElementById('wsPanel');const n=this.user?mcfEsc(this.name()):'';
+    p.innerHTML=`<div class="wshead"><span class="pl"><svg viewBox="0 0 24 24"><g transform="rotate(45 12 12)"><path fill="currentColor" d="${PLANE_D}"/></g></svg></span><span>MCF Workspace<small>${n?'Una cuenta para todo, '+n:'Una cuenta para todas tus apps'}</small></span></div>
+    <div class="wsgrid">${MCF_APPS.map(a=>{const ic=`<span class="wsico" style="--g:${a.g}"><svg viewBox="0 0 24 24">${a.ico}</svg></span>`;
+      return a.id===this.app?`<div class="wsapp here">${ic}<span>${a.name}</span><span class="wstag">AQUÍ</span></div>`:`<a class="wsapp" href="${MCF_URLS[a.id]}">${ic}<span>${a.name}</span></a>`}).join('')}</div>
+    <div class="wsfoot">${this.user?`<span>Conectado como <b style="color:#fff">${n}</b></span><a href="${MCF_LOGIN}">Mi cuenta</a>`:`<span>Entra una vez y úsala en todas</span><a href="${MCF_LOGIN}">Entrar</a>`}</div>`},
+  toggleWS(o){const p=document.getElementById('wsPanel'),b=document.getElementById('wsBtn');if(!p)return;o=o==null?p.hidden:o;if(o)this.renderWS();p.hidden=!o;b.setAttribute('aria-expanded',String(o))}
+};
+document.addEventListener('click',e=>{if(e.target.closest('#wsBtn')){e.stopPropagation();MCF.toggleWS();return}const p=document.getElementById('wsPanel');if(p&&!p.hidden&&!e.target.closest('#wsPanel'))MCF.toggleWS(false)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')MCF.toggleWS(false)});
+const mcfDay=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const mcfDaysTo=ds=>{if(!ds)return null;const [y,m,d]=ds.split('-').map(Number);const t=new Date();t.setHours(0,0,0,0);return Math.round((new Date(y,m-1,d)-t)/864e5)};
+
+/* ===================== MCF Nota PAU ===================== */
+const $=id=>document.getElementById(id);
+const MOD=['Matemàtiques II','Matemàtiques Aplicades a les CCSS II','Física','Química','Biologia','Geologia i Ciències Ambientals','Dibuix Tècnic II','Tecnologia i Enginyeria II','Economia de l\'Empresa','Geografia','Història de l\'Art','Llatí II','Grec II','Dibuix Artístic II','Disseny','Ciències Generals','Moviments Culturals i Artístics','Altra'];
+const DEF={nmb:'',cut:'',hist:'Història',mod:'Matemàtiques II',acc:{cat:'',cas:'',ext:'',hf:'',mod:''},modPond:'0.2',adm:[{name:'Física',g:'',p:'0.2'},{name:'Química',g:'',p:'0.1'}]};
+let P=JSON.parse(JSON.stringify(DEF));
+const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?null:Math.max(0,Math.min(10,n))};
+const f2=n=>n==null?'—':n.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+const f3=n=>n==null?'—':n.toLocaleString('es-ES',{minimumFractionDigits:3,maximumFractionDigits:3});
+function save(){MCF.save('pau',P)}
+function drawInputs(){
+  const A=[['cat','Llengua Catalana i Literatura II'],['cas','Llengua Castellana i Literatura II'],['ext','Llengua Estrangera II'],['hf','__hist'],['mod','__mod']];
+  $('acc').innerHTML=A.map(([k,n])=>`<div class="row"><div class="rname">${n==='__hist'?`<select id="hist" aria-label="Historia o Filosofía"><option ${P.hist==='Història'?'selected':''}>Història</option><option ${P.hist==='Història de la Filosofia'?'selected':''}>Història de la Filosofia</option></select><small>Elige la que haces</small>`:n==='__mod'?`<select id="modSel" aria-label="Materia de modalidad">${MOD.map(m=>`<option ${P.mod===m?'selected':''}>${mcfEsc(m)}</option>`).join('')}</select><small>Materia obligatoria de modalidad · pondera <select id="modPond" style="font-size:12.5px;color:var(--ink-2)"><option value="0" ${P.modPond==='0'?'selected':''}>0</option><option value="0.1" ${P.modPond==='0.1'?'selected':''}>0,1</option><option value="0.2" ${P.modPond==='0.2'?'selected':''}>0,2</option></select></small>`:mcfEsc(n)}</div><input class="gin" data-acc="${k}" inputmode="decimal" placeholder="—" value="${mcfEsc(P.acc[k])}"></div>`).join('');
+  $('adm').innerHTML=P.adm.map((m,i)=>`<div class="row adm"><div class="rname"><input class="field" data-an="${i}" value="${mcfEsc(m.name)}" placeholder="Materia" style="padding:9px 12px;font-size:14.5px"></div><input class="gin" data-ag="${i}" inputmode="decimal" placeholder="Nota" value="${mcfEsc(m.g)}"><select class="pond" data-ap="${i}" aria-label="Ponderación"><option value="0.1" ${m.p==='0.1'?'selected':''}>× 0,1</option><option value="0.2" ${m.p==='0.2'?'selected':''}>× 0,2</option><option value="x" title="Quitar">Quitar</option></select></div>`).join('')||'<div class="empty" style="padding:10px">Sin materias de admisión.</div>';
+  $('nmb').value=P.nmb;$('cut').value=P.cut;calc()}
+function calc(){
+  const nmb=num(P.nmb),vals=['cat','cas','ext','hf','mod'].map(k=>num(P.acc[k]));const all=vals.every(v=>v!=null);
+  const qfa=all?vals.reduce((a,b)=>a+b,0)/5:null;
+  let acc=null;if(nmb!=null&&qfa!=null)acc=qfa>=4?0.6*nmb+0.4*qfa:null;
+  const cand=P.adm.map(m=>({g:num(m.g),p:+m.p})).filter(m=>m.g!=null&&m.g>=5);if(vals[4]!=null&&vals[4]>=5&&+P.modPond>0)cand.push({g:vals[4],p:+P.modPond});
+  const best=cand.map(m=>m.g*m.p).sort((a,b)=>b-a).slice(0,2);const extra=best.reduce((a,b)=>a+b,0);
+  const adm=acc!=null&&acc>=5?acc+extra:acc;
+  document.querySelectorAll('[data-acc],[data-ag],#nmb,#cut').forEach(i=>{const v=num(i.value);i.classList.toggle('bad',v!=null&&v<5&&i.id!=='cut')});
+  $('rNmb').textContent=nmb==null?'—':f2(0.6*nmb);$('rQfa').textContent=f3(qfa);$('rAcc').textContent=f3(acc);$('rM1').textContent=acc!=null?'+'+f2(extra):'—';$('rAdm').textContent=adm==null?'—':f3(adm);
+  $('gp').style.strokeDashoffset=String(395.8*(1-(adm||0)/14));
+  let st='';if(qfa!=null&&qfa<4)st='<div class="status bad">La media de la fase de acceso es menor que 4: así no se aprueba la PAU. Necesitas al menos un 4 de media.</div>';
+  else if(acc!=null&&acc<5)st='<div class="status bad">Tu nota de acceso no llega a 5. Sube un poco la fase de acceso.</div>';
+  else if(acc!=null)st=`<div class="status ok">✓ Aprobarías la PAU con un ${f3(acc)} de acceso${extra?` y ${f2(extra)} puntos extra por admisión`:''}.</div>`;
+  else st='<div class="status" style="background:#111;color:var(--ink-2);border:1px solid #222">Rellena tu media de Bachillerato y las 5 notas de la fase de acceso.</div>';
+  $('rStatus').innerHTML=st;
+  const cut=num(P.cut)!=null?parseFloat(String(P.cut).replace(',','.')):null;let tt='Ponla y te digo qué media necesitas en la fase de acceso.';
+  if(cut!=null&&nmb!=null){const need=(cut-0.6*nmb-extra)/0.4;
+    if(adm!=null&&adm>=cut)tt=`🎉 Con estas notas <b>entras</b>: te sobran <b>${f2(adm-cut)}</b> puntos.`;
+    else if(need>10)tt=`Con tu media y la admisión actual necesitarías más de un 10 en la fase de acceso. Sube la admisión: cada materia con ×0,2 y un 10 suma 2 puntos.`;
+    else tt=`Para llegar a <b>${f2(cut)}</b> necesitas una media de <b>${f2(Math.max(4,need))}</b> en la fase de acceso${extra?' (contando tu admisión actual)':''}.`}
+  $('rTarget').innerHTML=tt;save()}
+document.addEventListener('input',e=>{const t=e.target;
+  if(t.id==='nmb')P.nmb=t.value;else if(t.id==='cut')P.cut=t.value;else if(t.dataset.acc)P.acc[t.dataset.acc]=t.value;else if(t.dataset.an)P.adm[+t.dataset.an].name=t.value;else if(t.dataset.ag)P.adm[+t.dataset.ag].g=t.value;else return;calc()});
+document.addEventListener('change',e=>{const t=e.target;
+  if(t.id==='hist')P.hist=t.value;else if(t.id==='modSel')P.mod=t.value;else if(t.id==='modPond')P.modPond=t.value;
+  else if(t.dataset.ap){if(t.value==='x'){P.adm.splice(+t.dataset.ap,1);drawInputs();return}P.adm[+t.dataset.ap].p=t.value}else return;calc()});
+$('addAdm').onclick=()=>{if(P.adm.length>=4){return}P.adm.push({name:'',g:'',p:'0.2'});drawInputs();const ins=document.querySelectorAll('[data-an]');ins[ins.length-1].focus()};
+function calHint(){const h=$('calHint');if(!MCF.user){h.innerHTML=`<div class="calhint">🔗 Entra con tu cuenta MCF y usaré las notas que tienes en MCF Calendar. <a class="btn sm" href="${MCF_LOGIN}">Entrar</a></div>`;return}
+  const g=MCF.cal?MCF.cal.grades:[];if(!g.length){h.innerHTML='<div class="calhint">Cuando apuntes notas en MCF Calendar, aquí te propondré tu media.</div>';return}
+  const avg=g.reduce((a,x)=>a+x.grade,0)/g.length;h.innerHTML=`<div class="calhint"><span>📊 Tu media de este curso en MCF Calendar es <b style="color:#fff">${f2(avg)}</b> (${g.length} notas).</span><button class="btn sm" id="useAvg">Usar como estimación</button></div>`;
+  $('useAvg').onclick=()=>{P.nmb=avg.toFixed(2);$('nmb').value=P.nmb;calc()}}
+MCF.onChange(async()=>{const r=await MCF.load('pau',null);P=Object.assign(JSON.parse(JSON.stringify(DEF)),r||{});
+  if(!r&&MCF.cal){const names=MCF.cal.subjects.map(s=>s.name);const m=MOD.find(x=>names.some(n=>n.toLowerCase().includes(x.toLowerCase().split(' ')[0])));if(m)P.mod=m}
+  drawInputs();calHint()});
+MCF.init('pau');
+</script>
+</body>
+</html>
