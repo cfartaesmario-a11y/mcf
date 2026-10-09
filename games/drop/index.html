@@ -375,7 +375,10 @@ canvas.confetti{position:fixed;inset:0;z-index:95;pointer-events:none}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script>/* ===================== MCF Drop · datos y economía ===================== */
+<script>/* Catálogo extraído del PDF del Mercado de CS2 (precios en USD del 9/10/2026) */
+const RAW=[[1, "Rifles", "Solitude", "M4A1-S · Algo desgastado", 1.81, 5447], [2, "Rifles", "Midnight Laminate", "AK-47 · Algo desgastado", 3.29, 1529], [3, "Rifles", "Black Lotus", "M4A1-S · Algo desgastado", 4.45, 2471], [4, "Rifles", "Slate", "AK-47 · Bastante desgastado", 4.55, 2349], [5, "Rifles", "Ice Coaled", "AK-47 · Algo desgastado", 5.34, 2252], [6, "Rifles", "Searing Rage", "AK-47 · Algo desgastado", 5.43, 861], [7, "Rifles", "Aphrodite", "AK-47 · Deplorable", 13.42, 736], [8, "Rifles", "Crane Flight", "AK-47 · Algo desgastado", 17.34, 776], [9, "Rifles", "Redline", "AK-47 · Algo desgastado", 32.7, 1211], [10, "Rifles", "In Living Color", "M4A4 · Algo desgastado", 34.5, 164], [11, "Rifles", "Legion of Anubis", "AK-47 · Algo desgastado", 37.42, 443], [12, "Rifles", "Inheritance", "AK-47 · Algo desgastado", 38.58, 884], [13, "Rifles", "Head Shot", "AK-47 · Algo desgastado", 39.93, 345], [14, "Rifles", "Asiimov", "AK-47 · Deplorable", 48.11, 45], [15, "Rifles", "The Emperor", "M4A4 · Algo desgastado", 63.06, 132], [16, "Rifles", "Nightwish", "AK-47 · Deplorable", 68.23, 128], [17, "Rifles", "Mecha Industries", "FAMAS · Recién fabricado", 136.66, 127], [18, "Rifles", "Hot Rod", "M4A1-S · Recién fabricado", 1904.65, 1], [19, "Rifles", "Gold Arabesque", "Souvenir AK-47 · Algo desgastado", 2020.22, 1], [20, "Pistolas", "Silver Pour", "Dual Berettas · Algo desgastado", 0.03, 106149], [21, "Pistolas", "Silent Shot", "USP-S · Algo desgastado", 0.36, 3952], [22, "Pistolas", "Mulberry", "Desert Eagle · Algo desgastado", 2.66, 905], [23, "Pistolas", "Jawbreaker", "USP-S · Algo desgastado", 4.15, 1108], [24, "Pistolas", "Vogue", "Glock-18 · Algo desgastado", 4.3, 948], [25, "Pistolas", "Mecha Industries", "Desert Eagle · Algo desgastado", 5.69, 531], [26, "Pistolas", "Shinobu", "Glock-18 · Algo desgastado", 6.05, 562], [27, "Pistolas", "Melondrama", "Dual Berettas · Algo desgastado", 6.79, 779], [28, "Pistolas", "Cracked Opal", "Tec-9 · Recién fabricado", 9.2, 90], [29, "Pistolas", "Conspiracy", "Desert Eagle · Casi nuevo", 23.87, 222], [30, "Pistolas", "The Bronze", "Desert Eagle · Recién fabricado", 24.77, 211], [31, "Pistolas", "Printstream", "USP-S · Deplorable", 35.0, 107], [32, "Pistolas", "Cyrex", "USP-S · Recién fabricado", 40.9, 476], [33, "Pistolas", "Printstream", "Desert Eagle · Casi nuevo", 49.86, 217], [34, "Pistolas", "Nuclear Garden", "Glock-18 · Recién fabricado", 52.58, 142], [35, "Pistolas", "Water Elemental", "Glock-18 · Recién fabricado", 61.33, 118], [36, "Pistolas", "Bullet Queen", "Glock-18 · Deplorable", 70.41, 33], [37, "Pistolas", "Emerald Jörmungandr", "Souvenir Desert Eagle · Recién fabricado", 1869.04, 1], [38, "Pistolas", "Code Red", "Souvenir Desert Eagle · Recién fabricado", 1904.65, 1], [39, "Cuchillos", "Bright Water", "Shadow Daggers · Algo desgastado", 43.33, 139], [40, "Cuchillos", "Safari Mesh", "Kukri Knife · Algo desgastado", 45.7, 168], [41, "Cuchillos", "Rust Coat", "Survival Knife · Deplorable", 49.0, 141], [42, "Cuchillos", "Ultraviolet", "Navaja Knife · Algo desgastado", 50.45, 76], [43, "Cuchillos", "Autotronic", "Shadow Daggers · Algo desgastado", 54.66, 128], [44, "Cuchillos", "Stained", "Kukri Knife · Bastante desgastado", 66.52, 53], [45, "Cuchillos", "Black Laminate", "Falchion Knife · Bastante desgastado", 68.91, 49], [46, "Cuchillos", "Bright Water", "Falchion Knife · Algo desgastado", 73.0, 100], [47, "Cuchillos", "Freehand", "Bowie Knife · Bastante desgastado", 80.69, 10], [48, "Cuchillos", "Freehand", "Falchion Knife · Casi nuevo", 100.06, 67], [49, "Cuchillos", "Gamma Doppler", "Shadow Daggers · Recién fabricado", 105.8, 253], [50, "Cuchillos", "Autotronic", "Falchion Knife · Algo desgastado", 109.88, 92], [51, "Cuchillos", "Ultraviolet", "Ursus Knife · Casi nuevo", 133.0, 17], [52, "Cuchillos", "Night", "StatTrak Flip Knife · Deplorable", 193.0, 2], [53, "Cuchillos", "Crimson Web", "StatTrak Kukri Knife · Recién fabricado", 1850.77, 1], [54, "Cuchillos", "Marble Fade", "Butterfly Knife · Recién fabricado", 1876.07, 1], [55, "Guantes", "Rattler", "Hydra Gloves · Algo desgastado", 32.45, 182], [56, "Guantes", "Mangrove", "Hydra Gloves · Algo desgastado", 32.85, 157], [57, "Guantes", "Emerald", "Hydra Gloves · Algo desgastado", 34.39, 142], [58, "Guantes", "Racing Green", "Driver Gloves · Algo desgastado", 34.62, 185], [59, "Guantes", "3rd Commando Company", "Moto Gloves · Deplorable", 40.67, 38], [60, "Guantes", "Giraffe", "Hand Wraps · Deplorable", 45.92, 14], [61, "Guantes", "Duct Tape", "Hand Wraps · Algo desgastado", 49.94, 112], [62, "Guantes", "Buckshot", "Specialist Gloves · Algo desgastado", 50.45, 149], [63, "Guantes", "Needle Point", "Broken Fang Gloves · Algo desgastado", 51.8, 120], [64, "Guantes", "Transport", "Moto Gloves · Casi nuevo", 66.56, 50], [65, "Guantes", "Turtle", "Moto Gloves · Algo desgastado", 75.1, 184], [66, "Guantes", "Bronze Morph", "Sport Gloves · Bastante desgastado", 93.88, 23], [67, "Guantes", "Blood Pressure", "Moto Gloves · Algo desgastado", 128.96, 92], [68, "Guantes", "CAUTION!", "Hand Wraps · Algo desgastado", 141.63, 75], [69, "Guantes", "Crimson Weave", "Driver Gloves · Algo desgastado", 1782.5, 1], [70, "Guantes", "Foundation", "Specialist Gloves · Casi nuevo", 1800.0, 1], [71, "Rifles de francotirador", "Exothermic", "AWP · Algo desgastado", 3.25, 729], [72, "Rifles de francotirador", "Green Energy", "AWP · Deplorable", 3.86, 150], [73, "Rifles de francotirador", "Ice Coaled", "AWP · Algo desgastado", 7.33, 509], [74, "Rifles de francotirador", "Crakow!", "AWP · Algo desgastado", 24.7, 260], [75, "Rifles de francotirador", "Chrome Cannon", "AWP · Deplorable", 29.99, 154], [76, "Rifles de francotirador", "Atheris", "AWP · Recién fabricado", 40.88, 307], [77, "Rifles de francotirador", "Chromatic Aberration", "AWP · Casi nuevo", 45.6, 140], [78, "Rifles de francotirador", "Printstream", "AWP · Bastante desgastado", 45.77, 153], [79, "Rifles de francotirador", "Neo-Noir", "AWP · Recién fabricado", 57.88, 249], [80, "Rifles de francotirador", "Desert Hydra", "Souvenir AWP · Algo desgastado", 1780.04, 1], [81, "Rifles de francotirador", "BOOM", "StatTrak AWP · Recién fabricado", 1869.04, 1], [82, "Subfusiles", "Warm Blooded", "UMP-45 · Algo desgastado", 0.23, 737], [83, "Subfusiles", "Sakkaku", "MAC-10 · Algo desgastado", 0.92, 3030], [84, "Subfusiles", "Urban Sovereign", "MP9 · Casi nuevo", 1.66, 438], [85, "Subfusiles", "Sand Scale", "MP9 · Recién fabricado", 5.71, 350], [86, "Subfusiles", "Abyssal Apparition", "MP7 · Algo desgastado", 6.8, 714], [87, "Subfusiles", "Fade", "MP7 · Casi nuevo", 7.84, 303], [88, "Subfusiles", "Airlock", "MP9 · Algo desgastado", 15.0, 102], [89, "Subfusiles", "Bloodsport", "StatTrak MP7 · Algo desgastado", 25.25, 146], [90, "Subfusiles", "Starlight Protector", "MP9 · Casi nuevo", 89.71, 145], [91, "Subfusiles", "Dry Season", "Souvenir MP9 · Bastante desgastado", 1711.4, 1], [92, "Subfusiles", "Death by Kitty", "Souvenir P90 · Casi nuevo", 1800.0, 1], [93, "Escopetas", "Currents", "Nova · Bastante desgastado", 0.03, 3546], [94, "Escopetas", "Monster Melt", "XM1014 · Algo desgastado", 2.27, 439], [95, "Escopetas", "Kiss♥Love", "Sawed-Off · Algo desgastado", 4.07, 582], [96, "Escopetas", "Entombed", "XM1014 · Algo desgastado", 4.2, 624], [97, "Escopetas", "Wasteland Princess", "StatTrak Sawed-Off · Casi nuevo", 18.21, 18], [98, "Escopetas", "The Kraken", "StatTrak Sawed-Off · Bastante desgastado", 1150.04, 1], [99, "Escopetas", "Forest Leaves", "Souvenir Nova · Algo desgastado", 1800.0, 1], [100, "Ametralladoras", "Ultralight", "StatTrak Negev · Algo desgastado", 0.11, 803], [101, "Ametralladoras", "O.S.I.P.R.", "M249 · Algo desgastado", 0.35, 2953], [102, "Ametralladoras", "Dazzle", "Negev · Algo desgastado", 0.43, 520], [103, "Ametralladoras", "Wall Bang", "Negev · Recién fabricado", 0.8, 834], [104, "Ametralladoras", "Phoenix Stencil", "Souvenir Negev · Recién fabricado", 1495.52, 1], [105, "Ametralladoras", "Bock Blocks", "Souvenir M249 · Recién fabricado", 1800.0, 1], [106, "Agentes", "Sabre", "Rezan The Ready", 7.64, 621], [107, "Agentes", "Elite Crew", "Ground Rebel", 10.42, 517], [108, "Agentes", "Elite Crew", "The Elite Mr. Muhlik", 11.54, 844], [109, "Agentes", "Sabre", "'The Doctor' Romanov", 12.0, 874], [110, "Agentes", "KSK", "3rd Commando Company", 14.0, 491], [111, "Agentes", "NSWC SEAL", "Lt. Commander Ricksaw", 18.43, 463], [112, "Agentes", "Brazilian 1st Battalion", "Primeiro Tenente", 87.52, 199], [113, "Agentes", "The Professionals", "Sir Bloody Miami Darryl", 90.48, 174], [114, "Cajas y contenedores", "Revolution Case", "", 0.21, 525876], [115, "Cajas y contenedores", "Sealed Dead Hand Terminal", "", 0.47, 207125], [116, "Cajas y contenedores", "Fever Case", "", 0.86, 272016], [117, "Cajas y contenedores", "Dreams & Nightmares Case", "", 1.35, 552241], [118, "Pegatinas", "Grayhound Gaming (Holo) | Paris 2023", "Pegatina", 0.39, 637], [119, "Pegatinas", "High Heat", "Pegatina", 0.52, 8539], [120, "Pegatinas", "Flex", "Pegatina", 0.94, 2105], [121, "Pegatinas", "G2 Esports (Gold) | Copenhagen 2024", "Pegatina", 5.03, 16], [122, "Pegatinas", "LGB eSports | Katowice 2015", "Pegatina", 126.34, 30], [123, "Pegatinas", "Team Spirit (Gold) | Cologne 2026", "Pegatina", 1996.91, 1], [124, "Pegatinas", "dav1g | Copenhagen 2024", "Placa de pegatina", 1996.91, 1], [125, "Puesto 1 de 15", "Kilowatt Case", "", 0.15, 798869], [126, "Puesto 2 de 15", "Recoil Case", "", 0.29, 237037], [127, "Puesto 3 de 15", "Fracture Case", "", 0.53, 181048], [128, "Puesto 4 de 15", "Gallery Case", "", 0.89, 53005], [129, "Puesto 5 de 15", "Prisma 2 Case", "", 1.46, 60198], [130, "Puesto 6 de 15", "Shadow Case", "", 1.97, 14829], [131, "Puesto 7 de 15", "Gamma Case", "", 3.71, 17322], [132, "Puesto 8 de 15", "Chroma 2 Case", "", 5.0, 14948], [133, "Puesto 9 de 15", "Operation Breakout Weapon Case", "", 10.37, 19981], [134, "Puesto 10 de 15", "Glove Case", "", 11.44, 19273], [135, "Puesto 11 de 15", "CS:GO Weapon Case 2", "", 25.04, 740], [136, "Puesto 12 de 15", "Operation Hydra Case", "", 36.01, 732], [137, "Puesto 13 de 15", "eSports 2013 Case", "", 55.94, 235], [138, "Puesto 14 de 15", "Operation Bravo Case", "", 67.67, 394], [139, "Puesto 15 de 15", "CS:GO Weapon Case", "", 147.0, 418]];
+
+/* ===================== MCF Drop · datos y economía (catálogo real de CS2) ===================== */
 'use strict';
 const RAR=[
   {n:'Común',c:'#b0c3d9'},
@@ -385,483 +388,105 @@ const RAR=[
   {n:'Clasificado',c:'#d32ce6'},
   {n:'Encubierto',c:'#eb4b4b'},
   {n:'Extraordinario',c:'#ffc93c'}];
-const RBASE=[3,8,22,80,320,1300,5000];
 const WEAR=[
   {k:'RF',n:'Recién fabricado',a:0,b:.07,m:1.55,p:.04},
   {k:'CN',n:'Casi nuevo',a:.07,b:.15,m:1.2,p:.22},
   {k:'AD',n:'Algo desgastado',a:.15,b:.38,m:1,p:.36},
   {k:'BD',n:'Bastante desgastado',a:.38,b:.45,m:.84,p:.22},
-  {k:'DT',n:'Deteriorado',a:.45,b:1,m:.7,p:.16}];
-const ST_CHANCE=.1,ST_MULT=1.9;
+  {k:'DT',n:'Deplorable',a:.45,b:1,m:.7,p:.16}];
+const WEARIDX={'Recién fabricado':0,'Casi nuevo':1,'Algo desgastado':2,'Bastante desgastado':3,'Deplorable':4};
+const ST_CHANCE=.1,ST_MULT=1.9,USD=10; /* 1 $ = 10 créditos */
 const wearOf=f=>{for(let i=0;i<WEAR.length;i++)if(f<WEAR[i].b)return i;return 4};
+const CATT={'Rifles':'Rifle','Pistolas':'Pistola','Cuchillos':'Cuchillo','Guantes':'Guantes','Rifles de francotirador':'Francotirador','Subfusiles':'Subfusil','Escopetas':'Escopeta','Ametralladoras':'Ametralladora','Agentes':'Agente','Pegatinas':'Pegatina'};
 
-const WPN={
-  ak:{n:'AK-47',t:'Rifle',m:1.35},
-  m4:{n:'M4A4',t:'Rifle',m:1.2},
-  awp:{n:'AWP',t:'Francotirador',m:1.45},
-  deagle:{n:'Desert Eagle',t:'Pistola',m:.95},
-  glock:{n:'Glock-18',t:'Pistola',m:.8},
-  usp:{n:'USP',t:'Pistola',m:.85},
-  mp9:{n:'MP9',t:'Subfusil',m:.72},
-  p90:{n:'P90',t:'Subfusil',m:.78},
-  nova:{n:'Nova',t:'Escopeta',m:.62},
-  karambit:{n:'Karambit',t:'Cuchillo',m:1.3,gold:1},
-  bayonet:{n:'Bayoneta',t:'Cuchillo',m:1.1,gold:1},
-  butterfly:{n:'Mariposa',t:'Cuchillo',m:1.22,gold:1},
-  bowie:{n:'Bowie',t:'Cuchillo',m:.86,gold:1},
-  gsport:{n:'Guantes deportivos',t:'Guantes',m:1.12,gold:1},
-  gdriver:{n:'Guantes de conductor',t:'Guantes',m:.94,gold:1}};
-
-/* p = patrón de pintura, c = colores */
-const SKIN={
-  arena:{n:'Arena',p:'solid',c:['#cdb88e','#9c8660']},
-  bosque:{n:'Bosque',p:'camo',c:['#3e4a2e','#5d6b3a','#2a3220','#7a7a52']},
-  grafito:{n:'Grafito',p:'solid',c:['#585c62','#2c2e31']},
-  oxido:{n:'Óxido',p:'splatter',c:['#5e3f2a','#a0582c','#2e2118']},
-  urbano:{n:'Urbano',p:'digital',c:['#7d8288','#5a5f66','#a5aab0','#3e4247']},
-  desierto:{n:'Tormenta de arena',p:'camo',c:['#c2a36b','#9b7a46','#e0c993','#6e5530']},
-  azulmar:{n:'Mar Azul',p:'waves',c:['#0f3b6e','#2f86d6','#86c5ff']},
-  cobalto:{n:'Cobalto',p:'solid',c:['#2f63e6','#0f2a6e']},
-  ajedrez:{n:'Ajedrez',p:'checker',c:['#1d1d1f','#dcdcdc']},
-  safari:{n:'Safari',p:'camo',c:['#b08a4a','#5a4020','#d9c08a','#2e2214']},
-  lima:{n:'Lima',p:'stripes',c:['#9fe03a','#18220d']},
-  coral:{n:'Coral',p:'marble',c:['#ff7a6b','#ffe1d8']},
-  panal:{n:'Panal',p:'hex',c:['#10233f','#3fa9ff','#1f6fd1']},
-  circuito:{n:'Circuito',p:'circuit',c:['#06121a','#28e0b0']},
-  tormenta:{n:'Tormenta',p:'marble',c:['#2e3350','#9aa6d8']},
-  carbono:{n:'Fibra de carbono',p:'carbon',c:['#161616','#3a3a3a']},
-  pixel:{n:'Píxel',p:'digital',c:['#2a1f5a','#5b3fd1','#9d7bff','#140f2e']},
-  neontok:{n:'Neón Tokio',p:'neon',c:['#07060f','#ff2fb3','#2fd8ff']},
-  ciber:{n:'Ciberpunk',p:'neon',c:['#0b0716','#f7e600','#ff2a6d']},
-  ola:{n:'Gran Ola',p:'waves',c:['#0c2a4a','#2c6fb0','#e8f4ff']},
-  hielo:{n:'Hielo Ártico',p:'marble',c:['#cbeaff','#5fb6f5']},
-  glaciar:{n:'Glaciar',p:'hex',c:['#bfe6ff','#ffffff','#5ab0e8']},
-  aurora:{n:'Aurora boreal',p:'fade',c:['#1de9b6','#3d5afe','#d500f9']},
-  ventisca:{n:'Ventisca',p:'splatter',c:['#e9f5ff','#8fc0e6','#ffffff']},
-  dragon:{n:'Dragón Rojo',p:'scales',c:['#5a0808','#e8333a','#ffcf4a']},
-  jade:{n:'Dragón de Jade',p:'scales',c:['#0a2e21','#1fbf7a','#d9ffe9']},
-  fenix:{n:'Fénix',p:'flames',c:['#1a0500','#ff9a1f','#ff2e1f']},
-  lava:{n:'Lava',p:'flames',c:['#120202','#ff5a00','#ffd000']},
-  samurai:{n:'Samurái',p:'stripes',c:['#ece4d2','#b3121f']},
-  noche:{n:'Noche',p:'solid',c:['#20232b','#0e1014']},
-  carbonrojo:{n:'Carbono Rojo',p:'carbon',c:['#2a0b0b','#8a1c1c']},
-  humo:{n:'Humo',p:'marble',c:['#2a2a2e','#9a9aa2']},
-  acero:{n:'Acero',p:'damascus',c:['#4d535b','#a9b0b8']},
-  selva:{n:'Selva',p:'camo',c:['#1f3b1a','#3f6b2a','#86a84a','#0f1d0c']},
-  tigre:{n:'Tigre',p:'tiger',c:['#ff8a1f','#1a0f05']},
-  jaguar:{n:'Jaguar',p:'spots',c:['#d9a443','#2a1808','#8a5a20']},
-  veneno:{n:'Veneno',p:'fade',c:['#d4ff3a','#00c853','#00401a']},
-  galaxia:{n:'Galaxia',p:'galaxy',c:['#0a0420','#7a2cff','#ff3ca6','#3cc8ff']},
-  nebulosa:{n:'Nebulosa',p:'galaxy',c:['#05030f','#2c6bff','#00e5ff','#b388ff']},
-  supernova:{n:'Supernova',p:'galaxy',c:['#120308','#ff3c3c','#ffb03c','#ffffff']},
-  atardecer:{n:'Atardecer en Pineda',p:'fade',c:['#ffb347','#ff5e62','#6a3093']},
-  playa:{n:'Playa',p:'waves',c:['#f3d9a4','#2fb8c9','#ffffff']},
-  sol:{n:'Sol del Maresme',p:'fade',c:['#fff45c','#ff9a1f','#ff3d3d']},
-  gaviota:{n:'Gaviota',p:'solid',c:['#f4f6f9','#bcc8d4']},
-  oro:{n:'Oro',p:'gold',c:['#fff3b0','#d4a017','#6e4a00']},
-  ororosa:{n:'Oro Rosa',p:'gold',c:['#ffe3d9','#e08a75','#6e3528']},
-  cobre:{n:'Cobre',p:'gold',c:['#ffd6ad','#b8682e','#4e2410']},
-  fade:{n:'Fundido',p:'fade',c:['#ffd23b','#ff4fa3','#7a5cff']},
-  templado:{n:'Templado',p:'hardened',c:['#3d5fd6','#d8a840','#6a4ab0']},
-  damasco:{n:'Damasco',p:'damascus',c:['#33373d','#c8ced6']},
-  marmol:{n:'Mármol',p:'marble',c:['#ecebe6','#3a3a3a']},
-  rubi:{n:'Rubí',p:'galaxy',c:['#1a0006','#ff1744','#ff8a80','#ffffff']},
-  zafiro:{n:'Zafiro',p:'galaxy',c:['#000a1a','#2979ff','#80d8ff','#ffffff']},
-  esmeralda:{n:'Esmeralda',p:'galaxy',c:['#001a0d','#00c853','#b9f6ca','#ffffff']},
-  tigredor:{n:'Tigre Dorado',p:'tiger',c:['#ffcc33','#3a2200']},
-  cristal:{n:'Cristal',p:'hex',c:['#14212e','#9fe8ff','#e0faff']},
-  pantera:{n:'Pantera',p:'solid',c:['#18181c','#050506']},
-  hexneon:{n:'Hexágono',p:'hex',c:['#0a0a12','#ff2fb3','#5b2cff']},
-  comando:{n:'Comando',p:'camo',c:['#2f3a2a','#4f5d3a','#1a2016','#8b8f6a']},
-  rayo:{n:'Rayo',p:'stripes',c:['#ffe600','#111111']},
-  arcoiris:{n:'Arcoíris',p:'fade',c:['#ff3d3d','#ffd23b','#3dff7a','#3d8bff','#b03dff']},
-  plasma:{n:'Plasma',p:'neon',c:['#05010f','#7c4dff','#18ffff']},
-  cereza:{n:'Cereza',p:'splatter',c:['#2a0612','#ff2e63','#ffd1dc']},
-  ambar:{n:'Ámbar',p:'fade',c:['#ffd000','#ff8800','#5a2a00']},
-  medianoche:{n:'Medianoche',p:'circuit',c:['#04060f','#4d7cff']},
-  abismo:{n:'Abismo',p:'waves',c:['#020814','#0a3a6a','#18a0c8']},
-  piloto:{n:'Piloto',p:'stripes',c:['#e9edf2','#1d4e9e']},
-  turbina:{n:'Turbina',p:'damascus',c:['#2b3440','#8fd0ff']},
-  radar:{n:'Radar',p:'circuit',c:['#03140a','#3dff7a']},
-  cuero:{n:'Cuero',p:'solid',c:['#7a4a26','#3e220e']},
-  serpiente:{n:'Serpiente',p:'scales',c:['#1b2a0e','#7fbf2a','#e8ff9a']},
-  hueso:{n:'Hueso',p:'marble',c:['#efe6d2','#8a7a5a']}};
-
-/* Perfiles de probabilidad por rareza [Común..Extraordinario] (%) */
-const PROF={
-  barata:[52,28,13.5,4.5,1.3,.5,.2],
-  normal:[0,0,75.2,17,4.7,2.27,.83],
-  semi:[0,0,62,22,9,4.5,2.5],
-  premium:[0,0,40,32,16,8,4]};
-
-const KNIVES=['karambit','bayonet','butterfly','bowie'],GLOVES=['gsport','gdriver'];
-/* Cajas: i = [[arma,skin,rareza],…], g = cuchillos/guantes [arma,skin] */
-const CASES=[
-  {id:'recluta',n:'Caja Recluta',d:'La de empezar. Barata y con sorpresas.',prof:'barata',col:['#8f9aa8','#3a4250'],sym:'R',
-    i:[['nova','arena',0],['mp9','grafito',0],['glock','urbano',0],['usp','gaviota',0],['p90','bosque',1],['deagle','oxido',1],['m4','desierto',1],
-       ['ak','safari',2],['awp','azulmar',2],['glock','cobalto',2],['m4','lima',3],['deagle','coral',3],['ak','carbono',4],['awp','tormenta',5]],
-    g:[['bowie','noche'],['bowie','acero'],['gdriver','cuero']]},
-  {id:'origen',n:'Caja Origen',d:'La clásica. Equilibrada y con buenos cuchillos.',prof:'normal',col:['#4b69ff','#16204a'],sym:'O',
-    i:[['mp9','panal',2],['nova','ajedrez',2],['p90','urbano',2],['usp','cobalto',2],['glock','desierto',2],
-       ['m4','circuito',3],['deagle','tormenta',3],['p90','pixel',3],['awp','hexneon',3],
-       ['ak','neontok',4],['usp','ola',4],['glock','fade',4],['m4','dragon',5],['ak','fenix',5]],
-    g:[['karambit','fade'],['karambit','templado'],['bayonet','fade'],['bayonet','damasco'],['bowie','marmol'],['butterfly','noche']]},
-  {id:'neon',n:'Caja Neón',d:'Colores que brillan en la oscuridad.',prof:'normal',col:['#ff2fb3','#2a0838'],sym:'N',
-    i:[['mp9','pixel',2],['nova','medianoche',2],['glock','hexneon',2],['p90','rayo',2],['usp','plasma',2],
-       ['deagle','neontok',3],['m4','ciber',3],['awp','pixel',3],['ak','medianoche',3],
-       ['p90','plasma',4],['awp','neontok',4],['deagle','arcoiris',4],['ak','ciber',5],['m4','plasma',5]],
-    g:[['butterfly','fade'],['butterfly','zafiro'],['karambit','galaxia'],['gsport','hexneon'],['gsport','plasma']]},
-  {id:'artica',n:'Caja Ártica',d:'Hielo, nieve y acero frío.',prof:'normal',col:['#9fe8ff','#0d2a3c'],sym:'A',
-    i:[['nova','ventisca',2],['mp9','glaciar',2],['usp','gaviota',2],['glock','azulmar',2],['p90','hielo',2],
-       ['m4','glaciar',3],['deagle','cristal',3],['awp','ola',3],['ak','tormenta',3],
-       ['usp','aurora',4],['m4','hielo',4],['deagle','zafiro',4],['awp','hielo',5],['ak','glaciar',5]],
-    g:[['bayonet','zafiro'],['bayonet','marmol'],['karambit','acero'],['bowie','zafiro'],['gdriver','glaciar']]},
-  {id:'dragon',n:'Caja Dragón',d:'Escamas, fuego y oro.',prof:'normal',col:['#e8333a','#2a0606'],sym:'D',
-    i:[['nova','carbonrojo',2],['mp9','cereza',2],['glock','samurai',2],['p90','oxido',2],['usp','jade',2],
-       ['m4','samurai',3],['deagle','lava',3],['awp','jade',3],['ak','carbonrojo',3],
-       ['glock','dragon',4],['p90','fenix',4],['usp','oro',4],['awp','dragon',5],['ak','jade',5]],
-    g:[['karambit','rubi'],['karambit','tigredor'],['bayonet','tigre'],['butterfly','rubi'],['gsport','dragon']]},
-  {id:'carbono',n:'Caja Carbono',d:'Negro mate, fibra y acero. Elegancia.',prof:'normal',col:['#5a5f68','#0c0d10'],sym:'C',
-    i:[['nova','grafito',2],['mp9','carbono',2],['glock','noche',2],['p90','acero',2],['usp','pantera',2],
-       ['m4','carbono',3],['deagle','damasco',3],['awp','noche',3],['ak','acero',3],
-       ['usp','damasco',4],['deagle','pantera',4],['m4','turbina',4],['awp','damasco',5],['ak','pantera',5]],
-    g:[['bowie','damasco'],['bayonet','pantera'],['karambit','pantera'],['butterfly','damasco'],['gdriver','carbono']]},
-  {id:'selva',n:'Caja Selva',d:'Camuflaje, fieras y veneno.',prof:'normal',col:['#5fd068','#0c2410'],sym:'S',
-    i:[['nova','selva',2],['mp9','comando',2],['glock','bosque',2],['p90','safari',2],['usp','serpiente',2],
-       ['m4','comando',3],['deagle','jaguar',3],['awp','selva',3],['ak','veneno',3],
-       ['glock','tigre',4],['p90','veneno',4],['usp','jaguar',4],['ak','tigre',5],['awp','serpiente',5]],
-    g:[['karambit','tigre'],['bowie','tigre'],['bayonet','esmeralda'],['gsport','comando'],['gdriver','jaguar']]},
-  {id:'galaxia',n:'Caja Galaxia',d:'Más probabilidad de lo bueno. Nebulosas y estrellas.',prof:'semi',col:['#7a2cff','#0a0420'],sym:'G',
-    i:[['mp9','nebulosa',2],['nova','plasma',2],['glock','galaxia',2],['p90','medianoche',2],['usp','abismo',2],
-       ['m4','nebulosa',3],['deagle','galaxia',3],['awp','plasma',3],['ak','abismo',3],
-       ['usp','supernova',4],['m4','galaxia',4],['deagle','supernova',4],['awp','galaxia',5],['ak','supernova',5]],
-    g:[['karambit','esmeralda'],['karambit','zafiro'],['butterfly','galaxia'],['bayonet','rubi'],['butterfly','esmeralda'],['gsport','galaxia']]},
-  {id:'pineda',n:'Caja Pineda',d:'Sol, playa y atardeceres del Maresme.',prof:'normal',col:['#ff9a1f','#3a1206'],sym:'P',
-    i:[['nova','playa',2],['mp9','sol',2],['glock','gaviota',2],['p90','ambar',2],['usp','playa',2],
-       ['m4','piloto',3],['deagle','ambar',3],['awp','sol',3],['ak','playa',3],
-       ['glock','atardecer',4],['m4','sol',4],['usp','atardecer',4],['awp','atardecer',5],['ak','atardecer',5]],
-    g:[['butterfly','atardecer'],['karambit','ambar'],['bowie','ororosa'],['gdriver','piloto']]},
-  {id:'elite',n:'Caja Élite Dorada',d:'La premium. Muy cara, pero aquí sale lo mejor.',prof:'premium',col:['#ffc93c','#3a2600'],sym:'E',
-    i:[['mp9','oro',2],['nova','cobre',2],['glock','ororosa',2],['p90','oro',2],['usp','cobre',2],
-       ['m4','oro',3],['deagle','oro',3],['awp','cobre',3],['ak','ororosa',3],
-       ['glock','templado',4],['usp','marmol',4],['deagle','templado',4],['m4','templado',5],['awp','oro',5]],
-    g:[['karambit','oro'],['butterfly','oro'],['bayonet','ororosa'],['karambit','rubi'],['butterfly','templado'],['gsport','oro'],['gdriver','ororosa']]}];
-const CASE=Object.fromEntries(CASES.map(c=>[c.id,c]));
-
-/* Catálogo de artículos únicos */
-const CAT={};
-CASES.forEach(cs=>{cs.i.forEach(([w,s,r])=>{const k=w+'|'+s;(CAT[k]||(CAT[k]={k,w,s,r,cases:[]})).cases.push(cs.id)});
-  cs.g.forEach(([w,s])=>{const k=w+'|'+s;(CAT[k]||(CAT[k]={k,w,s,r:6,cases:[]})).cases.push(cs.id)})});
-const CATL=Object.values(CAT);
+/* ---------- artículos ---------- */
+const DEF={},WPN={},SKIN={},CASE_RAW=[];
+RAW.forEach(([n,cat,name,type,usd,sale])=>{
+  if(cat==='Cajas y contenedores'||cat.startsWith('Puesto')){CASE_RAW.push({n,name,usd,sale});return}
+  const t=CATT[cat]||cat;let w=type,lw=2,nw=0,st0=0,sv=0,s=name;
+  if(t==='Agente'){w='Agente · '+name;s=type;nw=1}
+  else if(t==='Pegatina'){w=type||'Pegatina';s=name;nw=1}
+  else{const p=type.split(' · ');w=p[0];lw=WEARIDX[p[1]]!=null?WEARIDX[p[1]]:2;if(/^StatTrak /.test(w)){st0=1;w=w.replace(/^StatTrak /,'')}if(/^Souvenir /.test(w))sv=1}
+  const star=t==='Cuchillo'||t==='Guantes';
+  let r;if(star||usd>=1000)r=6;else if(usd<.5)r=0;else if(usd<3)r=1;else if(usd<10)r=2;else if(usd<30)r=3;else if(usd<50)r=4;else r=5;
+  const k='i'+n;DEF[k]={k,n,w,s,t,r,usd,lw,nw,st0,sv,star,sale};WPN[k]={n:(st0?'StatTrak™ ':'')+w,t,gold:star};SKIN[k]={n:s}});
+const isGold=w=>!!(DEF[w]&&DEF[w].star);
+const isNW=w=>!!(DEF[w]&&DEF[w].nw);
+function rarOf(it){const d=DEF[it.w];return d?d.r:2}
+function baseVal(w){const d=DEF[w];return d?Math.max(1,d.usd*USD):1}
+function itemValue(it){const d=DEF[it.w];if(!d)return 1;let v=d.usd*USD;
+  if(!d.nw){const wi=wearOf(it.f),W=WEAR[wi];v=v*W.m/WEAR[d.lw].m;v*=1+((W.b-Math.min(it.f,W.b))/(W.b-W.a))*.06}
+  if(it.st&&!d.st0)v*=ST_MULT;return Math.max(1,Math.round(v))}
+const defF=w=>{const d=DEF[w];if(!d||d.nw)return 0;const W=WEAR[d.lw];return +((W.a+W.b)/2).toFixed(4)};
+function itemName(it){const d=DEF[it.w];if(!d)return'?';return(d.star?'★ ':'')+(it.st&&!d.st0?'StatTrak™ ':'')+WPN[it.w].n+' | '+d.s}
+const wearTxt=(it,short)=>isNW(it.w)?'—':WEAR[wearOf(it.f)][short?'k':'n'];
+const itemSrc=w=>'img/'+(DEF[w]?DEF[w].n:0)+'.webp';
+const caseSrc=cs=>'img/c'+cs.img+'.webp';
 
 /* ---------- utilidades ---------- */
 function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function rnd(){const b=new Uint32Array(1);crypto.getRandomValues(b);return b[0]/4294967296}
-const skinMult=s=>{const h=hashStr('sk'+s)%1000/1000;return .82+h*.5};
-const isGold=w=>!!(WPN[w]&&WPN[w].gold);
-function rarOf(it){const c=CAT[it.w+'|'+it.s];return c?c.r:2}
-function baseVal(w,s,r){return RBASE[r]*WPN[w].m*skinMult(s)}
-function itemValue(it){const r=rarOf(it);const wi=wearOf(it.f),W=WEAR[wi];
-  const inTier=1+((W.b-Math.min(it.f,W.b))/(W.b-W.a))*.08;
-  return Math.max(1,Math.round(baseVal(it.w,it.s,r)*W.m*inTier*(it.st?ST_MULT:1)))}
-function itemName(it){const W=WPN[it.w];return(W.gold?'★ ':'')+(it.st?'ST™ ':'')+W.n+' | '+SKIN[it.s].n}
-function shortName(it){return WPN[it.w].n}
 function genFloat(r){let x=r(),acc=0;for(const W of WEAR){acc+=W.p;if(x<acc)return +(W.a+(W.b-W.a)*r()).toFixed(5)}return +(.45+.55*r()).toFixed(5)}
 function uid(){return Date.now().toString(36)+Math.floor(rnd()*1e9).toString(36)}
+const fmt=n=>Math.round(n).toLocaleString('es-ES');
+
+/* ---------- cajas (las del PDF), ordenadas de barata a cara ---------- */
+const PROF={
+  barata:[50,28,14,5,1.6,.6,.8],
+  normal:[0,0,75.2,17,4.7,2.27,.83],
+  semi:[0,0,62,22,9,4.5,2.5],
+  premium:[0,0,42,30,15,8.5,4.5]};
+const TIER={};Object.values(DEF).forEach(d=>{(TIER[d.r]||(TIER[d.r]=[])).push(d.k)});
+const goldW=k=>1/Math.pow(Math.max(5,DEF[k].usd),.75);
+const CASES=(()=>{const L=CASE_RAW.slice().sort((a,b)=>a.usd-b.usd);const R=mulberry(20261009);
+  const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+  const cyc={};const take=(r,n)=>{const c=cyc[r]||(cyc[r]={l:shuf(TIER[r]||[]),i:0});const out=[];let g=0;while(out.length<n&&c.l.length&&g++<200){const k=c.l[c.i++%c.l.length];if(!out.includes(k))out.push(k)}return out};
+  const byType=(re)=>TIER[6].filter(k=>re.test(DEF[k].w));
+  const jack=TIER[6].filter(k=>!DEF[k].star);const knives=TIER[6].filter(k=>DEF[k].t==='Cuchillo'),gloves=TIER[6].filter(k=>DEF[k].t==='Guantes');
+  let ki=0,gi=0,ji=0;const kn=shuf(knives),gl=shuf(gloves),jk=shuf(jack);
+  const COLS=[['#9aa6b8','#2b3240'],['#4b69ff','#141c44'],['#8847ff','#1f0f3d'],['#d32ce6','#2e0833'],['#eb4b4b','#330a0a'],['#ffc93c','#3a2600']];
+  return L.map((c,i)=>{const prof=i<6?'barata':i<14?'normal':i<17?'semi':'premium';const cnt={0:4,1:4,2:5,3:4,4:3,5:2};const items=[];
+    for(let r=0;r<=5;r++){if(!PROF[prof][r])continue;take(r,cnt[r]).forEach(k=>items.push([k,k,r]))}
+    let g=[];const nm=c.name;
+    if(/Glove/.test(nm))g=gloves.slice();
+    else{if(/Hydra/.test(nm))g.push(...byType(/Hydra/));if(/Shadow/.test(nm))g.push(...byType(/Shadow Daggers/));if(/Gamma/.test(nm))g.push(...byType(/Shadow Daggers|Falchion/));if(/Chroma/.test(nm))g.push(...byType(/Butterfly|Falchion/));
+      while(g.length<6){g.push(kn[ki++%kn.length]);if(g.length<6&&i%2)g.push(gl[gi++%gl.length])}
+      const nj=prof==='barata'?1:prof==='normal'?1:2;for(let j=0;j<nj;j++)g.push(jk[ji++%jk.length])}
+    g=[...new Set(g)];
+    const tier=Math.min(5,Math.floor(i/3.2));
+    return{id:'c'+c.n,img:c.n,n:nm,usd:c.usd,sale:c.sale,d:`${prof==='premium'?'Premium · ':prof==='semi'?'Más suerte · ':''}En Steam: ${c.usd.toFixed(2).replace('.',',')} $`,prof,col:COLS[tier],
+      i:items,g:g.map(k=>[k,k]),gw:g.map(goldW)}})})();
+const CASE=Object.fromEntries(CASES.map(c=>[c.id,c]));
+const CAT={};CASES.forEach(cs=>{cs.i.forEach(([w,s,r])=>{const k=w+'|'+s;(CAT[k]||(CAT[k]={k,w,s,r,cases:[]})).cases.push(cs.id)});cs.g.forEach(([w,s])=>{const k=w+'|'+s;(CAT[k]||(CAT[k]={k,w,s,r:6,cases:[]})).cases.push(cs.id)})});
+Object.values(DEF).forEach(d=>{const k=d.k+'|'+d.k;if(!CAT[k])CAT[k]={k,w:d.k,s:d.k,r:d.r,cases:[]}});
+const CATL=Object.values(CAT);
+
 /* Probabilidades de una caja (con suerte de evento) */
 function caseOdds(cs,luck){const p=PROF[cs.prof].slice();const has=p.map((v,i)=>i===6?cs.g.length>0:cs.i.some(x=>x[2]===i));
   for(let i=0;i<7;i++){if(!has[i])p[i]=0;if(i>=4&&luck>1)p[i]*=luck}const t=p.reduce((a,b)=>a+b,0);return p.map(v=>v/t)}
-/* Tirar un artículo de una caja. r = función aleatoria */
+function pickGold(cs,r){const tot=cs.gw.reduce((a,b)=>a+b,0);let x=r()*tot;for(let i=0;i<cs.g.length;i++){x-=cs.gw[i];if(x<=0)return cs.g[i]}return cs.g[cs.g.length-1]}
 function rollCase(cs,r,luck){const od=caseOdds(cs,luck||1);let x=r(),acc=0,rr=2;for(let i=0;i<7;i++){acc+=od[i];if(x<acc){rr=i;break}}
-  let w,s;if(rr===6){[w,s]=cs.g[Math.floor(r()*cs.g.length)]}else{const pool=cs.i.filter(e=>e[2]===rr);[w,s]=pool[Math.floor(r()*pool.length)]}
-  const st=r()<ST_CHANCE;const f=genFloat(r);return{w,s,f,st:st?1:0,o:cs.id}}
-/* Valor esperado de una caja y precio */
-function caseEV(cs){const od=caseOdds(cs,1);let ev=0;
-  for(let rr=0;rr<7;rr++){if(!od[rr])continue;const pool=rr===6?cs.g.map(([w,s])=>[w,s,6]):cs.i.filter(e=>e[2]===rr);
-    const avg=pool.reduce((a,[w,s])=>a+baseVal(w,s,rr),0)/pool.length;ev+=od[rr]*avg}
-  const wearAvg=WEAR.reduce((a,W)=>a+W.p*W.m,0)*1.04;return ev*wearAvg*(1+ST_CHANCE*(ST_MULT-1))}
+  let w,s;if(rr===6){[w,s]=pickGold(cs,r)}else{const pool=cs.i.filter(e=>e[2]===rr);[w,s]=pool[Math.floor(r()*pool.length)]}
+  const d=DEF[w];const stOk=!d.nw&&!d.st0&&!d.sv&&d.t!=='Guantes';const st=stOk&&r()<ST_CHANCE;const f=d.nw?0:genFloat(r);return{w,s,f,st:st?1:0,o:cs.id}}
+function caseEV(cs){const R=mulberry(hashStr(cs.id));let s=0;const N=6000;for(let i=0;i<N;i++)s+=itemValue(rollCase(cs,R,1));return s/N}
 const nicePrice=v=>{const m=v<100?5:v<500?10:v<2000?25:50;return Math.max(m,Math.round(v/m)*m)};
-CASES.forEach(cs=>{cs.ev=caseEV(cs);cs.price=nicePrice(cs.ev/.9)});
-const fmt=n=>Math.round(n).toLocaleString('es-ES');
+{let prev=0;CASES.forEach(cs=>{cs.ev=caseEV(cs);cs.price=Math.max(nicePrice(cs.ev/.9),prev+5);prev=cs.price})}
 /* Niveles */
 const xpNeed=l=>Math.round(120*Math.pow(l,1.45));
-const levelReward=l=>({c:150+l*60,box:l%5===0?(l>=20?'galaxia':'origen'):null});
-const DAILY_WHEEL=[150,250,400,150,600,250,1000,300,2500,200,'origen',350];
+const levelReward=l=>({c:150+l*60,box:l%5===0?(l>=20?CASES[15].id:CASES[8].id):null});
+const DAILY_WHEEL=[150,250,400,150,600,250,1000,300,2500,200,CASES[8].id,350];
 const BOTS=['Bot Pere','Bot Laia','Bot Nil','Bot Júlia','Bot Marc','Bot Ona','Bot Pol','Bot Aina','Bot Èric','Bot Martina'];
 
-/* ===================== MCF Drop · render 3D por código ===================== */
+/* ===================== MCF Drop · imágenes (catálogo real de CS2) ===================== */
 'use strict';
-/* Partes: k = paint (lleva la skin) | metal | dark (polímero) | glass ; d = path SVG absoluto ; b = bbox opcional ; eo = evenodd */
-const P=(k,d,o)=>Object.assign({k,d},o||{});
-const notches=(x0,x1,y0,y1,step)=>{let s='';for(let x=x0;x<=x1;x+=step)s+=`M${x} ${y0} L${x} ${y1} `;return s};
-const SHAPES={
-  ak:{parts:[
-    P('paint','M12 62 L100 50 L122 50 L122 80 L100 82 L22 104 Q12 106 12 98 Z'),
-    P('paint','M120 48 L248 48 L252 52 L252 78 L120 80 Z'),
-    P('metal','M232 40 L250 40 L250 48 L232 48 Z'),
-    P('paint','M150 78 L174 78 L166 120 Q164 124 158 124 L144 122 Q140 120 141 116 Z'),
-    P('paint','M200 78 L228 78 Q236 100 248 124 L226 134 Q212 108 204 86 Z'),
-    P('metal','M252 43 L330 43 Q335 43 335 47 L335 52 L252 52 Z'),
-    P('paint','M252 52 L318 52 Q324 52 324 58 L324 70 Q324 76 318 76 L252 76 Z'),
-    P('metal','M322 58 L384 58 L384 66 L322 66 Z'),
-    P('metal','M366 44 L374 44 L376 58 L364 58 Z'),
-    P('metal','M382 54 L396 54 L396 70 L382 70 Z')],
-    det:[['M126 57 L246 57',1,'rgba(0,0,0,.35)'],['M262 61 L314 61 M262 68 L314 68',1.4,'rgba(0,0,0,.35)'],['M176 79 Q178 96 196 92 L200 80',3,'#24272c'],['M58 70 L60 86',1,'rgba(0,0,0,.25)']]},
-  m4:{parts:[
-    P('metal','M70 58 L132 58 L132 70 L70 70 Z'),
-    P('paint','M14 54 L76 52 Q82 52 82 58 L82 76 Q82 84 74 86 L20 92 Q12 92 12 84 L12 60 Q12 54 14 54 Z'),
-    P('paint','M128 60 L248 60 L248 82 L196 84 L128 84 Z'),
-    P('paint','M130 46 L250 46 L254 50 L254 62 L130 62 Z'),
-    P('metal','M138 38 L246 38 L246 46 L138 46 Z'),
-    P('paint','M150 82 L172 82 L164 122 Q162 126 156 126 L144 124 Q140 122 141 118 Z'),
-    P('paint','M198 84 L224 84 L228 126 Q228 130 224 130 L204 130 Q200 130 200 126 Z'),
-    P('paint','M254 48 L328 50 Q334 50 334 56 L334 72 Q334 78 328 78 L254 80 Z'),
-    P('metal','M312 30 L320 30 L326 50 L306 50 Z'),
-    P('metal','M334 58 L386 58 L386 66 L334 66 Z'),
-    P('metal','M382 54 L398 54 L398 70 L382 70 Z')],
-    det:[[notches(144,242,38,45,8),1,'rgba(0,0,0,.5)'],['M266 58 L276 58 M286 58 L296 58 M306 58 L316 58 M266 70 L276 70 M286 70 L296 70 M306 70 L316 70',3,'rgba(0,0,0,.4)'],['M172 84 Q176 98 196 94 L198 84',3,'#24272c'],['M24 64 L70 62',1,'rgba(0,0,0,.25)']]},
-  awp:{parts:[
-    P('paint','M10 62 L118 52 L134 54 L134 84 L104 88 Q84 104 54 102 L14 104 Q8 104 8 96 L8 68 Q8 62 10 62 Z M52 80 Q52 72 64 72 L90 72 Q98 72 98 80 Q98 88 88 89 L62 89 Q52 89 52 80 Z',{eo:1}),
-    P('paint','M132 52 L236 52 L240 56 L240 76 L132 78 Z'),
-    P('metal','M176 76 L184 76 L190 92 Q192 98 186 98 Q180 98 180 92 Z'),
-    P('paint','M196 76 L222 76 L222 96 L196 96 Z'),
-    P('metal','M168 40 L178 40 L178 52 L168 52 Z M214 40 L224 40 L224 52 L214 52 Z'),
-    P('paint','M150 28 L242 28 L242 40 L150 40 Z'),
-    P('metal','M128 24 Q126 34 128 44 L152 42 L152 26 Z'),
-    P('metal','M240 26 L264 20 Q268 34 264 48 L240 42 Z'),
-    P('paint','M238 54 L304 56 Q310 56 310 62 L310 70 Q310 74 304 74 L238 76 Z'),
-    P('metal','M306 59 L388 60 L388 66 L306 67 Z'),
-    P('metal','M380 54 L398 55 L398 71 L380 72 Z')],
-    det:[['M150 78 Q152 94 170 90 L172 78',3,'#24272c'],['M386 58 L392 58 M386 63 L392 63 M386 68 L392 68',1.5,'rgba(0,0,0,.6)'],['M262 24 Q265 34 262 44',2,'rgba(140,200,255,.55)']]},
-  deagle:{parts:[
-    P('metal','M38 34 L52 30 L52 46 L42 46 Z'),
-    P('paint','M68 80 L148 80 L140 150 Q138 156 130 156 L72 156 Q62 156 62 146 L60 100 Q60 86 68 80 Z'),
-    P('paint','M64 64 L310 64 L310 80 L64 82 Z'),
-    P('paint','M54 28 L334 28 Q342 28 342 36 L342 66 L54 66 Q48 66 48 60 L48 34 Q48 28 54 28 Z'),
-    P('metal','M340 34 L348 34 L348 62 L340 62 Z'),
-    P('metal','M326 22 L336 22 L336 28 L326 28 Z M60 22 L72 22 L72 28 L60 28 Z'),
-    P('metal','M168 82 Q174 96 170 106 L178 106 Q182 94 178 82 Z')],
-    det:[[notches(66,96,34,60,7),1.4,'rgba(0,0,0,.35)'],['M150 82 Q150 120 200 114 Q214 112 214 82',5,'#24272c'],['M210 40 L268 40 L268 54 L210 54 Z',1.2,'rgba(0,0,0,.4)'],[notches(76,128,96,146,9),1,'rgba(0,0,0,.25)']]},
-  glock:{parts:[
-    P('paint','M76 84 L156 84 L146 150 Q144 156 136 156 L82 156 Q72 156 72 146 L70 100 Z'),
-    P('paint','M70 68 L320 68 L318 84 L70 86 Z'),
-    P('paint','M58 34 L330 34 Q338 34 338 42 L338 70 L58 70 Q52 70 52 64 L52 40 Q52 34 58 34 Z'),
-    P('metal','M336 42 L344 42 L344 62 L336 62 Z'),
-    P('metal','M182 86 Q186 98 184 106 L190 106 Q194 96 190 86 Z')],
-    det:[[notches(64,96,40,64,6),1.2,'rgba(0,0,0,.35)'],['M158 86 Q156 116 196 112 L212 108 L214 88',5,'#24272c'],['M220 42 L280 42 L280 56 L220 56 Z',1.2,'rgba(0,0,0,.35)'],[notches(84,136,100,148,8),1,'rgba(0,0,0,.22)']]},
-  usp:{parts:[
-    P('paint','M248 44 L392 44 Q398 44 398 50 L398 68 Q398 74 392 74 L248 74 Z'),
-    P('paint','M60 84 L132 84 L122 146 Q120 152 112 152 L64 152 Q54 152 54 142 L54 96 Z'),
-    P('paint','M56 68 L236 68 L234 84 L56 86 Z'),
-    P('paint','M46 38 L252 38 L252 70 L46 70 Q40 70 40 64 L40 44 Q40 38 46 38 Z'),
-    P('metal','M150 86 Q154 98 152 106 L158 106 Q162 96 158 86 Z')],
-    det:[['M270 44 L270 74 M376 44 L376 74',2,'rgba(0,0,0,.35)'],['M134 86 Q132 112 170 108 L184 104 L186 86',5,'#24272c'],[notches(52,82,44,64,6),1.2,'rgba(0,0,0,.35)']]},
-  mp9:{parts:[
-    P('metal','M18 44 L30 44 L30 86 L18 86 Z M28 52 L110 52 L110 58 L28 58 Z'),
-    P('paint','M168 80 L196 80 L192 132 Q190 136 184 136 L170 136 Q164 136 165 130 Z'),
-    P('metal','M170 136 L190 136 L188 156 L172 156 Z'),
-    P('paint','M248 78 L268 78 L266 124 Q264 128 258 128 L252 128 Q246 128 246 122 Z'),
-    P('paint','M106 40 L292 40 Q300 40 300 48 L300 78 L106 80 Q100 80 100 74 L100 46 Q100 40 106 40 Z'),
-    P('metal','M120 34 L280 34 L280 40 L120 40 Z'),
-    P('metal','M300 54 L352 54 L352 64 L300 64 Z')],
-    det:[[notches(126,274,34,40,8),1,'rgba(0,0,0,.5)'],['M198 80 Q200 102 226 98 L232 80',3.5,'#24272c'],['M112 52 L160 52 L160 66 L112 66 Z',1.2,'rgba(0,0,0,.3)']]},
-  p90:{parts:[
-    P('glass','M118 28 L304 28 Q312 28 312 34 L312 42 L118 42 Z'),
-    P('paint','M30 84 Q30 56 60 50 L120 42 L300 40 Q340 40 350 56 L352 74 Q350 88 330 90 L262 92 L246 128 Q242 134 234 134 L212 132 Q204 130 206 122 L214 94 L120 96 L96 128 Q92 134 84 134 L62 132 Q54 130 56 122 L66 96 Q30 96 30 84 Z'),
-    P('metal','M350 58 L386 58 L386 66 L350 66 Z')],
-    det:[['M226 104 L236 104 L230 120 L222 120 Z',1,'rgba(0,0,0,.6)'],['M70 70 L200 66',1.2,'rgba(0,0,0,.25)'],['M240 60 L330 60',1.2,'rgba(0,0,0,.25)']]},
-  nova:{parts:[
-    P('paint','M10 62 L108 52 L120 52 L120 80 L100 82 L18 100 Q8 102 8 92 L8 70 Q8 62 10 62 Z'),
-    P('paint','M130 78 L150 78 L144 106 L126 102 Z'),
-    P('paint','M118 50 L206 50 L210 54 L210 78 L118 80 Z'),
-    P('metal','M206 68 L344 68 L344 76 L206 76 Z'),
-    P('metal','M206 56 L392 56 L392 66 L206 66 Z'),
-    P('paint','M232 64 L318 64 Q324 64 324 70 L324 82 Q324 88 318 88 L232 88 Q226 88 226 82 L226 70 Q226 64 232 64 Z'),
-    P('metal','M384 50 L390 50 L390 56 L384 56 Z')],
-    det:[[notches(240,312,66,86,8),1.2,'rgba(0,0,0,.35)'],['M150 80 Q152 94 170 90 L172 80',3,'#24272c']]},
-  karambit:{parts:[
-    P('metal','M84 56 A26 26 0 1 0 84.1 56 Z M84 66 A16 16 0 1 1 83.9 66 Z',{eo:1,b:[58,56,52,52]}),
-    P('dark','M96 70 Q140 58 196 68 L204 72 L204 94 Q150 102 104 100 Q96 86 96 70 Z'),
-    P('metal','M196 62 L210 62 L210 102 L196 102 Z'),
-    P('paint','M208 70 Q302 44 376 114 Q380 122 370 120 Q306 84 208 96 Z')],
-    det:[['M120 76 L120 94 M140 74 L140 96 M160 73 L160 97 M180 72 L180 97',2,'rgba(255,255,255,.08)'],['M214 84 Q300 66 366 114',1,'rgba(255,255,255,.35)']]},
-  bayonet:{parts:[
-    P('metal','M34 62 L52 60 L52 96 L34 94 Q30 78 34 62 Z'),
-    P('dark','M50 64 Q46 79 50 94 L170 92 L170 64 Z'),
-    P('metal','M168 48 L182 48 L182 108 L168 108 Z'),
-    P('paint','M182 62 L330 62 L394 77 Q396 79 392 81 L330 94 L182 94 Z')],
-    det:[[notches(62,160,64,92,12),2,'rgba(255,255,255,.07)'],['M192 79 L318 79',2,'rgba(0,0,0,.28)'],[notches(196,260,62,66,7),1.5,'rgba(0,0,0,.45)'],['M184 92 L330 92 L390 79',1,'rgba(255,255,255,.45)']]},
-  butterfly:{parts:[
-    P('metal','M40 58 L180 58 L180 73 L40 73 Q32 73 32 65.5 Q32 58 40 58 Z'),
-    P('metal','M40 79 L180 79 L180 94 L40 94 Q32 94 32 86.5 Q32 79 40 79 Z'),
-    P('paint','M180 62 L338 62 Q372 62 396 77 L338 92 L180 92 Z')],
-    det:[['M56 62 L76 62 L76 69 L56 69 Z M90 62 L110 62 L110 69 L90 69 Z M124 62 L144 62 L144 69 L124 69 Z M56 83 L76 83 L76 90 L56 90 Z M90 83 L110 83 L110 90 L90 90 Z M124 83 L144 83 L144 90 L124 90 Z',1,'rgba(0,0,0,.7)'],['M190 88 L338 88 L392 77',1,'rgba(255,255,255,.45)'],['M186 66 L330 66',1,'rgba(0,0,0,.2)']]},
-  bowie:{parts:[
-    P('metal','M26 62 L42 60 L42 96 L26 94 Q22 78 26 62 Z'),
-    P('dark','M40 64 Q34 78 40 94 L160 92 L160 64 Z',{wood:1}),
-    P('metal','M156 44 L170 44 L170 112 L156 112 Z'),
-    P('paint','M170 56 L320 56 L340 46 L396 74 Q352 96 302 100 L170 100 Z')],
-    det:[['M180 64 L316 64',2,'rgba(0,0,0,.25)'],['M172 98 L302 98 Q350 94 394 74',1,'rgba(255,255,255,.45)'],['M60 70 Q100 76 150 70 M60 84 Q100 90 150 84',1,'rgba(0,0,0,.25)']]},
-  gsport:{glove:1,parts:[
-    P('paint','M30 46 L110 40 L114 132 L32 128 Z',{cuff:1}),
-    P('dark','M58 42 L84 41 L88 133 L62 130 Z'),
-    P('paint','M108 42 Q170 30 236 44 L250 120 Q190 142 112 134 Z'),
-    P('paint','M232 40 L318 32 Q330 32 330 42 Q330 52 318 52 L236 60 Z'),
-    P('paint','M240 62 L338 60 Q350 60 350 70 Q350 80 338 80 L242 82 Z'),
-    P('paint','M244 84 L334 86 Q346 86 346 96 Q346 106 334 106 L246 104 Z'),
-    P('paint','M240 106 L310 112 Q322 114 320 124 Q318 132 308 130 L238 122 Z'),
-    P('paint','M150 126 Q190 122 228 140 Q238 146 232 154 Q226 160 216 154 L150 142 Z')],
-    det:[['M262 38 L286 36 M270 63 L296 62 M272 87 L298 88 M262 110 L284 113',6,'rgba(0,0,0,.32)'],['M140 60 Q180 52 224 62',2,'rgba(255,255,255,.18)'],['M126 98 Q180 110 236 100',1.4,'rgba(0,0,0,.3)']]},
-  gdriver:{glove:1,parts:[
-    P('paint','M36 48 L110 42 L114 130 L38 126 Z',{cuff:1}),
-    P('dark','M44 74 L112 70 L112 98 L44 100 Z'),
-    P('paint','M108 42 Q170 30 236 44 L250 120 Q190 142 112 134 Z'),
-    P('paint','M232 40 L318 32 Q330 32 330 42 Q330 52 318 52 L236 60 Z'),
-    P('paint','M240 62 L338 60 Q350 60 350 70 Q350 80 338 80 L242 82 Z'),
-    P('paint','M244 84 L334 86 Q346 86 346 96 Q346 106 334 106 L246 104 Z'),
-    P('paint','M240 106 L310 112 Q322 114 320 124 Q318 132 308 130 L238 122 Z'),
-    P('paint','M150 126 Q190 122 228 140 Q238 146 232 154 Q226 160 216 154 L150 142 Z')],
-    det:[['M250 44 L262 43 M256 66 L268 66 M258 90 L270 90 M252 110 L264 112',5,'rgba(0,0,0,.55)'],['M118 52 Q176 42 230 52 M118 126 Q176 136 240 118',1.2,'rgba(255,255,255,.35)'],['M60 86 L96 85',2,'#c9a227']]}};
-
-/* bbox de un path con coordenadas absolutas */
-function bboxOf(d){const n=d.replace(/[A-Za-z]/g,' ').trim().split(/[\s,]+/).map(Number);let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
-  for(let i=0;i+1<n.length;i+=2){const x=n[i],y=n[i+1];if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}return[x0,y0,x1-x0,y1-y0]}
-Object.values(SHAPES).forEach(S=>S.parts.forEach(p=>{p.path=new Path2D(p.d);p.bb=p.b||bboxOf(p.d)}));
-
-/* ---------- patrones de skin ---------- */
-function hexRgb(h){h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return[n>>16,n>>8&255,n&255]}
-function rgba(h,a){const[r,g,b]=hexRgb(h);return`rgba(${r},${g},${b},${a})`}
-function blob(x,cx0,cy0,r,rand,n){n=n||9;x.beginPath();const pts=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2,q=r*(.6+rand()*.6);pts.push([cx0+Math.cos(a)*q,cy0+Math.sin(a)*q*.75])}
-  x.moveTo((pts[0][0]+pts[n-1][0])/2,(pts[0][1]+pts[n-1][1])/2);for(let i=0;i<n;i++){const p=pts[i],q=pts[(i+1)%n];x.quadraticCurveTo(p[0],p[1],(p[0]+q[0])/2,(p[1]+q[1])/2)}x.closePath();x.fill()}
-function paintPattern(x,skinId,W,H){
-  const S=SKIN[skinId],c=S.c,R=mulberry(hashStr(skinId));
-  const lin=(cols,x0,y0,x1,y1)=>{const g=x.createLinearGradient(x0,y0,x1,y1);cols.forEach((cc,i)=>g.addColorStop(i/(cols.length-1),cc));return g};
-  switch(S.p){
-  case 'solid':{x.fillStyle=lin([c[0],c[1]],0,0,W*.3,H);x.fillRect(0,0,W,H);for(let i=0;i<500;i++){x.fillStyle=`rgba(255,255,255,${R()*.035})`;x.fillRect(R()*W,R()*H,1.5,1.5)}break}
-  case 'camo':{x.fillStyle=c[0];x.fillRect(0,0,W,H);for(let k=1;k<c.length;k++){x.fillStyle=c[k];for(let i=0;i<26;i++)blob(x,R()*W,R()*H,10+R()*26,R)}break}
-  case 'digital':{x.fillStyle=c[0];x.fillRect(0,0,W,H);const s=7;for(let k=1;k<c.length;k++){x.fillStyle=c[k];for(let i=0;i<34;i++){const bx=Math.floor(R()*W/s)*s,by=Math.floor(R()*H/s)*s,w=1+Math.floor(R()*5),h=1+Math.floor(R()*3);for(let a=0;a<w;a++)for(let b=0;b<h;b++)if(R()>.25)x.fillRect(bx+a*s,by+b*s,s,s)}}break}
-  case 'fade':{x.fillStyle=lin(c,0,H*.2,W,H*.8);x.fillRect(0,0,W,H);const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(255,255,255,.18)');g.addColorStop(1,'rgba(0,0,0,.12)');x.fillStyle=g;x.fillRect(0,0,W,H);break}
-  case 'marble':{x.fillStyle=lin([c[0],c[0]],0,0,W,H);x.fillRect(0,0,W,H);for(let i=0;i<70;i++){x.strokeStyle=rgba(c[1],.15+R()*.45);x.lineWidth=.5+R()*2.5;x.beginPath();let px=R()*W,py=R()*H;x.moveTo(px,py);for(let j=0;j<4;j++){const nx=px+(R()-.3)*120,ny=py+(R()-.5)*60;x.quadraticCurveTo(px+(R()-.5)*80,py+(R()-.5)*80,nx,ny);px=nx;py=ny}x.stroke()}break}
-  case 'hex':{x.fillStyle=c[0];x.fillRect(0,0,W,H);const r=11,hh=r*Math.sqrt(3);for(let row=-1;row<H/hh*2+2;row++)for(let col=-1;col<W/(r*1.5)+2;col++){const cx0=col*r*1.5,cy0=row*hh+(col%2?hh/2:0);x.beginPath();for(let i=0;i<6;i++){const a=i*Math.PI/3;x.lineTo(cx0+Math.cos(a)*(r-1.2),cy0+Math.sin(a)*(r-1.2))}x.closePath();
-      if(R()<.16){x.fillStyle=rgba(c[2]||c[1],.55+R()*.4);x.fill()}x.strokeStyle=rgba(c[1],.75);x.lineWidth=1.3;x.stroke()}break}
-  case 'stripes':{x.fillStyle=c[0];x.fillRect(0,0,W,H);x.save();x.translate(W/2,H/2);x.rotate(-.5);x.fillStyle=c[1];for(let i=-30;i<30;i++){const w=6+R()*16;x.fillRect(i*34,-H*2,w,H*4)}x.restore();break}
-  case 'checker':{const s=12;for(let i=0;i<W/s;i++)for(let j=0;j<H/s;j++){x.fillStyle=(i+j)%2?c[0]:c[1];x.fillRect(i*s,j*s,s,s)}break}
-  case 'circuit':{x.fillStyle=c[0];x.fillRect(0,0,W,H);x.shadowColor=c[1];x.shadowBlur=6;x.strokeStyle=c[1];x.fillStyle=c[1];for(let i=0;i<55;i++){let px=Math.round(R()*W/8)*8,py=Math.round(R()*H/8)*8;x.lineWidth=R()<.3?2:1;x.beginPath();x.moveTo(px,py);for(let j=0;j<4;j++){if(R()<.5)px+=(R()<.5?-1:1)*8*(1+Math.floor(R()*5));else py+=(R()<.5?-1:1)*8*(1+Math.floor(R()*3));x.lineTo(px,py)}x.stroke();x.beginPath();x.arc(px,py,2.2,0,7);x.fill()}x.shadowBlur=0;break}
-  case 'carbon':{const s=6;for(let i=0;i<W/s;i++)for(let j=0;j<H/s;j++){const g=(i+j)%2?x.createLinearGradient(i*s,j*s,i*s+s,j*s):x.createLinearGradient(i*s,j*s,i*s,j*s+s);g.addColorStop(0,c[0]);g.addColorStop(.5,c[1]);g.addColorStop(1,c[0]);x.fillStyle=g;x.fillRect(i*s,j*s,s,s)}break}
-  case 'neon':{x.fillStyle=c[0];x.fillRect(0,0,W,H);for(let i=0;i<22;i++){const col=c[1+(i%(c.length-1))];x.strokeStyle=col;x.shadowColor=col;x.shadowBlur=10;x.lineWidth=1+R()*2.5;x.beginPath();const y0=R()*H;x.moveTo(-10,y0);x.bezierCurveTo(W*.3,y0+(R()-.5)*120,W*.7,y0+(R()-.5)*120,W+10,y0+(R()-.5)*60);x.stroke()}x.shadowBlur=0;break}
-  case 'waves':{x.fillStyle=c[0];x.fillRect(0,0,W,H);for(let i=0;i<14;i++){x.strokeStyle=rgba(c[1+(i%2)],.5+R()*.4);x.lineWidth=3+R()*6;x.beginPath();const y0=i*H/12+R()*8,a=6+R()*10,fq=.02+R()*.03,ph=R()*6;for(let px=0;px<=W;px+=6)x.lineTo(px,y0+Math.sin(px*fq+ph)*a);x.stroke()}break}
-  case 'scales':{x.fillStyle=c[0];x.fillRect(0,0,W,H);const r=13;for(let row=-1;row<H/(r*.8)+2;row++)for(let col=-1;col<W/(r*1.6)+2;col++){const cx0=col*r*1.6+(row%2?r*.8:0),cy0=row*r*.8;const g=x.createRadialGradient(cx0,cy0-r*.3,1,cx0,cy0,r);g.addColorStop(0,c[2]);g.addColorStop(.35,c[1]);g.addColorStop(1,c[0]);x.fillStyle=g;x.beginPath();x.arc(cx0,cy0,r,0,Math.PI);x.closePath();x.fill();x.strokeStyle='rgba(0,0,0,.35)';x.lineWidth=1;x.stroke()}break}
-  case 'flames':{x.fillStyle=c[0];x.fillRect(0,0,W,H);for(let i=0;i<34;i++){const fx=R()*W,fh=40+R()*100,fw=14+R()*30;const g=x.createLinearGradient(0,H,0,H-fh);g.addColorStop(0,c[2]);g.addColorStop(.6,c[1]);g.addColorStop(1,rgba(c[1],0));x.fillStyle=g;x.beginPath();x.moveTo(fx-fw,H);x.quadraticCurveTo(fx-fw*.6,H-fh*.5,fx+(R()-.5)*20,H-fh);x.quadraticCurveTo(fx+fw*.4,H-fh*.45,fx+fw,H);x.fill()}break}
-  case 'tiger':{x.fillStyle=lin([c[0],c[0]],0,0,W,0);x.fillRect(0,0,W,H);x.fillStyle=c[1];for(let i=0;i<30;i++){const tx=R()*W,w=3+R()*7;x.beginPath();x.moveTo(tx,-5);x.bezierCurveTo(tx+(R()-.5)*30,H*.3,tx+(R()-.5)*30,H*.6,tx+(R()-.5)*20,H*(0.4+R()*.7));x.lineTo(tx+w,H*(0.3+R()*.5));x.bezierCurveTo(tx+w+(R()-.5)*20,H*.3,tx+w,H*.1,tx+w*2,-5);x.fill()}break}
-  case 'spots':{x.fillStyle=c[0];x.fillRect(0,0,W,H);for(let i=0;i<90;i++){const sx=R()*W,sy=R()*H,r=3+R()*6;x.fillStyle=c[2];blob(x,sx,sy,r*1.3,R,7);x.fillStyle=c[1];x.lineWidth=2;x.strokeStyle=c[1];x.beginPath();x.arc(sx,sy,r*1.3,R()*3,R()*3+3.5);x.stroke()}break}
-  case 'splatter':{x.fillStyle=c[0];x.fillRect(0,0,W,H);for(let i=0;i<40;i++){const col=c[1+(i%(c.length-1))];x.fillStyle=col;const sx=R()*W,sy=R()*H;blob(x,sx,sy,4+R()*14,R,8);for(let j=0;j<8;j++){x.beginPath();x.arc(sx+(R()-.5)*50,sy+(R()-.5)*30,R()*3,0,7);x.fill()}}break}
-  case 'damascus':{x.fillStyle=c[0];x.fillRect(0,0,W,H);for(let i=0;i<60;i++){x.strokeStyle=rgba(i%2?c[1]:c[0],.65);x.lineWidth=1.2+R()*1.8;x.beginPath();const y0=i*H/50-10,a=4+R()*9,fq=.015+R()*.03,ph=R()*6;for(let px=0;px<=W;px+=5)x.lineTo(px,y0+Math.sin(px*fq+ph)*a+Math.sin(px*.07)*2);x.stroke()}break}
-  case 'galaxy':{x.fillStyle=c[0];x.fillRect(0,0,W,H);for(let i=0;i<14;i++){const col=c[1+(i%(c.length-2))];const g=x.createRadialGradient(R()*W,R()*H,0,R()*W,R()*H,60+R()*120);g.addColorStop(0,rgba(col,.75));g.addColorStop(1,rgba(col,0));x.fillStyle=g;x.fillRect(0,0,W,H)}
-    for(let i=0;i<180;i++){x.fillStyle=`rgba(255,255,255,${.3+R()*.7})`;const s=R()<.08?2:1;x.fillRect(R()*W,R()*H,s,s)}break}
-  case 'hardened':{x.fillStyle=c[0];x.fillRect(0,0,W,H);for(let i=0;i<70;i++){const col=c[i%c.length];const g=x.createRadialGradient(0,0,0,0,0,1);x.fillStyle=rgba(col,.35+R()*.4);blob(x,R()*W,R()*H,8+R()*30,R,8)}const g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,'rgba(255,255,255,.1)');g.addColorStop(1,'rgba(0,0,0,.1)');x.fillStyle=g;x.fillRect(0,0,W,H);break}
-  case 'gold':{const g=x.createLinearGradient(0,0,W*.4,H);[[0,c[1]],[.2,c[0]],[.35,c[1]],[.55,c[2]],[.75,c[1]],[.9,c[0]],[1,c[1]]].forEach(([o,cc])=>g.addColorStop(o,cc));x.fillStyle=g;x.fillRect(0,0,W,H);break}
-  default:{x.fillStyle=c[0];x.fillRect(0,0,W,H)}}
-}
-
-/* ---------- render de un artículo ---------- */
-const IW=400,IH=160,WEAR_REP=[.03,.11,.26,.41,.72];
 const IMG_CACHE=new Map();
-function partLight(x,p,strength){const[bx,by,bw,bh]=p.bb;const g=x.createLinearGradient(0,by,0,by+bh);
-  g.addColorStop(0,`rgba(255,255,255,${.42*strength})`);g.addColorStop(.18,`rgba(255,255,255,${.08*strength})`);g.addColorStop(.55,'rgba(0,0,0,0)');g.addColorStop(1,`rgba(0,0,0,${.5*strength})`);
-  x.save();x.clip(p.path,p.eo?'evenodd':'nonzero');x.fillStyle=g;x.fillRect(bx-2,by-2,bw+4,bh+4);
-  x.save();x.filter='blur(1.6px)';x.strokeStyle=`rgba(0,0,0,${.45*strength})`;x.lineWidth=3.2;x.stroke(p.path);x.restore();
-  /* reflejo especular */
-  const sg=x.createLinearGradient(bx,0,bx+bw,0);sg.addColorStop(0,'rgba(255,255,255,0)');sg.addColorStop(.42,'rgba(255,255,255,0)');sg.addColorStop(.5,`rgba(255,255,255,${.16*strength})`);sg.addColorStop(.58,'rgba(255,255,255,0)');x.fillStyle=sg;x.fillRect(bx,by,bw,bh*.45);x.restore()}
-function metalFill(x,p,kind){const[bx,by,bw,bh]=p.bb;const g=x.createLinearGradient(0,by,0,by+bh);
-  if(kind==='glass'){g.addColorStop(0,'rgba(190,200,210,.55)');g.addColorStop(1,'rgba(60,70,80,.55)')}
-  else if(kind==='dark'){if(p.wood){g.addColorStop(0,'#7a4a26');g.addColorStop(1,'#3a1e0a')}else{g.addColorStop(0,'#3a3d43');g.addColorStop(.5,'#1d1f23');g.addColorStop(1,'#0d0e10')}}
-  else{g.addColorStop(0,'#8a929c');g.addColorStop(.35,'#3e444c');g.addColorStop(.7,'#22262b');g.addColorStop(1,'#14171a')}
-  x.fillStyle=g;x.fill(p.path,p.eo?'evenodd':'nonzero')}
-function renderItemCanvas(w,s,wi,scale){
-  scale=scale||2;const S=SHAPES[w];const cv=document.createElement('canvas');cv.width=IW*scale;cv.height=IH*scale;const x=cv.getContext('2d');x.scale(scale,scale);
-  const f=WEAR_REP[wi];const gold=isGold(w);
-  /* sombra */
-  x.save();x.filter='blur(7px)';x.fillStyle='rgba(0,0,0,.55)';x.beginPath();x.ellipse(205,S.glove?150:128,165,10,0,0,7);x.fill();x.restore();
-  x.save();x.translate(0,S.glove?-4:0);
-  const paint=S.parts.filter(p=>p.k==='paint');
-  /* base metálica bajo la pintura (se ve con el desgaste) */
-  paint.forEach(p=>metalFill(x,p,'metal'));
-  /* capa de pintura */
-  const L=document.createElement('canvas');L.width=IW*scale;L.height=IH*scale;const y=L.getContext('2d');y.scale(scale,scale);
-  const pat=document.createElement('canvas');pat.width=IW;pat.height=IH;paintPattern(pat.getContext('2d'),s,IW,IH);
-  const all=new Path2D();paint.forEach(p=>all.addPath(p.path));
-  y.save();paint.forEach(p=>{y.save();y.clip(p.path,p.eo?'evenodd':'nonzero');y.drawImage(pat,0,0);y.restore()});y.restore();
-  if(S.glove){paint.filter(p=>p.cuff).forEach(p=>{y.save();y.clip(p.path);y.fillStyle='rgba(0,0,0,.28)';y.fillRect(0,0,IW,IH);y.restore()})}
-  /* desgaste: rasguños y desconchones */
-  const R=mulberry(hashStr(w+s+wi));
-  if(f>.05){y.save();y.globalCompositeOperation='destination-out';const n=Math.floor(f*f*700+f*120);
-    for(let i=0;i<n;i++){const p=paint[Math.floor(R()*paint.length)];const[bx,by,bw,bh]=p.bb;const px=bx+R()*bw,py=by+(R()<.5?R()*bh*.25:bh-R()*bh*.25);
-      if(R()<.55){y.strokeStyle=`rgba(0,0,0,${.5+R()*.5})`;y.lineWidth=.4+R()*1.1;y.beginPath();y.moveTo(px,py);y.lineTo(px+(R()-.5)*18,py+(R()-.5)*5);y.stroke()}
-      else if(f>.3){y.fillStyle=`rgba(0,0,0,${.6+R()*.4})`;blob(y,px,py,1+R()*f*6,R,6)}}
-    y.restore();
-    y.save();y.globalCompositeOperation='source-atop';y.fillStyle=`rgba(120,110,95,${f*.28})`;y.fillRect(0,0,IW,IH);y.restore()}
-  x.drawImage(L,0,0,IW,IH);
-  /* luces sobre la pintura */
-  paint.forEach(p=>partLight(x,p,gold?1.1:1));
-  /* piezas de metal / polímero encima */
-  S.parts.filter(p=>p.k!=='paint').forEach(p=>{metalFill(x,p,p.k);partLight(x,p,p.k==='metal'?.8:.6)});
-  /* contornos */
-  S.parts.forEach(p=>{x.save();x.lineJoin='round';x.strokeStyle='rgba(0,0,0,.6)';x.lineWidth=1.1;x.stroke(p.path);x.restore()});
-  (S.det||[]).forEach(([d,lw,col])=>{x.save();x.strokeStyle=col;x.lineWidth=lw;x.lineCap='round';x.stroke(new Path2D(d));x.restore()});
-  /* borde superior brillante */
-  paint.forEach(p=>{x.save();x.clip(p.path,p.eo?'evenodd':'nonzero');x.strokeStyle='rgba(255,255,255,.22)';x.lineWidth=1.2;x.translate(0,1.2);x.stroke(p.path);x.restore()});
-  x.restore();
-  return cv;
-}
-function itemImg(it,scale){const wi=wearOf(it.f);const key=it.w+'|'+it.s+'|'+wi+'|'+(scale||2);let u=IMG_CACHE.get(key);
-  if(!u){const cv=renderItemCanvas(it.w,it.s,wi,scale||2);u=cv.toDataURL('image/webp',.88);if(u.indexOf('image/webp')<0)u=cv.toDataURL();IMG_CACHE.set(key,u)}return u}
-function defImg(w,s,wi){return itemImg({w,s,f:WEAR_REP[wi==null?1:wi]})}
-
-/* ---------- cajas 3D ---------- */
-const CASE_CACHE=new Map();
-function shade(h,k){let[r,g,b]=hexRgb(h);const t=k<0?0:255,p=Math.abs(k);r=Math.round((t-r)*p+r);g=Math.round((t-g)*p+g);b=Math.round((t-b)*p+b);return`rgb(${r},${g},${b})`}
-function renderCase(cs,size){
-  const key=cs.id+'|'+(size||1);if(CASE_CACHE.has(key))return CASE_CACHE.get(key);
-  const sc=2*(size||1),Wd=320,Hd=250;const cv=document.createElement('canvas');cv.width=Wd*sc;cv.height=Hd*sc;const x=cv.getContext('2d');x.scale(sc,sc);
-  const[a,b]=cs.col;
-  // resplandor detrás
-  const gl=x.createRadialGradient(160,130,10,160,130,150);gl.addColorStop(0,rgba(a,.35));gl.addColorStop(1,rgba(a,0));x.fillStyle=gl;x.fillRect(0,0,Wd,Hd);
-  x.save();x.filter='blur(8px)';x.fillStyle='rgba(0,0,0,.6)';x.beginPath();x.ellipse(165,222,130,14,0,0,7);x.fill();x.restore();
-  const F=[[46,104],[232,104],[232,214],[46,214]],T=[[46,104],[98,66],[284,66],[232,104]],Sd=[[232,104],[284,66],[284,176],[232,214]];
-  const poly=(pts)=>{x.beginPath();pts.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.closePath()};
-  // cara frontal
-  let g=x.createLinearGradient(0,104,0,214);g.addColorStop(0,shade(b,.18));g.addColorStop(1,shade(b,-.35));poly(F);x.fillStyle=g;x.fill();
-  // textura de chapa
-  x.save();poly(F);x.clip();for(let i=0;i<14;i++){x.fillStyle=i%2?'rgba(255,255,255,.025)':'rgba(0,0,0,.05)';x.fillRect(46,104+i*8,186,8)}
-  // banda de color con el símbolo
-  const bg=x.createLinearGradient(46,0,232,0);bg.addColorStop(0,shade(a,-.25));bg.addColorStop(.5,a);bg.addColorStop(1,shade(a,-.35));x.fillStyle=bg;x.fillRect(46,140,186,40);
-  x.fillStyle='rgba(0,0,0,.25)';x.fillRect(46,178,186,3);x.fillStyle='rgba(255,255,255,.35)';x.fillRect(46,140,186,1.5);
-  x.restore();
-  // emblema
-  x.save();x.shadowColor=a;x.shadowBlur=18;x.beginPath();x.arc(139,160,23,0,7);x.fillStyle=shade(b,-.4);x.fill();x.lineWidth=3;x.strokeStyle=shade(a,.25);x.stroke();x.restore();
-  x.font='900 24px "Inter",system-ui,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillStyle='#fff';x.fillText(cs.sym,139,161);
-  // tapa
-  g=x.createLinearGradient(98,66,232,104);g.addColorStop(0,shade(b,.45));g.addColorStop(1,shade(b,.1));poly(T);x.fillStyle=g;x.fill();
-  x.save();poly(T);x.clip();x.strokeStyle='rgba(255,255,255,.12)';x.lineWidth=1;for(let i=0;i<10;i++){x.beginPath();x.moveTo(60+i*24,104);x.lineTo(112+i*24,66);x.stroke()}x.restore();
-  // lateral
-  g=x.createLinearGradient(232,0,284,0);g.addColorStop(0,shade(b,-.25));g.addColorStop(1,shade(b,-.6));poly(Sd);x.fillStyle=g;x.fill();
-  x.save();poly(Sd);x.clip();x.fillStyle=rgba(a,.55);x.beginPath();x.moveTo(232,140);x.lineTo(284,102);x.lineTo(284,142);x.lineTo(232,180);x.fill();x.restore();
-  // esquinas metálicas
-  const corner=(pts)=>{poly(pts);const cg=x.createLinearGradient(pts[0][0],pts[0][1],pts[2][0],pts[2][1]);cg.addColorStop(0,'#c9ced6');cg.addColorStop(1,'#4b5058');x.fillStyle=cg;x.fill();x.strokeStyle='rgba(0,0,0,.4)';x.lineWidth=.8;x.stroke()};
-  corner([[46,104],[62,104],[62,120],[46,120]]);corner([[216,104],[232,104],[232,120],[216,120]]);corner([[46,198],[62,198],[62,214],[46,214]]);corner([[216,198],[232,198],[232,214],[216,214]]);
-  corner([[232,104],[246,94],[246,110],[232,120]]);corner([[232,198],[246,188],[246,204],[232,214]]);corner([[270,66],[284,66],[284,82],[270,92]]);corner([[270,166],[284,160],[284,176],[270,186]]);
-  // remaches
-  [[54,112],[224,112],[54,206],[224,206]].forEach(([px,py])=>{x.beginPath();x.arc(px,py,2.2,0,7);x.fillStyle='#e6e9ee';x.fill()});
-  // cierre
-  x.fillStyle='#2b2f35';x.fillRect(128,98,22,14);x.fillStyle='#9aa1aa';x.fillRect(131,101,16,8);
-  // aristas brillantes
-  x.strokeStyle='rgba(255,255,255,.45)';x.lineWidth=1.2;x.beginPath();x.moveTo(46,104);x.lineTo(232,104);x.lineTo(284,66);x.stroke();
-  x.strokeStyle='rgba(0,0,0,.5)';poly(F);x.stroke();poly(Sd);x.stroke();poly(T);x.stroke();
-  // brillo general
-  const sh=x.createLinearGradient(46,104,140,214);sh.addColorStop(0,'rgba(255,255,255,.14)');sh.addColorStop(.5,'rgba(255,255,255,0)');poly(F);x.fillStyle=sh;x.fill();
-  const u=cv.toDataURL('image/webp',.9);CASE_CACHE.set(key,u);return u;
-}
+function itemImg(it){return itemSrc(it.w)}
+function defImg(w){return itemSrc(w)}
+function renderCase(cs){return caseSrc(cs)}
+const PRELOADED=new Set();
+function preload(urls,ms){const list=[...new Set(urls)].filter(u=>!PRELOADED.has(u));if(!list.length)return Promise.resolve();
+  return Promise.race([Promise.all(list.map(u=>new Promise(r=>{const i=new Image();i.onload=i.onerror=()=>{PRELOADED.add(u);r()};i.src=u}))),new Promise(r=>setTimeout(r,ms||2500))])}
 
 /* ===================== MCF Drop · capa online (Firebase) ===================== */
 'use strict';
@@ -873,7 +498,7 @@ let STAFF=false,ROOTADMIN=false,CFG={luck:1,disc:0,xp2:0,msg:'',until:0};
 const now=()=>Date.now()+TOFF;
 const R_=p=>DB.ref('drop/'+p);
 const TS=()=>firebase.database.ServerValue.TIMESTAMP;
-const enc=it=>JSON.stringify({id:it.id,w:it.w,s:it.s,f:it.f,st:it.st?1:0,o:it.o||'',t:it.t||0});
+const enc=it=>JSON.stringify({id:it.id,w:it.w,s:it.s,f:it.f||0,st:it.st?1:0,o:it.o||'',t:it.t||0});
 const dec=s=>{try{const o=typeof s==='string'?JSON.parse(s):s;return o&&WPN[o.w]&&SKIN[o.s]?o:null}catch(e){return null}};
 const cleanName=s=>String(s||'').replace(/[<>&"'`]/g,'').trim().slice(0,20)||'Jugador';
 const mcfName=u=>cleanName(u.displayName||(u.email||'').split('@')[0]||'Jugador');
@@ -897,7 +522,7 @@ function netInit(onState){
       const snap=await R_('users/'+UID).once('value');
       if(!snap.exists()){await R_('users/'+UID).set({n:mcfName(u),c:1000,xp:0,lvc:1,ld:0,op:0,best:0,bestN:'',t:TS()});ME.fresh=true}
       R_('users/'+UID).on('value',s=>{const v=s.val()||{};ME.n=v.n||mcfName(u);ME.c=v.c||0;ME.xp=v.xp||0;ME.lvc=v.lvc||1;ME.ld=v.ld||0;ME.op=v.op||0;ME.best=v.best||0;ME.bestN=v.bestN||'';ME.ban=!!v.ban;ME.fb=v.freebox||{};
-        const inv={};Object.entries(v.inv||{}).forEach(([k,raw])=>{const it=dec(raw);if(it){it.id=k;inv[k]=it}});ME.inv=inv;const first=!ME.loaded;ME.loaded=true;emit(first?'first':'me')});
+        const inv={},bad={};Object.entries(v.inv||{}).forEach(([k,raw])=>{const it=dec(raw);if(it){it.id=k;inv[k]=it}else bad['inv/'+k]=null});if(Object.keys(bad).length)R_('users/'+UID).update(bad).catch(()=>{});ME.inv=inv;const first=!ME.loaded;ME.loaded=true;emit(first?'first':'me')});
       R_('config').on('value',s=>{CFG=Object.assign({luck:1,disc:0,xp2:0,msg:'',until:0},s.val()||{});emit('cfg')});
       R_('payouts/'+UID).on('child_added',s=>claimPayout(s));
       watchTrades();
@@ -938,9 +563,9 @@ async function quickSell(ids){const its=ids.map(id=>ME.inv[id]).filter(Boolean);
   await removeItems(its.map(i=>i.id));await addCredits(total);return total}
 /* ---------- tienda ---------- */
 const SHOP_MARKUP=1.25;
-const shopPrice=(w,s,wi,st)=>Math.round(itemValue({w,s,f:(WEAR[wi].a+WEAR[wi].b)/2,st})*SHOP_MARKUP);
+const shopPrice=(w,s,wi,st)=>Math.round(itemValue({w,s,f:isNW(w)?0:(WEAR[wi].a+WEAR[wi].b)/2,st})*SHOP_MARKUP);
 async function shopBuy(w,s,wi,st){const p=shopPrice(w,s,wi,st);if(!(await spend(p)))return{err:'No tienes créditos suficientes'};
-  const W=WEAR[wi];const it={id:uid(),w,s,f:+(W.a+(W.b-W.a)*rnd()).toFixed(5),st:st?1:0,o:'tienda',t:Date.now()};await addItems([it]);return{it}}
+  const W=WEAR[wi];const it={id:uid(),w,s,f:isNW(w)?0:+(W.a+(W.b-W.a)*rnd()).toFixed(5),st:st?1:0,o:'tienda',t:Date.now()};await addItems([it]);return{it}}
 /* ---------- mercado entre jugadores ---------- */
 async function listItem(id,price){const it=ME.inv[id];if(!it)return{err:'No tienes ese artículo'};price=Math.max(1,Math.round(price));
   const ref=R_('market').push();await removeItems([id]);await ref.set({s:UID,sn:ME.n,it:enc(it),p:price,v:itemValue(it),r:rarOf(it),t:TS()});return{ok:1}}
@@ -1042,13 +667,13 @@ function modal(html,cls){closeModal();const m=document.createElement('div');m.cl
   m.addEventListener('pointerdown',e=>{if(e.target===m)m.dataset.down=1});m.addEventListener('click',e=>{if((e.target===m&&m.dataset.down)||e.target.closest('[data-close]'))closeModal()});pumpImgs();return m.querySelector('.mbox')}
 function closeModal(){const m=$('#modal');if(m)m.remove()}
 function animNum(el,from,to,ms){const t0=performance.now();ms=ms||700;const st=()=>{const p=Math.min(1,(performance.now()-t0)/ms),e=1-Math.pow(1-p,3);el.textContent=fmt(from+(to-from)*e);if(p<1)requestAnimationFrame(st)};st()}
-function imgTag(it,attr){const wi=wearOf(it.f);const u=IMG_CACHE.get(it.w+'|'+it.s+'|'+wi+'|2');return u?`<img src="${u}" ${attr||''} alt="">`:`<img src="${BLANK}" data-k="${it.w}|${it.s}|${wi}" ${attr||''} alt="">`}
-function pumpImgs(){const t0=performance.now();for(const im of document.querySelectorAll('img[data-k]')){const[w,s,wi]=im.dataset.k.split('|');im.src=defImg(w,s,+wi);im.removeAttribute('data-k');if(performance.now()-t0>14)break}if(document.querySelector('img[data-k]'))requestAnimationFrame(pumpImgs)}
+function imgTag(it,attr){return`<img src="${itemSrc(it.w)}" loading="lazy" decoding="async" ${attr||''} alt="">`}
+function pumpImgs(){}
 const rc=r=>`var(--r${r})`;
 function itemCard(it,o){o=o||{};const r=rarOf(it),v=o.price!=null?o.price:itemValue(it);
   return`<button class="it ${o.mini?'mini':''} ${o.sel?'on':''} ${o.dim?'dim':''}" style="--rc:${rc(r)}" data-iid="${esc(it.id||'')}" ${o.attr||''}>${it.st?'<span class="stb">ST</span>':''}${o.selectable?`<span class="sel">${o.sel?'✓':''}</span>`:''}
   <div class="im">${imgTag(it)}</div><div class="sh"></div><div class="tx"><small>${isGold(it.w)?'★ ':''}${esc(WPN[it.w].n)}</small><b>${esc(SKIN[it.s].n)}</b>${o.sub?`<div class="lst-seller">${o.sub}</div>`:''}
-  <div class="ft"><span class="wr">${WEAR[wearOf(it.f)].k}</span><span class="cr">${fmt(v)}</span></div></div><div class="bar"></div></button>`}
+  <div class="ft"><span class="wr">${wearTxt(it,1)}</span><span class="cr">${fmt(v)}</span></div></div><div class="bar"></div></button>`}
 /* inclinación 3D de las tarjetas */
 document.addEventListener('pointermove',e=>{const c=e.target.closest&&e.target.closest('.it,.case');if(!c||e.pointerType!=='mouse')return;const b=c.getBoundingClientRect();const px=(e.clientX-b.left)/b.width-.5,py=(e.clientY-b.top)/b.height-.5;
   c.style.transform=`perspective(700px) rotateX(${(-py*10).toFixed(2)}deg) rotateY(${(px*12).toFixed(2)}deg) translateY(-3px)`;c.style.setProperty('--sx',(px*220).toFixed(0)+'%');c._t=1});
@@ -1076,8 +701,9 @@ const IC={
 const NAV=[['cajas','Cajas','cases'],['batallas','Batallas','battle'],['mercado','Mercado','market'],['intercambios','Intercambios','trade'],['mejorador','Mejorador','up'],['contratos','Contratos','contract'],['inventario','Inventario','inv'],['ranking','Ranking','rank']];
 
 /* ---------- arranque y puerta ---------- */
-function showGate(kind){$('#app').classList.add('hide');const g=$('#gate');g.classList.remove('hide');
+let ERRMSG='';function showGate(kind,e){if(e)ERRMSG=e&&(e.code||e.message)||e;$('#app').classList.add('hide');const g=$('#gate');g.classList.remove('hide');
   if(kind==='loading'){g.innerHTML=`<div class="box"><div class="loader"></div><p style="margin-top:18px">Cargando tu cuenta MCF…</p></div>`;return}
+  if(kind==='error'){const perm=/permission|denied/i.test(String(ERRMSG));g.innerHTML=`<div class="box"><h1 style="font-size:34px">Ya has iniciado sesión</h1><p>Hola <b>${esc(FBUSER?mcfName(FBUSER):'')}</b>. Tu cuenta MCF está bien, pero el servidor de MCF Drop ${perm?'no deja guardar todavía: falta publicar las reglas de Firebase de MCF Drop.':'no responde ahora mismo.'}</p><button class="btn pri big" id="gRetry" style="width:100%">Reintentar</button><p style="font-size:12px;margin-top:12px;color:var(--mu2)">${esc(String(ERRMSG).slice(0,140))}</p><a class="btn" href="../">← Volver a MCF Games</a></div>`;$('#gRetry').onclick=()=>location.reload();return}
   if(kind==='ban'){g.innerHTML=`<div class="box"><h1>Cuenta bloqueada</h1><p>Un administrador ha bloqueado tu cuenta en MCF Drop.</p><a class="btn" href="../">← MCF Games</a></div>`;return}
   const demo=CATL.filter(c=>c.r>=3).sort(()=>Math.random()-.5).slice(0,12);const cells=demo.concat(demo).map(c=>`<div style="--rc:${rc(c.r)}">${imgTag({w:c.w,s:c.s,f:.1})}</div>`).join('');
   g.innerHTML=`<div class="box"><canvas class="logo" id="gLogo" width="240" height="240"></canvas><h1>MCF Drop</h1>
@@ -1087,7 +713,7 @@ function showGate(kind){$('#app').classList.add('hide');const g=$('#gate');g.cla
     <p style="font-size:12.5px;margin-top:14px">Se abre MCF en otra pestaña. Cuando entres, esta página se desbloquea sola.</p>
     <a class="btn" href="../" style="margin-top:4px">← Volver a MCF Games</a></div>`;
   $('#gLogin').onclick=()=>{window.open(MCF_LOGIN,'_blank')};
-  const lg=$('#gLogo');if(lg){const i=new Image();i.onload=()=>lg.getContext('2d').drawImage(i,-20,0,280,219);i.src=renderCase(CASE.elite)}pumpImgs()}
+  const lg=$('#gLogo');if(lg){const i=new Image();i.onload=()=>{const k=Math.min(240/i.width,240/i.height);lg.getContext('2d').drawImage(i,(240-i.width*k)/2,(240-i.height*k)/2,i.width*k,i.height*k)};i.src=renderCase(CASES[CASES.length-1])}pumpImgs()}
 function showApp(){$('#gate').classList.add('hide');$('#app').classList.remove('hide');buildShell();route()}
 function buildShell(){
   $('#top').innerHTML=`<a class="brand" href="#cajas"><span class="mk">D</span><span>MCF Drop<br><small>MCF Games</small></span></a>
@@ -1134,7 +760,7 @@ function pageMore(){$('#view').innerHTML=`<div class="h1"><div><h2>Más</h2></di
 function eventBanner(){if(!eventOn()||(!CFG.msg&&luckNow()<=1&&!discNow()&&!CFG.xp2))return'';const parts=[];if(luckNow()>1)parts.push(`suerte x${luckNow()}`);if(discNow())parts.push(`-${Math.round(discNow()*100)}% en cajas`);if(CFG.xp2)parts.push('XP doble');
   return`<div class="banner"><span style="font-size:26px">⚡</span><div><b>Evento activo${parts.length?': '+parts.join(' · '):''}</b><div style="color:var(--mu);font-size:13px;margin-top:2px">${esc(CFG.msg||'')}${CFG.until?` · termina ${new Date(CFG.until).toLocaleString('es-ES',{weekday:'short',hour:'2-digit',minute:'2-digit'})}`:''}</div></div></div>`}
 function pageCases(){const v=$('#view');const fb=ME.fb||{};
-  v.innerHTML=`${eventBanner()}<div class="h1"><div><h2>Cajas</h2><p>Elige una caja y prueba suerte. Los cuchillos y guantes salen en todas menos en la Recluta… casi.</p></div><div class="row"><span class="chip">${fmt(ME.op)} cajas abiertas</span></div></div>
+  v.innerHTML=`${eventBanner()}<div class="h1"><div><h2>Cajas</h2><p>Las cajas del mercado de CS2, ordenadas de la más barata a la más cara. En todas pueden salir ★ cuchillos, guantes o joyas de más de 1.000 $.</p></div><div class="row"><span class="chip">${fmt(ME.op)} cajas abiertas</span></div></div>
   <div class="cases">${CASES.map(cs=>{const p=casePrice(cs);return`<a class="case" href="#caja/${cs.id}" style="--cc:${cs.col[0]};text-decoration:none;color:inherit">${fb[cs.id]?`<span class="free">${fb[cs.id]} GRATIS</span>`:''}${cs.prof!=='normal'&&cs.prof!=='barata'?`<span class="tag">${cs.prof==='premium'?'PREMIUM':'+ SUERTE'}</span>`:''}
     <img src="${renderCase(cs)}" alt=""><h3>${esc(cs.n)}</h3><p>${esc(cs.d)}</p><div class="row"><span class="price">${p<cs.price?`<s>${fmt(cs.price)}</s>`:''}<span class="cr">${fmt(p)}</span></span><span class="btn sm">Abrir</span></div></a>`}).join('')}</div>`}
 
@@ -1145,11 +771,11 @@ function pageCase(id){const cs=CASE[id];if(!cs){location.hash='#cajas';return}
   v.innerHTML=`<div class="row" style="margin-bottom:12px"><a class="btn sm" href="#cajas">← Cajas</a></div>
   <div class="opener"><div class="stage" id="stage" style="--cc:${cs.col[0]}"><div class="glow"></div><div id="stageIn" style="width:100%;display:flex;flex-direction:column;align-items:center"></div></div>
   <div class="contents"><h3>Contenido de la caja</h3><div class="odds">${od.map((p,r)=>p?`<span style="--rc:${rc(r)}"><i></i>${RAR[r].n} ${(p*100).toFixed(p<.01?2:1)}%</span>`:'').join('')}</div>
-  <div class="items">${list.map(([w,s,r])=>itemCard({id:'',w,s,f:.1},{mini:1,price:Math.round(baseVal(w,s,r)),attr:`data-cat="${w}|${s}"`})).join('')}</div>
+  <div class="items">${list.map(([w,s,r])=>itemCard({id:'',w,s,f:defF(w)},{mini:1,attr:`data-cat="${w}|${s}"`})).join('')}</div>
   <h3><span style="color:var(--gold)">★</span> Objetos extraordinarios <span class="chip" style="height:26px">${(od[6]*100).toFixed(2)}%</span></h3>
-  <div class="items">${cs.g.map(([w,s])=>itemCard({id:'',w,s,f:.03},{mini:1,price:Math.round(baseVal(w,s,6)),attr:`data-cat="${w}|${s}"`})).join('')}</div></div></div>`;
-  $$('[data-cat]').forEach(b=>b.onclick=()=>{const[w,s]=b.dataset.cat.split('|');inspectModal({id:'',w,s,f:.1},{cat:1})});
-  const idle=()=>{const free=(ME.fb||{})[cs.id]||0;const p=casePrice(cs);$('#stageIn').innerHTML=`<img class="bigcase" id="bigcase" src="${renderCase(cs,1.4)}" alt=""><h2>${esc(cs.n)}</h2><div class="sub">${esc(cs.d)}</div>
+  <div class="items">${cs.g.slice().sort((a,b)=>baseVal(b[0])-baseVal(a[0])).map(([w,s])=>itemCard({id:'',w,s,f:defF(w)},{mini:1,attr:`data-cat="${w}|${s}"`})).join('')}</div></div></div>`;
+  $$('[data-cat]').forEach(b=>b.onclick=()=>{const[w,s]=b.dataset.cat.split('|');inspectModal({id:'',w,s,f:defF(w)},{cat:1})});
+  const idle=()=>{const free=(ME.fb||{})[cs.id]||0;const p=casePrice(cs);$('#stageIn').innerHTML=`<img class="bigcase" id="bigcase" src="${renderCase(cs)}" alt=""><h2>${esc(cs.n)}</h2><div class="sub">${esc(cs.d)}</div>
     <div class="controls"><div class="seg" id="seg">${[1,2,3,4,5].map(k=>`<button class="${k===n?'on':''}" data-n="${k}">${k}</button>`).join('')}</div>
     <button class="btn pri big" id="openBtn">Abrir ${n>1?n+' cajas':''} · <span class="cr">${fmt(p*n)}</span></button>
     ${free?`<button class="btn ok big" id="freeBtn">Abrir gratis (${free})</button>`:''}
@@ -1164,7 +790,7 @@ function pageCase(id){const cs=CASE[id];if(!cs){location.hash='#cajas';return}
     showResult(res.items);BUSY=false;if(DIRTY){DIRTY=false;updateHeader()}}
   function showResult(items){const tot=items.reduce((a,it)=>a+Math.floor(itemValue(it)*QUICK),0);const best=Math.max(...items.map(rarOf));
     const st=$('#stageIn');const wrap=document.createElement('div');wrap.className='result';
-    wrap.innerHTML=`<div class="won">${items.map((it,i)=>{const r=rarOf(it);return`<div class="wonc" style="--rc:${rc(r)};animation-delay:${i*.08}s" data-wid="${it.id}">${imgTag(it)}<div class="nm"><small>${RAR[r].n}${it.st?' · ST™':''}</small><b>${esc(itemName(it).replace(/^★ |ST™ /g,''))}</b><span>${WEAR[wearOf(it.f)].n} · ${it.f.toFixed(4)}</span></div>
+    wrap.innerHTML=`<div class="won">${items.map((it,i)=>{const r=rarOf(it);return`<div class="wonc" style="--rc:${rc(r)};animation-delay:${i*.08}s" data-wid="${it.id}">${imgTag(it)}<div class="nm"><small>${RAR[r].n}${it.st?' · ST™':''}</small><b>${esc(itemName(it).replace(/^★ |ST™ /g,''))}</b><span>${isNW(it.w)?'Sin desgaste':WEAR[wearOf(it.f)].n+' · '+it.f.toFixed(4)}</span></div>
       <div class="vv"><span class="cr">${fmt(itemValue(it))}</span><button class="btn sm" data-sell="${it.id}">Vender ${fmt(Math.floor(itemValue(it)*QUICK))}</button></div></div>`}).join('')}</div>
       <div class="controls"><button class="btn" id="keepBtn">Guardar en el inventario</button>${items.length>1?`<button class="btn" id="sellAll">Vender todo · <span class="cr">${fmt(tot)}</span></button>`:''}<button class="btn pri" id="againBtn">Abrir otra · <span class="cr">${fmt(casePrice(cs)*n)}</span></button></div>`;
     st.innerHTML='';st.appendChild(wrap);pumpImgs();
@@ -1179,7 +805,7 @@ async function spinReels(cs,items,fast){
   const mobile=innerWidth<900;const cw=n===1?(mobile?130:180):n<=3?(mobile?110:150):(mobile?92:124);const gap=6,WIN=52,LEN=60;
   const strips=items.map((win,ri)=>{const cells=[];for(let i=0;i<LEN;i++)cells.push(i===WIN?win:rollCase(cs,rnd,1));return cells});
   /* pre-renderizar */
-  strips.flat().forEach(it=>{if(rarOf(it)<6)defImg(it.w,it.s,wearOf(it.f))});items.forEach(it=>defImg(it.w,it.s,wearOf(it.f)));
+  await preload(strips.flat().map(it=>itemSrc(it.w)),2500);
   const reels=strips.map((cells,ri)=>{const r=document.createElement('div');r.className='reel';r.style.setProperty('--cw',cw+'px');
     r.innerHTML=`<div class="strip">${cells.map((it,i)=>{const rr=rarOf(it);return rr===6&&i!==WIN||(rr===6&&i===WIN)?`<div class="cell gold" style="--rc:${rc(6)}" data-i="${i}"><div class="q">★</div></div>`:`<div class="cell" style="--rc:${rc(rr)}" data-i="${i}">${imgTag(it)}</div>`}).join('')}</div><div class="mark"></div><div class="fadeL"></div><div class="fadeR"></div>`;
     box.appendChild(r);return r});
@@ -1198,9 +824,9 @@ async function spinReels(cs,items,fast){
 function inspectModal(it,o){o=o||{};const r=rarOf(it),own=!!(it.id&&ME.inv[it.id]);const v=itemValue(it);
   const m=modal(`<div style="color:${RAR[r].c};font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase">${RAR[r].n}${it.st?' · ST™ (contador)':''}</div><h3>${esc(itemName(it))}</h3>
     <div class="inspect" id="insp" style="--rcA:${RAR[r].c}55">${imgTag(it,'id="inspImg"')}</div>
-    ${o.cat?`<p class="mu">Puede salir en: ${CAT[it.w+'|'+it.s].cases.map(c=>esc(CASE[c].n)).join(', ')}.</p><p class="mu" style="margin-top:6px">Valor aproximado según desgaste: ${WEAR.map((W,i)=>`${W.k} <span class="cr">${fmt(itemValue({w:it.w,s:it.s,f:(W.a+W.b)/2}))}</span>`).join(' · ')}</p>`:
-    `<div class="floatbar"><i style="left:calc(${(it.f*100).toFixed(2)}% - 1.5px)"></i></div>
-    <div class="kv"><span>Desgaste</span><b>${WEAR[wearOf(it.f)].n}</b><span>Float</span><b>${it.f.toFixed(6)}</b><span>Origen</span><b>${esc(it.o&&CASE[it.o]?CASE[it.o].n:it.o==='tienda'?'Tienda':it.o==='contrato'?'Contrato':it.o==='mejora'?'Mejorador':it.o==='regalo'?'Regalo del admin':'—')}</b><span>Valor</span><b class="cr">${fmt(v)}</b></div>`}
+    ${o.cat?`<p class="mu">Puede salir en: ${CAT[it.w+'|'+it.s].cases.map(c=>esc(CASE[c].n)).join(', ')}.</p><p class="mu" style="margin-top:6px">${isNW(it.w)?`Valor <span class="cr">${fmt(itemValue(it))}</span>`:`Valor aproximado según desgaste: ${WEAR.map((W,i)=>`${W.k} <span class="cr">${fmt(itemValue({w:it.w,s:it.s,f:(W.a+W.b)/2}))}</span>`).join(' · ')}`}</p><p class="mu" style="margin-top:6px">En el mercado de Steam: ${DEF[it.w].usd.toLocaleString('es-ES',{minimumFractionDigits:2})} $ (${DEF[it.w].nw?'':WEAR[DEF[it.w].lw].n+' · '}${fmt(DEF[it.w].sale)} en venta)</p>`:
+    `${isNW(it.w)?'':`<div class="floatbar"><i style="left:calc(${(it.f*100).toFixed(2)}% - 1.5px)"></i></div>`}
+    <div class="kv"><span>Tipo</span><b>${esc(DEF[it.w].t)}</b><span>Desgaste</span><b>${wearTxt(it)}</b>${isNW(it.w)?'':`<span>Float</span><b>${it.f.toFixed(6)}</b>`}<span>Steam</span><b>${DEF[it.w].usd.toLocaleString('es-ES',{minimumFractionDigits:2})} $</b><span>Origen</span><b>${esc(it.o&&CASE[it.o]?CASE[it.o].n:it.o==='tienda'?'Tienda':it.o==='contrato'?'Contrato':it.o==='mejora'?'Mejorador':it.o==='regalo'?'Regalo del admin':'—')}</b><span>Valor</span><b class="cr">${fmt(v)}</b></div>`}
     ${own?`<div class="row wrap" style="margin-top:14px"><button class="btn" id="iSell">Vender · <span class="cr">${fmt(Math.floor(v*QUICK))}</span></button><button class="btn" id="iList">Poner en el mercado</button><button class="btn" id="iUp">Mejorar</button>${rarOf(it)<=5?'<button class="btn" id="iCt">Contrato</button>':''}</div>`:''}`);
   const box=$('#insp'),img=$('#inspImg');let drag=null,ry=0,rx=0;
   box.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY,ry,rx};box.setPointerCapture(e.pointerId)};
@@ -1257,7 +883,7 @@ function marketList(){const box=$('#mkb');if(!box)return;let L=Object.entries(MK
   $('#ms').value=MK.sort;$('#ms').onchange=e=>{MK.sort=e.target.value;marketList();pumpImgs()};
   let qt;$('#mq').oninput=e=>{clearTimeout(qt);qt=setTimeout(()=>{MK.q=e.target.value;marketList();pumpImgs();const q=$('#mq');q.focus();q.setSelectionRange(q.value.length,q.value.length)},250)};
   $$('#mkb .it').forEach(b=>b.onclick=()=>{const x=MK.data[b.dataset.iid];if(!x)return;const it=dec(x.it);const mine=x.s===UID;
-    modal(`<h3>${esc(itemName(it))}</h3><p class="mu">${mine?'Es tu anuncio.':`Lo vende <b>${esc(x.sn)}</b>.`} Valor de referencia <span class="cr">${fmt(itemValue(it))}</span> · ${WEAR[wearOf(it.f)].n} · float ${it.f.toFixed(4)}</p>
+    modal(`<h3>${esc(itemName(it))}</h3><p class="mu">${mine?'Es tu anuncio.':`Lo vende <b>${esc(x.sn)}</b>.`} Valor de referencia <span class="cr">${fmt(itemValue(it))}</span> · ${wearTxt(it)}${isNW(it.w)?'':' · float '+it.f.toFixed(4)}</p>
       <div class="inspect" style="--rcA:${RAR[rarOf(it)].c}55;height:200px">${imgTag(it)}</div>
       <div class="row end">${mine?`<button class="btn bad" id="mc">Retirar anuncio</button>`:`<span class="grow">Tienes <span class="cr">${fmt(ME.c)}</span></span><button class="btn pri big" id="mb">Comprar · <span class="cr">${fmt(x.p)}</span></button>`}</div>`);
     if(mine)$('#mc').onclick=async()=>{const r=await cancelListing(b.dataset.iid);toast(r.err||'Anuncio retirado; el artículo vuelve a tu inventario',r.err?'bad':'ok');closeModal()};
@@ -1265,18 +891,18 @@ function marketList(){const box=$('#mkb');if(!box)return;let L=Object.entries(MK
   pumpImgs()}
 let SHOP={q:'',r:-1};
 function shopView(){const box=$('#mkb');let L=CATL.slice();if(SHOP.q){const q=SHOP.q.toLowerCase();L=L.filter(c=>(WPN[c.w].n+' '+SKIN[c.s].n).toLowerCase().includes(q))}if(SHOP.r>=0)L=L.filter(c=>c.r===SHOP.r);
-  L.sort((a,b)=>b.r-a.r||baseVal(b.w,b.s,b.r)-baseVal(a.w,a.s,a.r));
+  L.sort((a,b)=>b.r-a.r||baseVal(b.w)-baseVal(a.w));
   box.innerHTML=`<div class="tools"><input class="inp" id="sq" placeholder="Buscar…" value="${esc(SHOP.q)}" style="width:220px"><button class="chip ${SHOP.r<0?'on':''}" data-sr="-1">Todas</button>${RAR.map((R,i)=>`<button class="chip ${SHOP.r===i?'on':''}" data-sr="${i}" style="${SHOP.r===i?'':`color:${R.c}`}">${R.n}</button>`).join('')}</div>
   <p class="mu" style="margin-bottom:12px">La tienda siempre tiene todo, pero cobra un ${Math.round((SHOP_MARKUP-1)*100)}% más que el valor. En el mercado de jugadores suele salir más barato.</p>
-  <div class="items">${L.map(c=>itemCard({id:'',w:c.w,s:c.s,f:.26},{price:shopPrice(c.w,c.s,2,0),attr:`data-shop="${c.w}|${c.s}"`})).join('')}</div>`;
+  <div class="items">${L.map(c=>itemCard({id:'',w:c.w,s:c.s,f:defF(c.w)},{price:shopPrice(c.w,c.s,isNW(c.w)?0:DEF[c.w].lw,0),attr:`data-shop="${c.w}|${c.s}"`})).join('')}</div>`;
   let qt;$('#sq').oninput=e=>{clearTimeout(qt);qt=setTimeout(()=>{SHOP.q=e.target.value;shopView();const q=$('#sq');q.focus();q.setSelectionRange(q.value.length,q.value.length)},250)};
   $$('[data-sr]').forEach(b=>b.onclick=()=>{SHOP.r=+b.dataset.sr;shopView()});
   $$('[data-shop]').forEach(b=>b.onclick=()=>shopModal(...b.dataset.shop.split('|')));pumpImgs()}
-function shopModal(w,s){let wi=2,st=0;const draw=()=>{const p=shopPrice(w,s,wi,st);const it={w,s,f:(WEAR[wi].a+WEAR[wi].b)/2,st};
-  modal(`<h3>${esc(itemName(it))}</h3><p class="mu">Elige el desgaste. Cuanto más nuevo, más caro.</p><div class="inspect" style="--rcA:${RAR[rarOf(it)].c}55;height:200px">${imgTag(it)}</div>
-    <div class="tabs">${WEAR.map((W,i)=>`<button class="chip ${i===wi?'on':''}" data-wi="${i}">${W.n}</button>`).join('')}<button class="chip ${st?'on':''}" id="stT">ST™ (contador)</button></div>
+function shopModal(w,s){let wi=DEF[w].lw,st=0;const nw=isNW(w),stOk=!nw&&!DEF[w].st0&&!DEF[w].sv&&DEF[w].t!=='Guantes';const draw=()=>{const p=shopPrice(w,s,wi,st);const it={w,s,f:(WEAR[wi].a+WEAR[wi].b)/2,st};
+  modal(`<h3>${esc(itemName(it))}</h3><p class="mu">${nw?'Sin desgaste.':'Elige el desgaste. Cuanto más nuevo, más caro.'}</p><div class="inspect" style="--rcA:${RAR[rarOf(it)].c}55;height:200px">${imgTag(it)}</div>
+    ${nw?'':`<div class="tabs">${WEAR.map((W,i)=>`<button class="chip ${i===wi?'on':''}" data-wi="${i}">${W.n}</button>`).join('')}${stOk?`<button class="chip ${st?'on':''}" id="stT">StatTrak™</button>`:''}</div>`}
     <div class="row end"><span class="grow">Tienes <span class="cr">${fmt(ME.c)}</span></span><button class="btn pri big" id="sb">Comprar · <span class="cr">${fmt(p)}</span></button></div>`);
-  $$('[data-wi]').forEach(b=>b.onclick=()=>{wi=+b.dataset.wi;draw()});$('#stT').onclick=()=>{st=st?0:1;draw()};
+  $$('[data-wi]').forEach(b=>b.onclick=()=>{wi=+b.dataset.wi;draw()});if($('#stT'))$('#stT').onclick=()=>{st=st?0:1;draw()};
   $('#sb').onclick=async()=>{$('#sb').disabled=true;const r=await shopBuy(w,s,wi,st);if(r.err){SND.bad();toast(r.err,'bad');draw();return}SND.coin();toast('Comprado. Ya está en tu inventario','ok');closeModal()}};draw()}
 
 /* ---------- INTERCAMBIOS ---------- */
@@ -1322,10 +948,10 @@ function pageBattles(){const v=$('#view');v.innerHTML=`<div class="h1"><div><h2>
       <div><b>${esc(b.hn)}</b><small style="display:block;color:var(--mu)">${b.cs.length} rondas · ${b.n} jugadores</small></div>
       <div class="slots">${[...Array(b.n)].map((_,i)=>pl[i]?`<span class="slot f" title="${esc(pl[i].n)}">${pl[i].bot?'🤖':esc(String(pl[i].n).charAt(0).toUpperCase())}</span>`:'<span class="slot">+</span>').join('')}</div>
       <div style="margin-left:auto" class="row"><span class="price"><span class="cr">${fmt(b.cost)}</span></span><a class="btn sm ${b.st==='open'?'pri':''}" href="#batalla/${id}">${b.st==='open'?'Entrar':'Ver'}</a></div></div>`}).join(''):'<div class="empty panel">No hay batallas ahora mismo. ¡Crea una!</div>'})}
-function createBattleModal(){let cs=['origen'],n=2;const draw=()=>{const cost=battleCost(cs);
+function createBattleModal(){let cs=[CASES[6].id],n=2;const draw=()=>{const cost=battleCost(cs);
   modal(`<h3>Crear batalla</h3><p class="mu">Elige las cajas (hasta 6 rondas) y cuántos jugadores. Todos pagan lo mismo.</p>
   <div class="row wrap" style="margin:14px 0">${cs.map((c,i)=>`<button class="chip" data-rm="${i}" title="Quitar">${esc(CASE[c].n)} ✕</button>`).join('')}</div>
-  <div class="cases" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px">${CASES.map(c=>`<button class="case" data-add="${c.id}" style="--cc:${c.col[0]};padding:8px"><img src="${renderCase(c)}" alt=""><h3 style="font-size:12px">${esc(c.n.replace('Caja ',''))}</h3><span class="cr" style="font-size:12px">${fmt(casePrice(c))}</span></button>`).join('')}</div>
+  <div class="cases" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px">${CASES.map(c=>`<button class="case" data-add="${c.id}" style="--cc:${c.col[0]};padding:8px"><img src="${renderCase(c)}" alt=""><h3 style="font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.n.replace(/ Case$/,'').replace('Operation ','Op. '))}</h3><span class="cr" style="font-size:12px">${fmt(casePrice(c))}</span></button>`).join('')}</div>
   <div class="row" style="margin:16px 0 6px"><span class="mu">Jugadores</span><div class="seg">${[2,3,4].map(k=>`<button class="${k===n?'on':''}" data-pn="${k}">${k}</button>`).join('')}</div><span class="grow"></span><span>Coste <span class="cr">${fmt(cost)}</span></span></div>
   <div class="row end" style="margin-top:12px"><button class="btn" data-close>Cancelar</button><button class="btn pri" id="bgo" ${cs.length?'':'disabled'}>Crear y pagar</button></div>`,'wide');
   $$('[data-add]').forEach(b=>b.onclick=()=>{if(cs.length<6){cs.push(b.dataset.add);SND.click();draw()}});$$('[data-rm]').forEach(b=>b.onclick=()=>{cs.splice(+b.dataset.rm,1);draw()});
@@ -1389,7 +1015,7 @@ function pageUpgrader(){const v=$('#view');UPG.inp=UPG.inp.filter(id=>ME.inv[id]
   drawDial(ch,UPG.ang);
   $('#upPick').onclick=()=>pickItems({max:6,pre:UPG.inp,title:'¿Qué arriesgas?',cb:ids=>{UPG.inp=ids;UPG.tgt=null;pageUpgrader();pumpImgs()}});
   $('#upT').onclick=()=>pickTarget(inV);
-  $$('[data-mul]').forEach(b=>b.onclick=()=>{const want=inV*+b.dataset.mul;let best=null,bd=1e18;for(const c of CATL)for(let wi=0;wi<5;wi++){const val=itemValue({w:c.w,s:c.s,f:(WEAR[wi].a+WEAR[wi].b)/2});if(val<=inV)continue;const d=Math.abs(val-want);if(d<bd){bd=d;best={c,wi}}}
+  $$('[data-mul]').forEach(b=>b.onclick=()=>{const want=inV*+b.dataset.mul;let best=null,bd=1e18;for(const c of CATL)for(let wi=0;wi<(isNW(c.w)?1:5);wi++){const val=itemValue({w:c.w,s:c.s,f:(WEAR[wi].a+WEAR[wi].b)/2});if(val<=inV)continue;const d=Math.abs(val-want);if(d<bd){bd=d;best={c,wi}}}
     if(best){UPG.tgt=best.c;UPG.twi=best.wi;pageUpgrader();pumpImgs()}});
   $('#upGo').onclick=()=>doUpgrade(ch,inV,tVal)}
 function drawDial(ch,ang){const c=$('#dial');if(!c)return;const x=c.getContext('2d');const W=600,R=270;x.clearRect(0,0,W,W);x.save();x.translate(300,300);
@@ -1406,7 +1032,7 @@ async function doUpgrade(ch,inV,tVal){if(UPG.spinning)return;const ids=UPG.inp.f
   if(win){SND.reveal(rarOf(newIt));celebrate(Math.max(4,rarOf(newIt)));modal(`<div class="lvup"><div class="ring" style="border-color:#3ad07a">✓</div><h3>¡Mejora conseguida!</h3><p class="mu">Ganas ${esc(itemName(newIt))}</p><div style="margin:14px auto;max-width:260px">${itemCard(newIt)}</div><button class="btn pri" data-close>Genial</button></div>`)}
   else{SND.bad();modal(`<div class="lvup"><div class="ring" style="border-color:var(--bad);font-size:48px">✕</div><h3>Esta vez no</h3><p class="mu">Has perdido <span class="cr">${fmt(inV)}</span>. La próxima seguro.</p><button class="btn pri" data-close style="margin-top:14px">Volver a intentarlo</button></div>`)}
   pageUpgrader();pumpImgs()}
-function pickTarget(inV){let q='';const draw=()=>{const L=[];for(const c of CATL){if(q&&!(WPN[c.w].n+' '+SKIN[c.s].n).toLowerCase().includes(q))continue;for(const wi of[1,2]){const val=itemValue({w:c.w,s:c.s,f:(WEAR[wi].a+WEAR[wi].b)/2});if(val>inV*1.05)L.push({c,wi,val})}}
+function pickTarget(inV){let q='';const draw=()=>{const L=[];for(const c of CATL){if(q&&!(WPN[c.w].n+' '+SKIN[c.s].n).toLowerCase().includes(q))continue;for(const wi of(isNW(c.w)?[0]:[1,2])){const val=itemValue({w:c.w,s:c.s,f:(WEAR[wi].a+WEAR[wi].b)/2});if(val>inV*1.05)L.push({c,wi,val})}}
   L.sort((a,b)=>a.val-b.val);
   const box=$('#tgl');box.innerHTML=L.slice(0,120).map(x=>itemCard({id:'',w:x.c.w,s:x.c.s,f:(WEAR[x.wi].a+WEAR[x.wi].b)/2},{mini:1,price:x.val,sub:`${(Math.min(.8,inV/x.val*.92)*100).toFixed(1)}% · ${WEAR[x.wi].k}`,attr:`data-tg="${x.c.k}|${x.wi}"`})).join('')||'<div class="empty">Nada</div>';
   $$('[data-tg]').forEach(b=>b.onclick=()=>{const[w,s,wi]=b.dataset.tg.split('|');UPG.tgt=CAT[w+'|'+s];UPG.twi=+wi;closeModal();pageUpgrader();pumpImgs()});pumpImgs()};
@@ -1483,8 +1109,8 @@ function admDraw(){const U=ADMS.users;const L=Object.entries(U).filter(([u,x])=>
   $('#admb').innerHTML=`<div class="adm"><div><input class="inp" id="aq" placeholder="Buscar jugador…" value="${esc(ADMS.q)}" style="width:100%;margin-bottom:8px"><div class="ul">${L.map(([u,x])=>`<button class="${u===ADMS.u?'on':''}" data-au="${u}"><span>${esc(x.n||'?')} ${ADMS.staff[u]?'<span class="badge st">STAFF</span>':''}${x.ban?' <span class="badge">BLOQ.</span>':''}${u===UID?' (tú)':''}</span><span class="cr">${fmt(x.c||0)}</span></button>`).join('')}</div></div>
   <div><div class="card"><div class="row wrap"><div class="grow"><h3 style="font-size:20px">${esc(sel.n||'?')}${ADMS.u===UID?' (tú)':''}</h3><small class="mu">Nivel ${levelOf(sel.xp||0).l} · ${fmt(sel.op||0)} cajas · inventario <span class="cr">${fmt(iv)}</span> · ${inv.length} artículos</small></div></div>
     <h4 style="margin-top:14px">Créditos: <span class="cr">${fmt(sel.c||0)}</span></h4><div class="row wrap">${[1000,10000,100000,1000000].map(k=>`<button class="btn sm" data-ac="${k}">+${fmt(k)}</button>`).join('')}<input class="inp" id="acv" type="number" placeholder="Fijar exacto" style="width:140px"><button class="btn sm" id="acs">Fijar</button></div>
-    <h4 style="margin-top:14px">Dar artículo</h4><div class="row wrap"><select class="inp" id="agi" style="max-width:260px">${CATL.slice().sort((a,b)=>b.r-a.r||(WPN[a.w].n+SKIN[a.s].n).localeCompare(WPN[b.w].n+SKIN[b.s].n)).map(c=>`<option value="${c.k}">${isGold(c.w)?'★ ':''}${esc(WPN[c.w].n)} | ${esc(SKIN[c.s].n)} (${RAR[c.r].n})</option>`).join('')}</select>
-      <select class="inp" id="agw">${WEAR.map((W,i)=>`<option value="${i}">${W.n}</option>`).join('')}</select><label class="tog" id="agst"><i></i>ST™</label><button class="btn sm pri" id="ag">Dar</button><button class="btn sm" id="agall">Uno de cada ★ (cuchillos y guantes)</button></div>
+    <h4 style="margin-top:14px">Dar artículo</h4><div class="row wrap"><select class="inp" id="agi" style="max-width:260px">${CATL.slice().sort((a,b)=>b.r-a.r||(WPN[a.w].n+SKIN[a.s].n).localeCompare(WPN[b.w].n+SKIN[b.s].n)).map(c=>`<option value="${c.k}">${isGold(c.w)?'★ ':''}${esc(WPN[c.w].n)} | ${esc(SKIN[c.s].n)} (${RAR[c.r].n} · ${DEF[c.w].usd} $)</option>`).join('')}</select>
+      <select class="inp" id="agw">${WEAR.map((W,i)=>`<option value="${i}">${W.n}</option>`).join('')}</select><label class="tog" id="agst"><i></i>ST™</label><button class="btn sm pri" id="ag">Dar</button><button class="btn sm" id="agall">Uno de cada ★ (cuchillos y guantes)</button><button class="btn sm" id="agjk">Todas las joyas +1.000 $</button></div>
     <h4 style="margin-top:14px">Cajas gratis</h4><div class="row wrap"><select class="inp" id="afb">${CASES.map(c=>`<option value="${c.id}">${esc(c.n)}</option>`).join('')}</select><button class="btn sm" data-fb="1">+1</button><button class="btn sm" data-fb="10">+10</button></div>
     <h4 style="margin-top:14px">Moderación</h4><div class="row wrap"><button class="btn sm ${sel.ban?'ok':'bad'}" id="aban" ${ADMS.u===UID?'disabled':''}>${sel.ban?'Desbloquear':'Bloquear'}</button><button class="btn sm bad" id="arst">Reiniciar cuenta</button>
       <button class="btn sm ${ADMS.staff[ADMS.u]?'bad':''}" id="astf" ${ADMS.u===UID?'disabled':''}>${ADMS.staff[ADMS.u]?'Quitar permisos de admin':'Hacer admin (acceso total)'}</button></div></div>
@@ -1500,8 +1126,9 @@ function admDraw(){const U=ADMS.users;const L=Object.entries(U).filter(([u,x])=>
   $$('[data-ac]').forEach(b=>b.onclick=async()=>{await ADM.credits(U_,+b.dataset.ac);toast('Créditos añadidos','ok');re()});
   $('#acs').onclick=async()=>{const v=+$('#acv').value;if(v>=0){await ADM.setCredits(U_,v);toast('Créditos fijados','ok');re()}};
   let ast=0;$('#agst').onclick=()=>{ast=ast?0:1;$('#agst').classList.toggle('on',!!ast)};
-  $('#ag').onclick=async()=>{const[w,s]=$('#agi').value.split('|');const W=WEAR[+$('#agw').value];await ADM.give(U_,{id:uid(),w,s,f:+(W.a+(W.b-W.a)*rnd()).toFixed(5),st:ast,o:'regalo',t:Date.now()});toast('Artículo entregado','ok');re()};
-  $('#agall').onclick=async()=>{for(const c of CATL.filter(c=>c.r===6))await ADM.give(U_,{id:uid(),w:c.w,s:c.s,f:+(rnd()*.07).toFixed(5),st:1,o:'regalo',t:Date.now()});toast('Entregados todos los ★','ok');re()};
+  $('#ag').onclick=async()=>{const[w,s]=$('#agi').value.split('|');const W=WEAR[+$('#agw').value];await ADM.give(U_,{id:uid(),w,s,f:isNW(w)?0:+(W.a+(W.b-W.a)*rnd()).toFixed(5),st:isNW(w)||DEF[w].st0?0:ast,o:'regalo',t:Date.now()});toast('Artículo entregado','ok');re()};
+  $('#agall').onclick=async()=>{for(const c of CATL.filter(c=>c.r===6&&isGold(c.w)))await ADM.give(U_,{id:uid(),w:c.w,s:c.s,f:+(rnd()*.07).toFixed(5),st:DEF[c.w].t==='Cuchillo'&&!DEF[c.w].st0?1:0,o:'regalo',t:Date.now()});toast('Entregados todos los ★','ok');re()};
+  $('#agjk').onclick=async()=>{for(const c of CATL.filter(c=>c.r===6&&!isGold(c.w)))await ADM.give(U_,{id:uid(),w:c.w,s:c.s,f:defF(c.w),st:0,o:'regalo',t:Date.now()});toast('Entregadas todas las joyas','ok');re()};
   $$('[data-fb]').forEach(b=>b.onclick=async()=>{await ADM.freebox(U_,$('#afb').value,+b.dataset.fb);toast('Cajas gratis añadidas','ok');re()});
   $('#aban').onclick=async()=>{await ADM.ban(U_,!ADMS.users[U_].ban);re()};
   $('#arst').onclick=()=>{modal(`<h3>¿Reiniciar la cuenta de ${esc(ADMS.users[U_].n)}?</h3><p class="mu">Se borra el inventario y vuelve a 1.000 créditos y nivel 1. No se puede deshacer.</p><div class="row end" style="margin-top:14px"><button class="btn" data-close>Cancelar</button><button class="btn bad" id="rsy">Reiniciar</button></div>`);$('#rsy').onclick=async()=>{await ADM.reset(U_);closeModal();toast('Cuenta reiniciada','ok');re()}};
@@ -1515,8 +1142,8 @@ function admDraw(){const U=ADMS.users;const L=Object.entries(U).filter(([u,x])=>
 document.addEventListener('pointerdown',()=>SND.init(),{once:true});
 function boot(){showGate('loading');
   if(!window.firebase){showGate('out');$('#gate p').innerHTML='No se ha podido conectar con el servidor. Comprueba tu conexión y recarga.';return}
-  netInit(st=>{if(st==='out')showGate('out');else if(st==='loading')showGate('loading');else if(st==='error')showGate('out')});
-  on(w=>{if(w==='first'){if(ME.ban){showGate('ban');return}showApp();if(ME.fresh){setTimeout(()=>modal(`<div class="lvup"><div class="ring">🎁</div><h3>¡Bienvenido a MCF Drop, ${esc(ME.n)}!</h3><p class="mu">Te regalamos <span class="cr">1.000</span> créditos para empezar. Abre tu primera caja, gira la rueda diaria y sube de nivel para ganar más.</p><a class="btn pri" href="#caja/origen" data-close style="margin-top:14px">Abrir mi primera caja</a></div>`),600)}}})}
+  netInit((st,e)=>{if(st==='out')showGate('out');else if(st==='loading')showGate('loading');else if(st==='error')showGate('error',e)});
+  on(w=>{if(w==='first'){if(ME.ban){showGate('ban');return}showApp();if(ME.fresh){setTimeout(()=>modal(`<div class="lvup"><div class="ring">🎁</div><h3>¡Bienvenido a MCF Drop, ${esc(ME.n)}!</h3><p class="mu">Te regalamos <span class="cr">1.000</span> créditos para empezar. Abre tu primera caja, gira la rueda diaria y sube de nivel para ganar más.</p><a class="btn pri" href="#caja/${CASES[6].id}" data-close style="margin-top:14px">Abrir mi primera caja</a></div>`),600)}}})}
 boot();
 </script>
 </body>
