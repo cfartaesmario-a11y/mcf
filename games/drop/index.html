@@ -496,7 +496,7 @@ let DB=null,AUTH=null,UID=null,FBUSER=null,TOFF=0;
 const ME={n:'',c:0,xp:0,lvc:1,ld:0,op:0,best:0,bestN:'',inv:{},loaded:false};
 let STAFF=false,ROOTADMIN=false,CFG={luck:1,disc:0,xp2:0,msg:'',until:0};
 const now=()=>Date.now()+TOFF;
-const R_=p=>DB.ref('drop/'+p);
+let ROOTP='drop';const R_=p=>DB.ref(ROOTP+'/'+p);
 const TS=()=>firebase.database.ServerValue.TIMESTAMP;
 const enc=it=>JSON.stringify({id:it.id,w:it.w,s:it.s,f:it.f||0,st:it.st?1:0,o:it.o||'',t:it.t||0});
 const dec=s=>{try{const o=typeof s==='string'?JSON.parse(s):s;return o&&WPN[o.w]&&SKIN[o.s]?o:null}catch(e){return null}};
@@ -518,7 +518,10 @@ function netInit(onState){
     FBUSER=u;UID=u.uid;onState('loading');
     try{
       const a=await DB.ref('admins/'+UID).once('value').catch(()=>null);ROOTADMIN=!!(a&&a.val()===true);
-      const st=await R_('staff/'+UID).once('value').catch(()=>null);STAFF=ROOTADMIN||!!(st&&st.val());
+      /* si las reglas de MCF Drop no están publicadas, usamos la zona abierta 'salas' */
+      ROOTP=await DB.ref('drop/config').once('value').then(()=>'drop',()=>'salas/mcfdrop');
+      if(ROOTP==='drop'){const mine=await R_('users/'+UID).once('value');if(!mine.exists()){const old=await DB.ref('salas/mcfdrop/users/'+UID).once('value').catch(()=>null);if(old&&old.exists())await R_('users/'+UID).set(old.val())}}
+      const st=await R_('staff/'+UID).once('value').catch(()=>null);STAFF=ROOTADMIN||!!(st&&st.val()===true);
       const snap=await R_('users/'+UID).once('value');
       if(!snap.exists()){await R_('users/'+UID).set({n:mcfName(u),c:1000,xp:0,lvc:1,ld:0,op:0,best:0,bestN:'',t:TS()});ME.fresh=true}
       R_('users/'+UID).on('value',s=>{const v=s.val()||{};ME.n=v.n||mcfName(u);ME.c=v.c||0;ME.xp=v.xp||0;ME.lvc=v.lvc||1;ME.ld=v.ld||0;ME.op=v.op||0;ME.best=v.best||0;ME.bestN=v.bestN||'';ME.ban=!!v.ban;ME.fb=v.freebox||{};
