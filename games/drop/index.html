@@ -459,6 +459,26 @@ img{image-rendering:auto}
 
 .btn.pri .cr,.btn.gold .cr,.btn.ok .cr{color:inherit}
 .show .sbox{max-height:380px}.show img{max-height:380px}
+
+.freecase{border-color:rgba(58,208,122,.45);background:linear-gradient(180deg,rgba(58,208,122,.12),var(--p1))}
+.freecase.ready{animation:freep 1.6s ease-in-out infinite}
+@keyframes freep{50%{box-shadow:0 0 0 3px rgba(58,208,122,.25),0 0 40px rgba(58,208,122,.35)}}
+.freecase .cimg{position:relative}
+.freelbl{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%) rotate(-8deg);font-size:44px;font-weight:950;letter-spacing:.04em;color:#fff;text-shadow:0 0 18px #3ad07a,0 4px 0 #0b5a2c,0 10px 24px rgba(0,0,0,.6);-webkit-text-stroke:2px #0b5a2c}
+
+.fcard{display:grid;grid-template-columns:1fr 70px 1fr auto;gap:12px;align-items:center;padding:14px;border-radius:16px;background:var(--p1);border:1px solid var(--line);margin-bottom:10px}
+.fcard.run{border-color:rgba(255,201,60,.45)}
+.fside{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}.fside b{display:block}.fside small{color:var(--mu)}
+.fside .side img{width:66px;height:34px;object-fit:contain;background:var(--p2);border-radius:8px;border-bottom:2px solid var(--rc)}
+.fvs{font-size:22px;font-weight:900;text-align:center;color:var(--mu)}
+.coin{display:grid;place-items:center;border-radius:50%;font-weight:900;color:#fff;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--cc) 60%,#fff),var(--cc) 55%,color-mix(in srgb,var(--cc) 60%,#000));box-shadow:0 0 0 3px rgba(255,255,255,.15) inset,0 6px 18px rgba(0,0,0,.4)}
+.coin.sm{width:38px;height:38px;font-size:13px;flex:none}
+.coinwrap{perspective:900px;height:230px;display:grid;place-items:center;margin:10px 0}
+.coin3d{position:relative;width:170px;height:170px;transform-style:preserve-3d}
+.coin3d .face{position:absolute;inset:0;border-radius:50%;display:grid;place-items:center;font-size:58px;font-weight:950;color:#fff;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--cc) 55%,#fff),var(--cc) 55%,color-mix(in srgb,var(--cc) 55%,#000));box-shadow:0 0 0 8px rgba(255,255,255,.18) inset,0 0 50px color-mix(in srgb,var(--cc) 50%,transparent);text-shadow:0 4px 0 rgba(0,0,0,.3)}
+.coin3d .back{transform:rotateY(180deg)}
+@media (max-width:900px){.fcard{grid-template-columns:1fr;text-align:center}.fside{justify-content:center}.fvs{font-size:18px}}
 </style>
 </head>
 <body>
@@ -573,7 +593,7 @@ function rollCase(cs,r,luck){const od=caseOdds(cs,luck||1);let x=r(),acc=0,rr=2;
   const d=DEF[w];const stOk=!d.nw&&!d.st0&&!d.sv&&d.t!=='Guantes';const st=stOk&&r()<ST_CHANCE;const f=d.nw?0:genFloat(r);return{w,s,f,st:st?1:0,o:cs.id}}
 function caseEV(cs){const R=mulberry(hashStr(cs.id));let s=0;const N=6000;for(let i=0;i<N;i++)s+=itemValue(rollCase(cs,R,1));return s/N}
 const nicePrice=v=>{const m=v<100?5:v<500?10:v<2000?25:50;return Math.max(m,Math.round(v/m)*m)};
-{let prev=0;CASES.forEach(cs=>{cs.ev=caseEV(cs);cs.price=Math.max(nicePrice(cs.ev/.9),prev+5);prev=cs.price})}
+{let prev=0;CASES.forEach(cs=>{cs.ev=caseEV(cs);cs.price=Math.max(nicePrice(cs.ev/.96),prev+5);prev=cs.price})}
 /* Niveles */
 const xpNeed=l=>Math.round(120*Math.pow(l,1.45));
 const levelReward=l=>({c:300+l*150,box:l%5===0?(l>=20?CASES[15].id:CASES[8].id):null});
@@ -583,6 +603,19 @@ const BOTS=['Bot Pere','Bot Laia','Bot Nil','Bot Júlia','Bot Marc','Bot Ona','B
 function itemOdds(cs,w,luck){const od=caseOdds(cs,luck||1);const gi=cs.g.findIndex(x=>x[0]===w);if(gi>=0){const tot=cs.gw.reduce((a,b)=>a+b,0);return od[6]*cs.gw[gi]/tot}
   const e=cs.i.find(x=>x[0]===w);if(!e)return 0;return od[e[2]]/cs.i.filter(x=>x[2]===e[2]).length}
 const pct=p=>p>=.1?(p*100).toFixed(1)+'%':p>=.001?(p*100).toFixed(2)+'%':(p*100).toFixed(3)+'%';
+
+/* ---------- FREE BOX: gratis cada minuto, premio máximo 50 € ---------- */
+const FREE_CAP=5000,FREE_CD=60000;
+PROF.free=[46,28,16,6.6,2.4,.7,.3];
+const FREECASE=(()=>{const pool=Object.values(DEF).filter(d=>d.usd*USD<=FREE_CAP);
+  const g=pool.filter(d=>d.r===6).map(d=>[d.k,d.k]);
+  return{id:'free',img:CASES[0].img,n:'FREE BOX',d:'Gratis cada minuto · premios de hasta 50 €',prof:'free',col:['#3ad07a','#0b2a18'],free:1,price:0,
+    i:pool.filter(d=>d.r<6).map(d=>[d.k,d.k,d.r]),g,gw:g.map(([k])=>goldW(k))}})();
+CASE.free=FREECASE;
+function rollFree(r){let it=null;for(let k=0;k<12;k++){it=rollCase(FREECASE,r,1);if(itemValue(it)<=FREE_CAP)return it}
+  const c=FREECASE.i.filter(e=>e[2]===0)[0];return{w:c[0],s:c[1],f:.8,st:0,o:'free'}}
+/* Recompensa por jugar en MCF Games (céntimos) */
+const GAME_REWARD_MAX_DAY=300;
 
 /* ===================== MCF Drop · imágenes (catálogo real de CS2) ===================== */
 'use strict';
@@ -612,7 +645,7 @@ const eventOn=()=>CFG&&(!CFG.until||CFG.until>now());
 const luckNow=()=>eventOn()?Math.max(1,+CFG.luck||1):1;
 const discNow=()=>eventOn()?Math.min(.8,Math.max(0,+CFG.disc||0)):0;
 const xpMult=()=>eventOn()&&CFG.xp2?2:1;
-const casePrice=cs=>Math.max(1,Math.round(cs.price*(1-discNow())));
+const casePrice=cs=>cs.free?0:Math.max(1,Math.round(cs.price*(1-discNow())));
 function levelOf(xp){let l=1,need=xpNeed(1),acc=0;while(xp>=acc+need){acc+=need;l++;need=xpNeed(l)}return{l,cur:xp-acc,need}}
 const listeners=[];const on=(fn)=>listeners.push(fn);const emit=(what)=>listeners.forEach(f=>{try{f(what)}catch(e){console.error(e)}});
 
@@ -630,11 +663,11 @@ function netInit(onState){
       const st=await R_('staff/'+UID).once('value').catch(()=>null);STAFF=ROOTADMIN||!!(st&&st.val()===true);
       const snap=await R_('users/'+UID).once('value');
       if(!snap.exists()){await R_('users/'+UID).set({n:mcfName(u),c:5000,xp:0,lvc:1,ld:0,op:0,best:0,bestN:'',t:TS()});ME.fresh=true}
-      R_('users/'+UID).on('value',s=>{const v=s.val()||{};ME.n=v.n||mcfName(u);ME.c=v.c||0;ME.xp=v.xp||0;ME.lvc=v.lvc||1;ME.ld=v.ld||0;ME.op=v.op||0;ME.best=v.best||0;ME.bestN=v.bestN||'';ME.ban=!!v.ban;ME.fb=v.freebox||{};
+      R_('users/'+UID).on('value',s=>{const v=s.val()||{};ME.n=v.n||mcfName(u);ME.c=v.c||0;ME.xp=v.xp||0;ME.lvc=v.lvc||1;ME.ld=v.ld||0;ME.op=v.op||0;ME.best=v.best||0;ME.bestN=v.bestN||'';ME.ban=!!v.ban;ME.fb=v.freebox||{};ME.fbt=v.fbt||0;
         const inv={},bad={};Object.entries(v.inv||{}).forEach(([k,raw])=>{const it=dec(raw);if(it){it.id=k;inv[k]=it}else bad['inv/'+k]=null});if(Object.keys(bad).length)R_('users/'+UID).update(bad).catch(()=>{});ME.inv=inv;const first=!ME.loaded;ME.loaded=true;emit(first?'first':'me')});
       R_('config').on('value',s=>{CFG=Object.assign({luck:1,disc:0,xp2:0,msg:'',until:0},s.val()||{});emit('cfg')});
       R_('payouts/'+UID).on('child_added',s=>claimPayout(s));
-      watchTrades();
+      watchTrades();watchFlips();
       onState('in');
     }catch(e){console.error(e);onState('error',e)}
   });
@@ -655,6 +688,8 @@ on(w=>{if(w==='me'||w==='first')rankSoon()});
 
 /* ---------- abrir cajas ---------- */
 async function openCases(cs,n,free){
+  if(cs.free){const tr=await R_('users/'+UID+'/fbt').transaction(v=>{if(now()-(v||0)<FREE_CD)return;return now()});if(!tr.committed)return{err:'Todavía no: la FREE BOX se recarga cada minuto'};
+    const it=rollFree(rnd);it.id=uid();it.t=Date.now();await addItems([it]);await R_('users/'+UID).update({op:(ME.op||0)+1});if(rarOf(it)>=4)R_('feed').push({n:ME.n,it:enc(it),v:itemValue(it),c:'free',t:TS()});addXP(3);return{items:[it]}}
   const price=casePrice(cs)*n;
   if(free){if(!(await useFreeBox(cs.id)))return{err:'No te quedan cajas gratis'}}
   else if(!(await spend(price)))return{err:'No tienes créditos suficientes'};
@@ -667,7 +702,7 @@ async function openCases(cs,n,free){
   return{items};
 }
 /* ---------- venta rápida ---------- */
-const QUICK=.85;
+const QUICK=.9;
 async function quickSell(ids){const its=ids.map(id=>ME.inv[id]).filter(Boolean);if(!its.length)return 0;const total=its.reduce((a,it)=>a+Math.floor(itemValue(it)*QUICK),0);
   await removeItems(its.map(i=>i.id));await addCredits(total);return total}
 /* ---------- tienda ---------- */
@@ -747,6 +782,27 @@ const ADM={
   config:o=>R_('config').update(o),
   freebox:(u,id,n)=>R_('users/'+u+'/freebox/'+id).transaction(v=>(v||0)+n)};
 
+/* ---------- apuestas 1 contra 1 (cara o cruz) ---------- */
+const FLIP_MS=5200;let FLIPS={};
+function flipCheck(){Object.entries(FLIPS).forEach(([id,F])=>{if(F&&F.st==='run'&&now()>(F.t0||0)+FLIP_MS&&!F.cl)claimFlip(id,F)})}
+function watchFlips(){R_('flips').limitToLast(50).on('value',s=>{FLIPS=s.val()||{};flipCheck();emit('flips')});setInterval(flipCheck,2000)}
+function betValue(ids,c){return ids.reduce((a,id)=>a+(ME.inv[id]?itemValue(ME.inv[id]):0),0)+Math.max(0,Math.round(c||0))}
+async function createFlip(ids,c,side){const items={};for(const id of ids){const it=ME.inv[id];if(!it)return{err:'Falta un artículo'};items[id]=enc(it)}c=Math.max(0,Math.round(c||0));const v=betValue(ids,c);
+  if(v<50)return{err:'La apuesta mínima es 0,50 €'};if(c&&!(await spend(c)))return{err:'No tienes saldo suficiente'};await removeItems(ids);
+  const ref=R_('flips').push();await ref.set({h:UID,hn:ME.n,side,hi:items,hc:c,v,st:'open',t:TS()});return{id:ref.key}}
+async function joinFlip(id,ids,c){const ref=R_('flips/'+id);const s=await ref.once('value');const F=s.val();if(!F||F.st!=='open')return{err:'Esta apuesta ya no está disponible'};if(F.h===UID)return{err:'Es tu propia apuesta'};
+  const items={};for(const x of ids){const it=ME.inv[x];if(!it)return{err:'Falta un artículo'};items[x]=enc(it)}c=Math.max(0,Math.round(c||0));const v=betValue(ids,c);
+  if(v<F.v*.9||v>F.v*1.1)return{err:'Tu apuesta tiene que valer entre '+fmt(F.v*.9)+' y '+fmt(F.v*1.1)};
+  if(c&&!(await spend(c)))return{err:'No tienes saldo suficiente'};await removeItems(ids);
+  const tr=await ref.transaction(X=>{if(!X||X.st!=='open'||X.j)return;X.j=UID;X.jn=ME.n;X.ji=items;X.jc=c;X.jv=v;X.st='run';X.seed=Math.floor(rnd()*4294967295);X.t0=Date.now()+TOFF;return X});
+  if(!tr.committed){await addItems(Object.values(items).map(dec).filter(Boolean));if(c)await addCredits(c);return{err:'Alguien se ha unido antes que tú'}}return{ok:1}}
+function flipResult(F){const tot=(F.v||0)+(F.jv||0);const x=mulberry((F.seed>>>0)||1)();const hw=x<(F.v||0)/tot;return{w:hw?'h':'j',coin:hw?F.side:(F.side==='ct'?'t':'ct'),p:(F.v||0)/tot}}
+async function claimFlip(id,F){const r=flipResult(F);if((r.w==='h'?F.h:F.j)!==UID)return;const tr=await R_('flips/'+id+'/cl').transaction(v=>v?undefined:true);if(!tr.committed)return;
+  const all=Object.values(F.hi||{}).concat(Object.values(F.ji||{})).map(dec).filter(Boolean).map(it=>(it.id=uid(),it.t=Date.now(),it));if(all.length)await addItems(all);const c=(F.hc||0)+(F.jc||0);if(c)await addCredits(c);
+  await R_('flips/'+id).update({st:'end',w:r.w});emit({flipWon:{v:(F.v||0)+(F.jv||0)}})}
+async function cancelFlip(id){const ref=R_('flips/'+id);const tr=await ref.transaction(X=>{if(!X||X.st!=='open'||X.h!==UID)return;X.st='cancel';return X});if(!tr.committed)return{err:'Ya ha empezado'};
+  const F=tr.snapshot.val();const back=Object.values(F.hi||{}).map(dec).filter(Boolean);if(back.length)await addItems(back);if(F.hc)await addCredits(F.hc);return{ok:1}}
+
 /* ===================== MCF Drop · interfaz ===================== */
 'use strict';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -808,8 +864,9 @@ const IC={
   inv:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
   rank:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4a3 3 0 003 4M16 6h4a3 3 0 01-3 4M12 13v4M8 20h8"/></svg>',
   admin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+  coin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="9" ry="9"/><path d="M9 9.5c.5-1 1.6-1.5 3-1.5 1.7 0 3 .9 3 2.2 0 2.8-6 1.6-6 4.4 0 1.3 1.3 2.2 3 2.2 1.4 0 2.5-.5 3-1.5M12 6v12"/></svg>',
   more:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>'};
-const NAV=[['cajas','Cajas','cases'],['batallas','Batallas','battle'],['mercado','Mercado','market'],['intercambios','Intercambios','trade'],['mejorador','Mejorador','up'],['contratos','Contratos','contract'],['inventario','Inventario','inv'],['ranking','Ranking','rank']];
+const NAV=[['cajas','Cajas','cases'],['batallas','Batallas','battle'],['apuestas','Apuestas','coin'],['mercado','Mercado','market'],['intercambios','Intercambios','trade'],['mejorador','Mejorador','up'],['contratos','Contratos','contract'],['inventario','Inventario','inv'],['ranking','Ranking','rank']];
 
 /* ---------- arranque y puerta ---------- */
 let ERRMSG='';function showGate(kind,e){if(e)ERRMSG=e&&(e.code||e.message)||e;$('#app').classList.add('hide');const g=$('#gate');g.classList.remove('hide');
@@ -851,7 +908,7 @@ addEventListener('hashchange',()=>route());
 function route(){if($('#app').classList.contains('hide'))return;const h=(location.hash||'#cajas').slice(1);const[p,a]=h.split('/');ROUTE=p;
   $$('[data-r]').forEach(x=>x.classList.toggle('on',x.dataset.r===p||(p==='caja'&&x.dataset.r==='cajas')||(p==='batalla'&&x.dataset.r==='batallas')));
   stopPageListeners();BUSY=false;const v=$('#view');v.innerHTML='';window.scrollTo(0,0);
-  ({cajas:pageCases,caja:()=>pageCase(a),inventario:pageInventory,mercado:()=>pageMarket(a),intercambios:pageTrades,batallas:pageBattles,batalla:()=>pageBattle(a),mejorador:pageUpgrader,contratos:pageContracts,ranking:pageRanking,admin:pageAdmin,mas:pageMore}[p]||pageCases)();pumpImgs()}
+  ({cajas:pageCases,caja:()=>pageCase(a),apuestas:pageFlips,inventario:pageInventory,mercado:()=>pageMarket(a),intercambios:pageTrades,batallas:pageBattles,batalla:()=>pageBattle(a),mejorador:pageUpgrader,contratos:pageContracts,ranking:pageRanking,admin:pageAdmin,mas:pageMore}[p]||pageCases)();pumpImgs()}
 let PAGE_OFF=[];function pageListen(ref,ev,fn){ref.on(ev,fn);PAGE_OFF.push(()=>ref.off(ev,fn))}
 function stopPageListeners(){PAGE_OFF.forEach(f=>{try{f()}catch(e){}});PAGE_OFF=[]}
 function refresh(){if(BUSY){DIRTY=true;return}const y=scrollY;route();window.scrollTo(0,y)}
@@ -863,6 +920,8 @@ on(w=>{if(!ME.loaded||$('#app').classList.contains('hide'))return;
   if(w&&w.sold){SND.coin();toast(`💰 <b>${esc(w.sold.bn)}</b> ha comprado tu ${esc(w.sold.n)} por <span class="cr">${fmt(w.sold.a)}</span>`,'ok')}
   if(w&&w.tradeDone){toast(`🤝 <b>${esc(w.tradeDone.bn)}</b> ha aceptado tu intercambio`,'ok')}
   if(w&&w.tradeNo){toast(`<b>${esc(w.tradeNo.bn)}</b> ha rechazado tu intercambio. Te devolvemos tus artículos.`)}
+  if(w&&w.flipWon){SND.lvl();celebrate(5);toast(`🪙 ¡Has ganado la apuesta! +${fmt(w.flipWon.v)}`,'ok')}
+  if(w==='flips'&&ROUTE==='apuestas'&&!$('#modal'))flipsRender();
   if(w&&w.battleWon){toast(`🏆 ¡Has ganado la batalla! +${w.items.length} artículos`,'ok')}});
 let softT=0;function softRefresh(){clearTimeout(softT);softT=setTimeout(()=>refresh(),120)}
 function pageMore(){$('#view').innerHTML=`<div class="h1"><div><h2>Más</h2></div></div><div class="players">${NAV.concat(STAFF?[['admin','Admin','admin']]:[]).map(([k,n,i])=>`<a class="pl" href="#${k}" style="text-decoration:none;color:inherit"><span class="av">${IC[i].replace('<svg','<svg width="20" height="20"')}</span><div><b>${n}</b></div></a>`).join('')}</div>`}
@@ -870,13 +929,18 @@ function pageMore(){$('#view').innerHTML=`<div class="h1"><div><h2>Más</h2></di
 /* ---------- CAJAS ---------- */
 function eventBanner(){if(!eventOn()||(!CFG.msg&&luckNow()<=1&&!discNow()&&!CFG.xp2))return'';const parts=[];if(luckNow()>1)parts.push(`suerte x${luckNow()}`);if(discNow())parts.push(`-${Math.round(discNow()*100)}% en cajas`);if(CFG.xp2)parts.push('XP doble');
   return`<div class="banner"><span style="font-size:26px">⚡</span><div><b>Evento activo${parts.length?': '+parts.join(' · '):''}</b><div style="color:var(--mu);font-size:13px;margin-top:2px">${esc(CFG.msg||'')}${CFG.until?` · termina ${new Date(CFG.until).toLocaleString('es-ES',{weekday:'short',hour:'2-digit',minute:'2-digit'})}`:''}</div></div></div>`}
-function pageCases(){const v=$('#view');const fb=ME.fb||{};
-  v.innerHTML=`${eventBanner()}<div class="h1"><div><h2>Cajas</h2><p>Las cajas del mercado de CS2, ordenadas de la más barata a la más cara. En todas pueden salir ★ cuchillos, guantes o joyas de más de 1.000 $.</p></div><div class="row"><span class="chip">${fmtN(ME.op)} cajas abiertas</span></div></div>
-  <div class="cases">${CASES.map(cs=>{const p=casePrice(cs);return`<a class="case" href="#caja/${cs.id}" style="--cc:${cs.col[0]};text-decoration:none;color:inherit">${fb[cs.id]?`<span class="free">${fb[cs.id]} GRATIS</span>`:''}${cs.prof!=='normal'&&cs.prof!=='barata'?`<span class="tag">${cs.prof==='premium'?'PREMIUM':'+ SUERTE'}</span>`:''}
+const freeLeft=()=>Math.max(0,FREE_CD-(now()-(ME.fbt||0)));
+const mmss=ms=>{const t=Math.ceil(ms/1000);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
+let FREET=0;function freeTick(onReady){clearInterval(FREET);FREET=setInterval(()=>{const l=freeLeft();$$('#fcd,.fcd').forEach(e=>e.textContent=mmss(l));if(l<=0){clearInterval(FREET);onReady&&onReady()}},250);PAGE_OFF.push(()=>clearInterval(FREET))}
+function freeCard(){const l=freeLeft();return`<a class="case freecase ${l?'':'ready'}" href="#caja/free" style="--cc:#3ad07a"><span class="free">GRATIS</span><div class="cimg"><img src="${renderCase(FREECASE)}" alt="" style="filter:hue-rotate(80deg) saturate(1.3)"><div class="freelbl">FREE</div></div>
+  <h3>FREE BOX</h3><p>Una caja gratis cada minuto. Premios de hasta 50 €.</p><div class="upto">Hasta <b>${fmt(FREE_CAP)}</b></div><div class="row"><span class="price"><span class="cr">${l?'<span class="fcd">'+mmss(l)+'</span>':'GRATIS'}</span></span><span class="btn sm">${l?'Espera':'¡Abrir!'}</span></div></a>`}
+function pageCases(){if(freeLeft()>0)setTimeout(()=>freeTick(()=>{if(ROUTE==='cajas')softRefresh()}),0);const v=$('#view');const fb=ME.fb||{};
+  v.innerHTML=`${eventBanner()}<div class="h1"><div><h2>Cajas</h2><p>Las cajas del mercado de CS2, ordenadas de la más barata a la más cara. En todas pueden salir ★ cuchillos, guantes o joyas de más de 1.000 $.</p></div><div class="row"><a class="chip" href="../" title="Cada partida en MCF Games te da un poco de dinero para MCF Drop">🎮 Gana hasta 3 € al día jugando en MCF Games</a><span class="chip">${fmtN(ME.op)} cajas abiertas</span></div></div>
+  <div class="cases">${freeCard()}${CASES.map(cs=>{const p=casePrice(cs);return`<a class="case" href="#caja/${cs.id}" style="--cc:${cs.col[0]};text-decoration:none;color:inherit">${fb[cs.id]?`<span class="free">${fb[cs.id]} GRATIS</span>`:''}${cs.prof!=='normal'&&cs.prof!=='barata'?`<span class="tag">${cs.prof==='premium'?'PREMIUM':'+ SUERTE'}</span>`:''}
     <div class="cimg"><img src="${renderCase(cs)}" alt="">${(()=>{const top=cs.g.slice().sort((a,b)=>baseVal(b[0])-baseVal(a[0]))[CASES.indexOf(cs)%8];return top?`<img class="peek" src="${itemSrc(top[0])}" alt="">`:''})()}</div><h3>${esc(cs.n)}</h3><p>${esc(cs.d)}</p><div class="upto">Hasta <b>${fmt(Math.max(...cs.g.map(([w])=>baseVal(w))))}</b></div><div class="row"><span class="price">${p<cs.price?`<s>${fmt(cs.price)}</s>`:''}<span class="cr">${fmt(p)}</span></span><span class="btn sm">Abrir</span></div></a>`}).join('')}</div>`}
 
 function pageCase(id){const cs=CASE[id];if(!cs){location.hash='#cajas';return}
-  let n=LSG('count',1),fast=LSG('fast',false);const v=$('#view');
+  let n=cs.free?1:LSG('count',1),fast=LSG('fast',false);const v=$('#view');
   const od=caseOdds(cs,luckNow());
   const list=cs.i.slice().sort((a,b)=>baseVal(b[0])-baseVal(a[0]));
   v.innerHTML=`<div class="row" style="margin-bottom:12px"><a class="btn sm" href="#cajas">← Cajas</a></div>
@@ -887,13 +951,13 @@ function pageCase(id){const cs=CASE[id];if(!cs){location.hash='#cajas';return}
   <div class="items">${list.map(([w,s,r])=>itemCard({id:'',w,s,f:defF(w)},{mini:1,sub:'Prob. '+pct(itemOdds(cs,w,luckNow())),attr:`data-cat="${w}|${s}"`})).join('')}</div></div></div>`;
   $$('[data-cat]').forEach(b=>b.onclick=()=>{const[w,s]=b.dataset.cat.split('|');inspectModal({id:'',w,s,f:defF(w)},{cat:1})});
   const idle=()=>{const free=(ME.fb||{})[cs.id]||0;const p=casePrice(cs);$('#stageIn').innerHTML=`<img class="bigcase" id="bigcase" src="${renderCase(cs)}" alt=""><h2>${esc(cs.n)}</h2><div class="sub">${esc(cs.d)}</div>
-    <div class="controls"><div class="seg" id="seg">${[1,2,3,4,5].map(k=>`<button class="${k===n?'on':''}" data-n="${k}">${k}</button>`).join('')}</div>
-    <button class="btn pri big" id="openBtn">Abrir ${n>1?n+' cajas':''} · <span class="cr">${fmt(p*n)}</span></button>
+    <div class="controls">${cs.free?`<button class="btn pri big" id="openBtn" ${freeLeft()>0?'disabled':''}>${freeLeft()>0?'Disponible en <b id="fcd">'+mmss(freeLeft())+'</b>':'ABRIR GRATIS'}</button>`:`<div class="seg" id="seg">${[1,2,3,4,5].map(k=>`<button class="${k===n?'on':''}" data-n="${k}">${k}</button>`).join('')}</div>
+    <button class="btn pri big" id="openBtn">Abrir ${n>1?n+' cajas':''} · <span class="cr">${fmt(p*n)}</span></button>`}
     ${free?`<button class="btn ok big" id="freeBtn">Abrir gratis (${free})</button>`:''}
     <label class="tog ${fast?'on':''}" id="fastT"><i></i>Rápido</label></div>`;
     $$('#seg button').forEach(b=>b.onclick=()=>{n=+b.dataset.n;LSS('count',n);SND.click();idle()});
     $('#fastT').onclick=()=>{fast=!fast;LSS('fast',fast);idle()};
-    $('#openBtn').onclick=()=>go(false);if($('#freeBtn'))$('#freeBtn').onclick=()=>go(true)};
+    $('#openBtn').onclick=()=>go(false);if($('#freeBtn'))$('#freeBtn').onclick=()=>go(true);if(cs.free&&freeLeft()>0)freeTick(idle)};
   async function go(free){SND.init();const k=free?1:n;const p=casePrice(cs)*k;if(!free&&ME.c<p){SND.bad();toast('No tienes créditos suficientes. Vende algo o reclama la recompensa diaria.','bad');return}
     BUSY=true;$('#openBtn').disabled=true;const bc=$('#bigcase');bc.classList.add('shake');SND.whoosh();
     const res=await openCases(cs,k,free);if(res.err){BUSY=false;toast(res.err,'bad');idle();return}
@@ -903,20 +967,20 @@ function pageCase(id){const cs=CASE[id];if(!cs){location.hash='#cajas';return}
     const st=$('#stageIn');if(items.length===1)return showOne(items[0]);const wrap=document.createElement('div');wrap.className='result';
     wrap.innerHTML=`<div class="won">${items.map((it,i)=>{const r=rarOf(it);return`<div class="wonc" style="--rc:${rc(r)};animation-delay:${i*.08}s" data-wid="${it.id}">${imgTag(it)}<div class="nm"><small>${RAR[r].n}${it.st?' · ST™':''}</small><b>${esc(itemName(it).replace(/^★ |ST™ /g,''))}</b><span>${isNW(it.w)?'Sin desgaste':WEAR[wearOf(it.f)].n+' · '+it.f.toFixed(4)}</span></div>
       <div class="vv"><span class="cr">${fmt(itemValue(it))}</span><button class="btn sm" data-sell="${it.id}">Vender ${fmt(Math.floor(itemValue(it)*QUICK))}</button></div></div>`}).join('')}</div>
-      <div class="controls"><button class="btn" id="keepBtn">Guardar en el inventario</button>${items.length>1?`<button class="btn" id="sellAll">Vender todo · <span class="cr">${fmt(tot)}</span></button>`:''}<button class="btn pri" id="againBtn">Abrir otra · <span class="cr">${fmt(casePrice(cs)*n)}</span></button></div>`;
+      <div class="controls"><button class="btn" id="keepBtn">Guardar en el inventario</button>${items.length>1?`<button class="btn" id="sellAll">Vender todo · <span class="cr">${fmt(tot)}</span></button>`:''}<button class="btn pri" id="againBtn">${cs.free?'Volver':'Abrir otra · <span class="cr">'+fmt(casePrice(cs)*n)+'</span>'}</button></div>`;
     st.innerHTML='';st.appendChild(wrap);pumpImgs();
     $$('[data-sell]').forEach(b=>b.onclick=async()=>{b.disabled=true;const g=await quickSell([b.dataset.sell]);if(g){SND.coin();b.textContent='Vendido';b.closest('.wonc').style.opacity=.45}});
     if($('#sellAll'))$('#sellAll').onclick=async()=>{const ids=items.map(i=>i.id).filter(id=>ME.inv[id]);const g=await quickSell(ids);SND.coin();toast(`Vendido todo por <span class="cr">${fmt(g)}</span>`,'ok');idle()};
-    $('#keepBtn').onclick=()=>{SND.click();idle()};$('#againBtn').onclick=()=>{idle();go(false)}}
+    $('#keepBtn').onclick=()=>{SND.click();idle()};$('#againBtn').onclick=()=>{idle();if(!cs.free)go(false)}}
   function showOne(it){const r=rarOf(it),v=itemValue(it),st=$('#stageIn');const col=RAR[r].c;
     st.innerHTML=`<div class="show" style="--rc:${col};--rcA:${col}40"><div class="sbox"><div class="srays"></div><div class="sglow"></div><img src="${itemSrcBig(it.w)}" alt=""></div>
       <div><span class="srar">${RAR[r].n}${it.st&&!DEF[it.w].st0?' · StatTrak™':''}</span><h2>${esc(SKIN[it.s].n)}</h2><div class="swpn">${isGold(it.w)?'★ ':''}${esc(WPN[it.w].n)}</div>
       ${isNW(it.w)?'<p class="mu" style="margin-top:10px">Sin desgaste</p>':`<p class="mu" style="margin-top:10px">${WEAR[wearOf(it.f)].n} · float ${it.f.toFixed(6)}</p><div class="floatbar"><i style="left:calc(${(it.f*100).toFixed(2)}% - 1.5px)"></i></div>`}
       <div class="sv"><span class="cr" id="svv">0</span></div><p class="mu">En Steam: ${DEF[it.w].usd.toLocaleString('es-ES',{minimumFractionDigits:2})} $</p>
-      <div class="sact"><button class="btn" id="sSell">Vender · <span class="cr">${fmt(Math.floor(v*QUICK))}</span></button><button class="btn" id="keepBtn">Guardar</button><button class="btn pri" id="againBtn">Abrir otra · <span class="cr">${fmt(casePrice(cs)*n)}</span></button></div></div></div>`;
+      <div class="sact"><button class="btn" id="sSell">Vender · <span class="cr">${fmt(Math.floor(v*QUICK))}</span></button><button class="btn" id="keepBtn">Guardar</button><button class="btn pri" id="againBtn">${cs.free?'Volver':'Abrir otra · <span class="cr">'+fmt(casePrice(cs)*n)+'</span>'}</button></div></div></div>`;
     animNum($('#svv'),0,v,1100);
     $('#sSell').onclick=async()=>{$('#sSell').disabled=true;const g=await quickSell([it.id]);if(g){SND.coin();toast(`Vendido por <span class="cr">${fmt(g)}</span>`,'ok')}idle()};
-    $('#keepBtn').onclick=()=>{SND.click();idle()};$('#againBtn').onclick=()=>{idle();go(false)}}
+    $('#keepBtn').onclick=()=>{SND.click();idle()};$('#againBtn').onclick=()=>{idle();if(!cs.free)go(false)}}
   idle();
 }
 /* Ruleta horizontal */
@@ -1268,6 +1332,44 @@ function boot(){showGate('loading');
   netInit((st,e)=>{if(st==='out')showGate('out');else if(st==='loading')showGate('loading');else if(st==='error')showGate('error',e)});
   on(w=>{if(w==='first'){if(ME.ban){showGate('ban');return}showApp();if(ME.fresh){setTimeout(()=>modal(`<div class="lvup"><div class="ring">🎁</div><h3>¡Bienvenido a MCF Drop, ${esc(ME.n)}!</h3><p class="mu">Te regalamos <span class="cr">50,00 €</span> para empezar. Abre tu primera caja, gira la rueda diaria y sube de nivel para ganar más.</p><a class="btn pri" href="#caja/${CASES[6].id}" data-close style="margin-top:14px">Abrir mi primera caja</a></div>`),600)}}})}
 boot();
+
+/* ---------- APUESTAS 1 contra 1 ---------- */
+const SIDE={ct:{n:'CT',c:'#4b8bff'},t:{n:'T',c:'#ff9a2e'}};
+function pageFlips(){$('#view').innerHTML=`<div class="h1"><div><h2>Apuestas 1 contra 1</h2><p>Apuesta armas o dinero contra un amigo. Se lanza una moneda: el ganador se lo lleva <b>todo</b>. Quien pone más valor tiene un poco más de probabilidad.</p></div><button class="btn pri" id="newF">Crear apuesta</button></div><div id="fl"></div>`;
+  $('#newF').onclick=()=>betModal(null);flipsRender()}
+function betThumbs(o){const L=Object.values(o||{}).map(dec).filter(Boolean);return L.slice(0,4).map(it=>`<span style="--rc:${rc(rarOf(it))}" title="${esc(itemName(it))}">${imgTag(it)}</span>`).join('')+(L.length>4?`<span class="chip">+${L.length-4}</span>`:'')}
+function flipsRender(){const box=$('#fl');if(!box)return;const L=Object.entries(FLIPS).filter(([,F])=>F&&(F.st==='open'||F.st==='run'||(F.st==='end'&&now()-(F.t0||0)<30*60000))).sort((a,b)=>({open:0,run:1,end:2}[a[1].st]-{open:0,run:1,end:2}[b[1].st])||(b[1].t||0)-(a[1].t||0));
+  box.innerHTML=L.length?L.map(([id,F])=>{const r=F.st!=='open'?flipResult(F):null;const done=F.st==='end'||(F.st==='run'&&now()>(F.t0||0)+FLIP_MS);
+    return`<div class="fcard ${F.st}"><div class="fside"><span class="coin sm" style="--cc:${SIDE[F.side].c}">${SIDE[F.side].n}</span><div><b>${esc(F.hn)}</b><small>${F.h===UID?'(tú) · ':''}${fmt(F.v)}</small></div><div class="tc side">${betThumbs(F.hi)}${F.hc?`<span class="chip cr">${fmt(F.hc)}</span>`:''}</div></div>
+    <div class="fvs">${F.st==='open'?'VS':done?`<span style="color:${SIDE[r.coin].c}">${SIDE[r.coin].n}</span>`:'🪙'}</div>
+    <div class="fside">${F.j?`<span class="coin sm" style="--cc:${SIDE[F.side==='ct'?'t':'ct'].c}">${SIDE[F.side==='ct'?'t':'ct'].n}</span><div><b>${esc(F.jn)}</b><small>${F.j===UID?'(tú) · ':''}${fmt(F.jv)}</small></div><div class="tc side">${betThumbs(F.ji)}${F.jc?`<span class="chip cr">${fmt(F.jc)}</span>`:''}</div>`:'<span class="mu">Esperando rival…</span>'}</div>
+    <div class="fact">${F.st==='open'?(F.h===UID?`<button class="btn sm bad" data-fx="${id}">Cancelar</button>`:`<button class="btn sm pri" data-fj="${id}">Unirse · ${fmt(F.v*.9)}–${fmt(F.v*1.1)}</button>`):`<button class="btn sm" data-fw="${id}">${done?'Ver resultado':'¡Ver en directo!'}</button>`}</div></div>`}).join(''):'<div class="empty panel">No hay apuestas abiertas. ¡Crea la primera y reta a un amigo!</div>';
+  $$('[data-fj]').forEach(b=>b.onclick=()=>betModal(b.dataset.fj));
+  $$('[data-fx]').forEach(b=>b.onclick=async()=>{const r=await cancelFlip(b.dataset.fx);toast(r.err||'Apuesta cancelada; recuperas lo apostado',r.err?'bad':'ok')});
+  $$('[data-fw]').forEach(b=>b.onclick=()=>flipView(b.dataset.fw));pumpImgs()}
+function betModal(joinId){const F=joinId?FLIPS[joinId]:null;const sel=new Set();let side='ct';const L=Object.values(ME.inv).sort((a,b)=>itemValue(b)-itemValue(a));
+  const draw=()=>{const c=Math.round((+($('#bc')?$('#bc').value:0)||0)*100);const v=betValue([...sel],c);const ok=F?(v>=F.v*.9&&v<=F.v*1.1):v>=50;const y=$('.mbox')?$('.mbox').scrollTop:0;const cv=$('#bc')?$('#bc').value:'';
+    modal(`<h3>${F?'Unirse a la apuesta de '+esc(F.hn):'Crear apuesta'}</h3><p class="mu">${F?`Tienes que apostar entre <b>${fmt(F.v*.9)}</b> y <b>${fmt(F.v*1.1)}</b>. Te toca ${SIDE[F.side==='ct'?'t':'ct'].n}.`:'Elige armas, dinero o las dos cosas, y tu lado de la moneda.'}</p>
+      ${F?'':`<div class="row" style="margin:12px 0"><span class="mu">Tu lado</span>${['ct','t'].map(k=>`<button class="chip ${side===k?'on':''}" data-sd="${k}">${SIDE[k].n}</button>`).join('')}</div>`}
+      <div class="row" style="margin:12px 0"><span class="mu">Dinero</span><input class="inp" id="bc" type="number" step="0.01" min="0" placeholder="0,00" style="width:130px" value="${cv}"><span class="mu">€ · tienes ${fmt(ME.c)}</span><span class="grow"></span><b>Total <span class="cr" style="color:${ok?'var(--ok)':'var(--bad)'}">${fmt(v)}</span></b></div>
+      <div class="items" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr));max-height:44vh;overflow:auto">${L.map(it=>itemCard(it,{mini:1,selectable:1,sel:sel.has(it.id)})).join('')||'<div class="empty">No tienes armas; puedes apostar solo dinero.</div>'}</div>
+      <div class="row end" style="margin-top:14px"><button class="btn" data-close>Cancelar</button><button class="btn pri" id="bgo" ${ok?'':'disabled'}>${F?'¡Apostar y lanzar!':'Publicar apuesta'}</button></div>`,'wide');
+    $('.mbox .items').scrollTop=0;$('.mbox').scrollTop=y;
+    $$('.mbox .it').forEach(b=>b.onclick=()=>{const id=b.dataset.iid;sel.has(id)?sel.delete(id):sel.add(id);SND.click();draw()});
+    $$('[data-sd]').forEach(b=>b.onclick=()=>{side=b.dataset.sd;draw()});
+    let t;$('#bc').oninput=()=>{clearTimeout(t);t=setTimeout(()=>{draw();const i=$('#bc');i.focus();i.setSelectionRange&&0},400)};
+    $('#bgo').onclick=async()=>{$('#bgo').disabled=true;const c2=Math.round((+$('#bc').value||0)*100);const r=F?await joinFlip(joinId,[...sel],c2):await createFlip([...sel],c2,side);if(r.err){SND.bad();toast(r.err,'bad');draw();return}
+      closeModal();SND.coin();if(F)flipView(joinId);else toast('Apuesta publicada. Avisa a tus amigos: la verán en Apuestas.','ok')}};draw()}
+function flipView(id){const F=FLIPS[id];if(!F)return;const r=flipResult(F);const other=F.side==='ct'?'t':'ct';const start=(F.t0||now())+1500;
+  const m=modal(`<div class="lvup"><h3>${esc(F.hn)} <span class="mu">vs</span> ${esc(F.jn||'?')}</h3><p class="mu">${SIDE[F.side].n} ${(r.p*100).toFixed(1)}% · ${SIDE[other].n} ${((1-r.p)*100).toFixed(1)}% · bote <span class="cr">${fmt((F.v||0)+(F.jv||0))}</span></p>
+    <div class="coinwrap"><div class="coin3d" id="c3d"><div class="face" style="--cc:${SIDE.ct.c}">CT</div><div class="face back" style="--cc:${SIDE.t.c}">T</div></div></div>
+    <h3 id="fres" style="min-height:30px"></h3><button class="btn pri" data-close>Cerrar</button></div>`);
+  const c=$('#c3d');const end=8*360+(r.coin==='t'?180:0);const already=now()>start+3600;
+  const fin=()=>{const wn=r.w==='h'?F.hn:F.jn;const me=(r.w==='h'?F.h:F.j)===UID;$('#fres').innerHTML=`${me?'🏆 ¡Has ganado!':'Gana '+esc(wn)} <span class="cr">${fmt((F.v||0)+(F.jv||0))}</span>`;if(me){SND.lvl();celebrate(5)}else if(F.h===UID||F.j===UID)SND.bad()};
+  if(already){c.style.transform=`rotateY(${end}deg)`;fin();return}
+  const go=()=>{const d=start-now();if(d>0){$('#fres').textContent='Lanzando en '+Math.ceil(d/1000)+'…';setTimeout(go,200);return}$('#fres').textContent='';
+    const t0=performance.now(),D=3400;let lt=0;const st=()=>{if(!document.body.contains(c))return;const p=Math.min(1,(performance.now()-t0)/D),e=1-Math.pow(1-p,3.4);const a=end*e;c.style.transform=`rotateY(${a}deg) rotateX(${Math.sin(p*Math.PI)*18}deg) scale(${1+Math.sin(p*Math.PI)*.35})`;
+      const k=Math.floor(a/180);if(k!==lt){lt=k;SND.tick()}if(p<1)requestAnimationFrame(st);else fin()};st()};go()}
 </script>
 </body>
 </html>
