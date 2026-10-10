@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MCF Frontline</title>
+<meta name="theme-color" content="#0d110c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 40 40%27%3E%3Cpath d=%27M20 2 37 11v18L20 38 3 29V11z%27 fill=%27%231d2418%27 stroke=%27%23c9a54a%27 stroke-width=%272%27/%3E%3Cpath d=%27M20 9l3.2 6.6 7.3 1-5.3 5.1 1.3 7.2L20 25.5l-6.5 3.4 1.3-7.2-5.3-5.1 7.3-1z%27 fill=%27%23c9a54a%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>:root{--bg:#0d110c;--pn:rgba(18,23,16,.92);--ln:rgba(201,165,74,.22);--gold:#c9a54a;--tx:#e9e4d2;--mu:#9a9a86;--ok:#5fbf6a;--bad:#e05a4a}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font:14px/1.4 Inter,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+.hide{display:none!important}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+h2,h3,.logo b,.logo span,.sec,.clock b,.stamp{font-family:Oswald,Inter,sans-serif;letter-spacing:.04em}
+#map{position:fixed;inset:0;width:100vw;height:100vh;touch-action:none;cursor:grab;display:block}
+.top{position:fixed;left:0;right:0;top:0;height:58px;display:flex;align-items:center;gap:14px;padding:0 14px;background:linear-gradient(#0d110cf2,#0d110cc0 70%,transparent);z-index:5;pointer-events:none}
+.top>*{pointer-events:auto}.top .sp{flex:1;pointer-events:none}
+.logo{display:flex;align-items:center;gap:7px;text-decoration:none;color:var(--tx)}
+.logo svg{width:32px;height:32px}.logo b{color:var(--gold);font-size:18px;font-weight:700}.logo span{font-size:18px;font-weight:500;letter-spacing:.14em}
+.logo.big{flex-direction:column;gap:4px;margin-bottom:16px}.logo.big svg{width:64px;height:64px}.logo.big b{font-size:14px;letter-spacing:.3em}.logo.big span{font-size:30px;letter-spacing:.2em}
+.res{display:flex;gap:6px}
+.res span{display:flex;align-items:baseline;gap:5px;padding:6px 10px;background:var(--pn);border:1px solid var(--ln);border-radius:6px;font-size:13px;white-space:nowrap}
+.res small{color:var(--ok);font-size:11px}
+.clock{display:flex;flex-direction:column;align-items:flex-end;padding:4px 12px;background:var(--pn);border:1px solid var(--ln);border-radius:6px}
+.clock b{font-size:18px;line-height:1.1}.clock small{font-size:11px;color:var(--mu)}.clock.night{border-color:#5562c8;box-shadow:0 0 18px #3946b055}.clock.night b{color:#aab4ff}
+.ib{width:40px;height:40px;border-radius:6px;background:var(--pn);border:1px solid var(--ln);color:var(--gold);font-size:18px}
+.ib:hover{border-color:var(--gold)}
+#side{position:fixed;right:14px;top:70px;width:320px;max-height:calc(100vh - 90px);overflow:auto;background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:16px;z-index:4;backdrop-filter:blur(8px);box-shadow:0 10px 40px #0008;animation:sl .18s ease-out}
+@keyframes sl{from{transform:translateX(16px);opacity:0}}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
+.ph small{color:var(--gold);text-transform:uppercase;font-size:11px;letter-spacing:.12em;font-weight:600}
+.ph h3{font-size:24px;font-weight:600;line-height:1.1;text-transform:uppercase}
+.x{width:30px;height:30px;border-radius:6px;color:var(--mu)}.x:hover{background:#ffffff12;color:var(--tx)}
+.own{display:flex;align-items:center;gap:8px;padding:9px 10px;background:#0006;border-radius:7px;margin-bottom:12px}
+.own i{width:14px;height:14px;border-radius:3px;border:1px solid #fff6}.own i.neu{background:repeating-linear-gradient(45deg,#777 0 3px,#444 3px 6px)}
+.own em{color:var(--mu);font-style:normal}.tag{margin-left:auto;font-size:10px;padding:2px 6px;border-radius:4px;background:var(--gold);color:#1a1405;letter-spacing:.1em}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.grid3>div{background:#0005;border-radius:7px;padding:8px}.grid3 small{display:block;color:var(--mu);font-size:10.5px}.grid3 b{font-size:14px}
+.sec{margin:14px 0 7px;font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--gold)}
+.res3{display:flex;gap:6px}.res3 .r{flex:1;text-align:center;padding:7px;background:#0005;border-radius:7px;font-weight:600}
+.nb{display:flex;flex-wrap:wrap;gap:5px}.nb button{padding:4px 9px;border-radius:5px;background:#ffffff0d;border:1px solid #ffffff14;font-size:12px}.nb button:hover{border-color:var(--gold)}.nb button.sea{color:#8fc0e6}
+.mu{color:var(--mu)}.sm{font-size:12px;margin-top:10px}.soon{border-top:1px dashed #ffffff1c;padding-top:10px}
+.fl{display:block;font-size:12px;color:var(--mu);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.08em}
+.fl input,input{display:block;width:100%;margin-top:6px;padding:10px 12px;background:#0007;border:1px solid #ffffff22;border-radius:7px;color:var(--tx);font:inherit;font-size:15px;outline:none}
+input:focus{border-color:var(--gold)}
+.cols{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}.cols button{aspect-ratio:1;border-radius:7px;border:2px solid transparent;box-shadow:inset 0 0 0 1px #0006}
+.cols button.on{border-color:#fff;transform:scale(1.08)}.cols button:disabled{opacity:.18;cursor:not-allowed}
+.pick{padding:10px 12px;border-radius:7px;background:#0006;border:1px dashed #ffffff30;display:flex;flex-direction:column;gap:2px;margin-bottom:12px}
+.pick.ok{border:1px solid var(--ok)}.pick b{font-family:Oswald;font-size:17px;text-transform:uppercase}.pick span{color:var(--mu);font-size:12.5px}.pick em{color:var(--bad);font-style:normal;font-size:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:7px;background:#ffffff12;border:1px solid #ffffff22;font-weight:600;text-decoration:none;color:var(--tx)}
+.btn:hover{border-color:var(--gold)}.btn.pri{background:linear-gradient(#d9b75a,#a8862f);color:#1a1405;border:0;text-transform:uppercase;letter-spacing:.08em;font-family:Oswald;font-size:15px}
+.btn.pri:disabled{filter:grayscale(1) brightness(.6);cursor:not-allowed}.btn.bad{background:#7a2219;border-color:#b0392b}.btn.wide{width:100%}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+#legend{position:fixed;left:14px;top:70px;width:200px;background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:10px;z-index:3;max-height:40vh;overflow:auto}
+#legend .lt{font-family:Oswald;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+#legend button{display:flex;align-items:center;gap:8px;width:100%;padding:5px 6px;border-radius:5px;font-size:13px;text-align:left}#legend button:hover{background:#ffffff0d}
+#legend i{width:11px;height:11px;border-radius:2px;flex:none}#legend b{margin-left:auto;color:var(--mu);font-weight:500}
+#mini{position:fixed;left:14px;bottom:14px;width:240px;height:150px;border:1px solid var(--ln);border-radius:8px;z-index:3;cursor:crosshair;box-shadow:0 6px 20px #0008}
+#tip{position:fixed;left:0;top:0;pointer-events:none;z-index:9;background:#0d110cee;border:1px solid var(--ln);border-radius:6px;padding:6px 9px;display:flex;flex-direction:column}
+#tip b{font-family:Oswald;text-transform:uppercase;letter-spacing:.05em}#tip span{font-size:12px;color:var(--mu)}#tip i{font-style:normal}
+.banner{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:4;padding:9px 18px;border-radius:30px;background:#1a1405e6;border:1px solid var(--gold);color:#ffe9a8;font-family:Oswald;letter-spacing:.1em;text-transform:uppercase;font-size:14px;display:none;animation:pu 1.6s ease-in-out infinite}
+.deploying .banner{display:block}
+@keyframes pu{50%{box-shadow:0 0 22px #c9a54a66}}
+.gate{position:fixed;inset:0;display:grid;place-items:center;z-index:20;background:radial-gradient(ellipse at center,#1c2416,#080a07);padding:20px}
+.gbox{max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
+.gbox h2{font-size:30px;text-transform:uppercase}.gbox p{color:var(--mu)}
+.stamp{border:3px solid var(--bad);color:var(--bad);padding:4px 14px;font-size:22px;letter-spacing:.3em;transform:rotate(-6deg);opacity:.85}
+.spin{width:40px;height:40px;border-radius:50%;border:3px solid #ffffff22;border-top-color:var(--gold);animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(1turn)}}
+#modal{position:fixed;inset:0;background:#000a;display:grid;place-items:center;z-index:15;padding:16px}
+.mbox{width:min(440px,100%);background:#141a11;border:1px solid var(--ln);border-radius:12px;padding:18px}.mbox .btn{margin-top:8px}
+.toasts{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;gap:8px;align-items:center}
+.toast{padding:10px 16px;border-radius:8px;background:#1b2216;border:1px solid var(--ln);box-shadow:0 8px 30px #000a;transition:.4s}.toast.ok{border-color:var(--ok)}.toast.bad{border-color:var(--bad)}.toast.out{opacity:0;transform:translateY(10px)}
+@media(max-width:760px){
+ .top{height:auto;flex-wrap:wrap;padding:8px 10px;gap:8px}.logo span{display:none}
+ .res{order:5;width:100%;overflow-x:auto}.res span{padding:4px 8px;font-size:12px}
+ #legend{display:none}#mini{width:120px;height:75px;left:10px;bottom:10px}
+ #side{left:10px;right:10px;top:auto;bottom:10px;width:auto;max-height:55vh}
+ .banner{top:auto;bottom:96px;font-size:12px;white-space:nowrap}
+}
+@media(max-width:760px){#side{padding:12px;max-height:46vh}.ph h3{font-size:19px}.cols{grid-template-columns:repeat(12,1fr);gap:4px}.cols button{border-radius:4px}.fl{margin:8px 0 4px}.fl input{padding:8px 10px}}
+</style>
+</head>
+<body>
+<div class="gate" id="gate"></div>
+<div id="app" class="hide">
+  <canvas id="map"></canvas>
+  <header class="top" id="top"></header>
+  <div class="banner">★ Elige tu punto de despliegue en el mapa</div>
+  <aside id="legend"></aside>
+  <aside id="side" class="hide"></aside>
+  <canvas id="mini" width="240" height="150"></canvas>
+</div>
+<div id="tip" class="hide"></div>
+<div id="modal" class="hide"></div>
+<div class="toasts" id="toasts"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>/* ===================== MCF Frontline · generación del mundo ===================== */
+'use strict';
+const WW=2400,WH=1500,CELL=4,GW=WW/CELL,GH=WH/CELL;
+function mul32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hash2(x,y,s){let h=Math.imul(x,374761393)+Math.imul(y,668265263)+Math.imul(s,2147483647);h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967296}
+function vnoise(x,y,s){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);
+  const a=hash2(xi,yi,s),b=hash2(xi+1,yi,s),c=hash2(xi,yi+1,s),d=hash2(xi+1,yi+1,s);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v}
+function fbm(x,y,s,o){let t=0,a=1,f=1,n=0;for(let i=0;i<(o||5);i++){t+=vnoise(x*f,y*f,s+i*17)*a;n+=a;a*=.5;f*=2.03}return t/n}
+const TER={sea:{n:'Mar',c:'#1d4f7a'},coast:{n:'Costa',c:'#c8b47a'},plains:{n:'Llanura',c:'#6f9a4a',mv:1,df:1},forest:{n:'Bosque',c:'#3f6b34',mv:1.4,df:1.3},hills:{n:'Colinas',c:'#8a8a55',mv:1.5,df:1.35},mountain:{n:'Montaña',c:'#8b7d6b',mv:2.2,df:1.7},desert:{n:'Desierto',c:'#cdb178',mv:1.2,df:1}};
+const SYL=['al','bar','cor','dan','el','fen','gar','hal','is','jor','kel','lan','mar','nor','or','pal','quin','ros','sal','tor','ur','val','wen','xar','yel','zan','ber','cas','dor','mon','vik','ost','rav','sel','tur','ven','gra','lun','bra','kor'];
+function mkName(R){const n=2+(R()<.35?1:0);let s='';for(let i=0;i<n;i++)s+=SYL[Math.floor(R()*SYL.length)];return s.charAt(0).toUpperCase()+s.slice(1)}
+
+function genWorld(seed){
+  const R=mul32(seed*7919+1);const t0=performance.now();
+  /* altura y humedad */
+  const H=new Float32Array(GW*GH),M=new Float32Array(GW*GH);
+  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const wx=x*CELL,wy=y*CELL;
+    const nx=(wx-WW/2)/(WW/2),ny=(wy-WH/2)/(WH/2);const d=Math.sqrt(nx*nx*0.9+ny*ny*1.25);
+    let h=fbm(wx/420,wy/420,seed,6)*1.1-.55+(.5-d*.6)+(fbm(wx/160,wy/160,seed+99,3)-.5)*.25;
+    /* cordilleras: ruido "ridged" que forma cadenas alargadas */
+    const rg=1-Math.abs(fbm(wx/520,wy/520,seed+211,4)*2-1);const rk=Math.pow(Math.max(0,rg-.72)/.28,1.6);
+    h=h>0?h*.55+rk*.55*Math.min(1,h*6):h;
+    H[y*GW+x]=h;M[y*GW+x]=fbm(wx/300,wy/300,seed+500,4)}
+  const land=i=>H[i]>0;
+  /* centros de provincias (rejilla con jitter) */
+  const SP=72,cols=Math.ceil(WW/SP),rows=Math.ceil(WH/SP);const P=[];
+  for(let gy=0;gy<rows;gy++)for(let gx=0;gx<cols;gx++){const x=(gx+.15+R()*.7)*SP,y=(gy+.15+R()*.7)*SP;if(x>=WW||y>=WH)continue;
+    const ci=Math.floor(y/CELL)*GW+Math.floor(x/CELL);const L=land(ci);if(!L&&((gx+gy)%2||R()<.35))continue;P.push({x,y,land:L,gx,gy})}
+  /* índice espacial */
+  const grid=new Map();P.forEach((p,i)=>{p.id=i;const k=p.gx+','+p.gy;grid.set(k,i)});
+  const own=new Int32Array(GW*GH);
+  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x,L=land(i);const wx=x*CELL+2,wy=y*CELL+2;/* deformación del dominio: fronteras orgánicas */const qx=wx+(fbm(wx/70,wy/70,seed+7,3)-.5)*70,qy=wy+(fbm(wx/70,wy/70,seed+8,3)-.5)*70;const gx=Math.floor(qx/SP),gy=Math.floor(qy/SP);let best=-1,bd=1e18;
+    for(let r=1;r<=3&&best<0;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const k=grid.get((gx+dx)+','+(gy+dy));if(k==null)continue;const p=P[k];if(p.land!==L)continue;
+      const dd=(p.x-qx)*(p.x-qx)+(p.y-qy)*(p.y-qy);if(dd<bd){bd=dd;best=k}}
+    own[i]=best}
+  /* estadísticas por provincia */
+  const st=P.map(()=>({n:0,sx:0,sy:0,h:0,m:0}));
+  for(let i=0;i<own.length;i++){const k=own[i];if(k<0)continue;const s=st[k];s.n++;s.sx+=(i%GW)*CELL+2;s.sy+=Math.floor(i/GW)*CELL+2;s.h+=H[i];s.m+=M[i]}
+  const prov=[];const remap=new Int32Array(P.length).fill(-1);
+  P.forEach((p,k)=>{const s=st[k];if(s.n<25)return;remap[k]=prov.length;
+    const h=s.h/s.n,m=s.m/s.n;let t='sea';if(p.land){t=h>.36?'mountain':h>.25?'hills':m>.56?'forest':m<.4?'desert':'plains'}
+    prov.push({id:prov.length,land:p.land,t,x:s.sx/s.n,y:s.sy/s.n,area:s.n,nb:new Set()})});
+  for(let i=0;i<own.length;i++)own[i]=own[i]>=0?remap[own[i]]:-1;
+  /* celdas huérfanas: asignar a vecino */
+  for(let pass=0;pass<4;pass++)for(let i=0;i<own.length;i++)if(own[i]<0){const x=i%GW,y=(i/GW)|0;const n=[x>0?own[i-1]:-1,x<GW-1?own[i+1]:-1,y>0?own[i-GW]:-1,y<GH-1?own[i+GW]:-1].find(v=>v>=0);if(n!=null&&n>=0)own[i]=n}
+  /* vecinos */
+  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x,a=own[i];if(a<0)continue;if(x<GW-1){const b=own[i+1];if(b>=0&&b!==a){prov[a].nb.add(b);prov[b].nb.add(a)}}if(y<GH-1){const b=own[i+GW];if(b>=0&&b!==a){prov[a].nb.add(b);prov[b].nb.add(a)}}}
+  prov.forEach(p=>{p.nb=[...p.nb];p.coast=p.land&&p.nb.some(n=>!prov[n].land)});
+  /* ciudades y nombres */
+  const RN=mul32(seed+3);const used=new Set();
+  prov.forEach(p=>{if(!p.land)return;let n;do{n=mkName(RN)}while(used.has(n));used.add(n);p.name=n;
+    const r=RN();p.city=p.t==='mountain'?(r<.12?1:0):r<.06?3:r<.18?2:r<.42?1:0;p.oil=p.t==='desert'||(p.coast&&RN()<.15);});
+  prov.filter(p=>!p.land).forEach((p,i)=>{p.name='Mar '+(i+1)});
+  return{seed,H,M,own,prov,gen:Math.round(performance.now()-t0)};
+}
+/* coste de mover una unidad entre dos provincias vecinas (horas) */
+function hopHours(W,a,b,speed){const A=W.prov[a],B=W.prov[b];const d=Math.hypot(A.x-B.x,A.y-B.y);const tm=(TER[B.t]&&TER[B.t].mv)||1;return d/speed*tm}
+
+/* ===================== MCF Frontline · dibujo del mapa ===================== */
+'use strict';
+function hexToRgb(h){const n=parseInt(h.slice(1),16);return[n>>16,n>>8&255,n&255]}
+const TCOL={plains:[104,148,70],forest:[52,96,46],hills:[132,134,84],mountain:[128,114,96],desert:[205,180,122]};
+function renderTerrain(W){
+  const S=4,cw=GW*S,ch=GH*S;const cv=document.createElement('canvas');cv.width=cw;cv.height=ch;const x=cv.getContext('2d');const img=x.createImageData(cw,ch);const D=img.data;
+  const H=W.H,M=W.M,lerp=(a,b,t)=>a+(b-a)*t;
+  const bil=(A,fx,fy)=>{let cx=Math.floor(fx),cy=Math.floor(fy);const tx=fx-cx,ty=fy-cy;const x0=cx<0?0:cx>=GW?GW-1:cx,x1=cx+1>=GW?GW-1:cx+1<0?0:cx+1,y0=cy<0?0:cy>=GH?GH-1:cy,y1=cy+1>=GH?GH-1:cy+1<0?0:cy+1;
+    return lerp(lerp(A[y0*GW+x0],A[y0*GW+x1],tx),lerp(A[y1*GW+x0],A[y1*GW+x1],tx),ty)};
+  for(let py=0;py<ch;py++){const fy=(py+.5)/S-.5;for(let px=0;px<cw;px++){const fx=(px+.5)/S-.5;const h=bil(H,fx,fy);let r,g,b;
+    if(h<=0){const d=Math.max(0,Math.min(1,-h/.35));r=46-28*d;g=112-62*d;b=150-58*d;if(h>-.025){const k=1+h/.025;r+=(120-r)*k*.5;g+=(170-g)*k*.5;b+=(180-b)*k*.5}}
+    else{const ci=Math.min(GH-1,Math.max(0,Math.round(fy)))*GW+Math.min(GW-1,Math.max(0,Math.round(fx)));const p=W.prov[W.own[ci]];const t=p&&p.land?p.t:'plains';const m=bil(M,fx,fy);
+      const dry=Math.max(0,Math.min(1,(.45-m)/.13)),wet=Math.max(0,Math.min(1,(m-.5)/.12));
+      let c0=lerp(TCOL.plains[0],TCOL.desert[0],dry),c1=lerp(TCOL.plains[1],TCOL.desert[1],dry),c2=lerp(TCOL.plains[2],TCOL.desert[2],dry);
+      c0=lerp(c0,TCOL.forest[0],wet);c1=lerp(c1,TCOL.forest[1],wet);c2=lerp(c2,TCOL.forest[2],wet);
+      const hk=Math.max(0,Math.min(1,(h-.2)/.22));c0=lerp(c0,TCOL.mountain[0],hk);c1=lerp(c1,TCOL.mountain[1],hk);c2=lerp(c2,TCOL.mountain[2],hk);
+      const pc=TCOL[t];c0=c0*.72+pc[0]*.28;c1=c1*.72+pc[1]*.28;c2=c2*.72+pc[2]*.28;
+      const n=(vnoise(px*.22,py*.22,W.seed+33)-.5)*16+(hash2(px,py,W.seed)-.5)*7;r=c0+n;g=c1+n;b=c2+n*.6;
+      if(h<.03){const k=1-h/.03;r=lerp(r,205,k);g=lerp(g,190,k);b=lerp(b,142,k)}
+      if(h>.5){const k=Math.min(1,(h-.5)/.12);r+=(240-r)*k;g+=(242-g)*k;b+=(245-b)*k}
+      const hx=bil(H,fx+.6,fy)-bil(H,fx-.6,fy),hy=bil(H,fx,fy+.6)-bil(H,fx,fy-.6);const sh=Math.max(-.5,Math.min(.5,(-hx-hy)*7.5));r*=1+sh;g*=1+sh;b*=1+sh}
+    const i=(py*cw+px)*4;D[i]=r;D[i+1]=g;D[i+2]=b;D[i+3]=255}}
+  x.putImageData(img,0,0);
+  /* textura: árboles y picos */
+  const R=mul32(W.seed+44);for(let k=0;k<90000;k++){const px=R()*cw,py=R()*ch;const i=Math.floor(py/S)*GW+Math.floor(px/S);if(H[i]<=.01)continue;const p=W.prov[W.own[i]];if(!p||!p.land)continue;
+    if(p.t==='forest'||(M[i]>.55&&R()<.5)){x.fillStyle=`rgba(20,48,22,${.25+R()*.3})`;x.beginPath();x.arc(px,py,1.4+R()*2,0,7);x.fill()}else if((p.t==='mountain'||H[i]>.32)&&R()<.5){x.strokeStyle='rgba(60,50,40,.35)';x.lineWidth=.8;x.beginPath();x.moveTo(px-5,py+3);x.lineTo(px,py-4);x.lineTo(px+5,py+3);x.stroke()}}
+  /* línea de costa y fronteras de provincia (suavizadas) */
+  const coast=smoothLayer(W,i=>H[i]>0?1:0,k=>k?'#eae0bc':null,null,0,120,1);x.drawImage(coast,0,0,cw,ch);
+  const brd=smoothLayer(W,i=>H[i]>0?W.own[i]:-1,k=>k>=0?'#1e1e14':null,null,0,70,1);x.drawImage(brd,0,0,cw,ch);
+  const g=x.createRadialGradient(cw/2,ch/2,ch*.3,cw/2,ch/2,cw*.7);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,10,25,.45)');x.fillStyle=g;x.fillRect(0,0,cw,ch);
+  return cv;
+}
+/* capa suavizada: cada píxel (a 4x) vota entre las 4 celdas vecinas con pesos bilineales,
+   así las fronteras salen curvas en vez de en escalera */
+const LR=4;
+function smoothLayer(W,keyOf,colOf,box,fillA,edgeA,er){er=er||2;
+  const x0=box?box[0]:0,y0=box?box[1]:0,x1=box?box[2]:GW,y1=box?box[3]:GH;const w=(x1-x0)*LR,h=(y1-y0)*LR;
+  const c=document.createElement('canvas');c.width=w;c.height=h;if(!w||!h)return c;const x=c.getContext('2d');const img=x.createImageData(w,h);const D=img.data;
+  const K=new Array(w*h);const kc=(cx,cy)=>{cx=cx<0?0:cx>=GW?GW-1:cx;cy=cy<0?0:cy>=GH?GH-1:cy;return keyOf(cy*GW+cx)};
+  for(let py=0;py<h;py++){const fy=y0+(py+.5)/LR-.5,cy=Math.floor(fy),ty=fy-cy;
+    for(let px=0;px<w;px++){const fx=x0+(px+.5)/LR-.5,cx=Math.floor(fx),tx=fx-cx;
+      const a=kc(cx,cy),b=kc(cx+1,cy),cc=kc(cx,cy+1),d=kc(cx+1,cy+1);let k=a;
+      if(!(a===b&&a===cc&&a===d)){const wa=(1-tx)*(1-ty),wb=tx*(1-ty),wc=(1-tx)*ty,wd=tx*ty;const m=new Map();m.set(a,wa);m.set(b,(m.get(b)||0)+wb);m.set(cc,(m.get(cc)||0)+wc);m.set(d,(m.get(d)||0)+wd);let bw=-1;m.forEach((v,kk)=>{if(v>bw){bw=v;k=kk}})}
+      K[py*w+px]=k}}
+  const cache=new Map();
+  for(let py=0;py<h;py++)for(let px=0;px<w;px++){const i=py*w+px,k=K[i];if(k==null)continue;let col=cache.get(k);if(col===undefined){col=colOf(k);col=col?hexToRgb(col):null;cache.set(k,col)}if(!col)continue;
+    let e=false;for(let r=1;r<=er&&!e;r++)e=(px>=r&&K[i-r]!==k)||(px<w-r&&K[i+r]!==k)||(py>=r&&K[i-r*w]!==k)||(py<h-r&&K[i+r*w]!==k);
+    D[i*4]=col[0];D[i*4+1]=col[1];D[i*4+2]=col[2];D[i*4+3]=e?edgeA:fillA}
+  x.putImageData(img,0,0);c.ox=x0*CELL;c.oy=y0*CELL;c.ow=(x1-x0)*CELL;c.oh=(y1-y0)*CELL;return c}
+/* capa de territorios (se rehace al cambiar dueños) */
+function renderOwners(W,owners,colors){return smoothLayer(W,i=>{const p=W.own[i];const o=owners[p];return o&&colors[o]?o:null},o=>colors[o],null,85,235)}
+function renderSel(W,id,col){if(id<0)return null;const p=W.prov[id];let bx=[GW,GH,0,0];for(let i=0;i<W.own.length;i++)if(W.own[i]===id){const x=i%GW,y=(i/GW)|0;if(x<bx[0])bx[0]=x;if(y<bx[1])bx[1]=y;if(x>bx[2])bx[2]=x;if(y>bx[3])bx[3]=y}
+  bx=[Math.max(0,bx[0]-2),Math.max(0,bx[1]-2),Math.min(GW,bx[2]+3),Math.min(GH,bx[3]+3)];return smoothLayer(W,i=>W.own[i]===id?1:null,()=>col||'#fff0be',bx,50,255)}
+
+/* ===================== MCF Frontline · capa online ===================== */
+'use strict';
+const FB_CFG={apiKey:"AIzaSyAS2sEiZ3vh3DpvG-Vx85w73zoAOdaFCNs",authDomain:"marela-8d4e5.firebaseapp.com",databaseURL:"https://marela-8d4e5-default-rtdb.europe-west1.firebasedatabase.app",projectId:"marela-8d4e5",storageBucket:"marela-8d4e5.firebasestorage.app"};
+const MCF_LOGIN='https://cfartaesmario-a11y.github.io/2batx/';
+const ROOT='salas/frontline';
+let DB=null,AUTH=null,UID=null,TOFF=0,ROOTADMIN=false,MYNAME='';
+const now=()=>Date.now()+TOFF;
+const R_=p=>DB.ref(ROOT+(p?'/'+p:''));
+const TS=()=>firebase.database.ServerValue.TIMESTAMP;
+const cleanName=s=>String(s||'').replace(/[<>&"'`]/g,'').trim().slice(0,22);
+/* estado compartido de la partida */
+const G={cfg:null,players:{},own:{}};
+const gl=[];const onG=f=>gl.push(f);const emitG=w=>gl.forEach(f=>{try{f(w)}catch(e){console.error(e)}});
+
+/* producción por hora de una provincia */
+function provYield(p){if(!p||!p.land)return{m:0,s:0,o:0};return{m:2+p.city*10,s:p.city*4+(p.t==='hills'||p.t==='mountain'?1:0),o:p.city*2+(p.oil?4:0)}}
+function rateOf(uid){const r={m:0,s:0,o:0};if(!WORLD)return r;for(const k in G.own)if(G.own[k]===uid){const y=provYield(WORLD.prov[k]);r.m+=y.m;r.s+=y.s;r.o+=y.o}return r}
+function resOf(uid){const P=G.players[uid];if(!P)return{m:0,s:0,o:0};const sp=(G.cfg&&G.cfg.speed)||1;const h=Math.max(0,now()-(P.lt||now()))/3600000*sp;const r=rateOf(uid);const b=P.res||{};
+  return{m:(b.m||0)+r.m*h,s:(b.s||0)+r.s*h,o:(b.o||0)+r.o*h}}
+
+function netInit(onState){
+  firebase.initializeApp(FB_CFG);AUTH=firebase.auth();DB=firebase.database();
+  DB.ref('.info/serverTimeOffset').on('value',s=>{TOFF=s.val()||0});
+  AUTH.onAuthStateChanged(async u=>{
+    if(!u||u.isAnonymous){UID=null;onState('out');return}
+    UID=u.uid;MYNAME=cleanName(u.displayName||(u.email||'').split('@')[0])||'Comandante';onState('loading');
+    const a=await DB.ref('admins/'+UID).once('value').catch(()=>null);ROOTADMIN=!!(a&&a.val()===true);
+    if(!ROOTADMIN){onState('locked');return}
+    try{
+      let c=(await R_('cfg').once('value')).val();
+      if(!c||!c.seed){c={seed:77,start:Date.now(),speed:1,season:1};await R_('cfg').set(c)}
+      R_('cfg').on('value',s=>{const v=s.val();if(!v)return;const reseed=!G.cfg||G.cfg.seed!==v.seed;G.cfg=v;emitG(reseed?'world':'cfg')});
+      R_('players').on('value',s=>{G.players=s.val()||{};emitG('players')});
+      R_('own').on('value',s=>{G.own=s.val()||{};emitG('own')});
+      onState('in');
+    }catch(e){console.error(e);onState('err')}
+  });
+}
+/* desplegar un país nuevo: capital + hasta 3 provincias vecinas libres */
+async function joinGame(name,col,cap){
+  const W=WORLD;const p=W.prov[cap];if(!p||!p.land)throw new Error('Elige una provincia de tierra');
+  const want=[cap,...p.nb.filter(n=>W.prov[n].land).sort((a,b)=>W.prov[b].city-W.prov[a].city).slice(0,3)];
+  let got=null;
+  const r=await R_('own').transaction(o=>{o=o||{};if(o[cap])return;for(const k in o)if(o[k]&&o[k]!==UID&&tooClose(cap,+k))return;got=want.filter(k=>!o[k]);got.forEach(k=>o[k]=UID);return o});
+  if(!r.committed)throw new Error('Esa zona ya está ocupada o hay un enemigo demasiado cerca');
+  await R_('players/'+UID).set({n:cleanName(name)||MYNAME,col,cap,res:{m:500,s:200,o:100},lt:TS(),t:TS()});
+}
+/* distancia mínima entre capitales (en saltos) */
+function hops(a,b,max){if(a===b)return 0;let f=[a];const seen=new Set([a]);for(let d=1;d<=max;d++){const nf=[];for(const x of f)for(const n of WORLD.prov[x].nb){if(!WORLD.prov[n].land||seen.has(n))continue;if(n===b)return d;seen.add(n);nf.push(n)}f=nf}return 99}
+const tooClose=(a,b)=>hops(a,b,3)<=3;
+/* admin */
+async function adminSet(patch){await R_('cfg').update(patch)}
+async function adminReset(seed){await R_().set({cfg:{seed,start:Date.now(),speed:(G.cfg&&G.cfg.speed)||1,season:((G.cfg&&G.cfg.season)||0)+1}})}
+
+/* ===================== MCF Frontline · interfaz ===================== */
+'use strict';
+let HOVC=null,WORLD=null,TERR=null,OWNC=null,MINI=null,SELC=null;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fN=n=>Math.floor(n).toLocaleString('es-ES');
+const COLORS=['#d93a3a','#2f6fe0','#e0a12f','#2fae5b','#9b4ddb','#e0612f','#22b5c9','#d64d9a','#7a8a2a','#f0d040','#5b6bff','#a0522d'];
+const cam={x:0,y:0,z:.5};let SEL=-1,HOV=-1,DEPLOY=false,DIRTY=true;
+const cv=()=>$('#map'),ctx=()=>cv().getContext('2d');
+const madrid=()=>{const d=new Date(now());const f=new Intl.DateTimeFormat('es-ES',{timeZone:'Europe/Madrid',hour:'2-digit',minute:'2-digit',hour12:false}).format(d);return{t:f,h:+f.slice(0,2)}};
+const isNight=h=>h>=22||h<7;
+const me=()=>UID&&G.players[UID];
+const ownerOf=k=>G.own[k]||null;
+const toast=(m,k)=>{const t=document.createElement('div');t.className='toast '+(k||'');t.innerHTML=m;$('#toasts').appendChild(t);setTimeout(()=>t.classList.add('out'),3200);setTimeout(()=>t.remove(),3700)};
+
+/* ---------- pantallas de acceso ---------- */
+function gate(kind){const g=$('#gate');g.classList.remove('hide');$('#app').classList.add('hide');
+  const L={loading:`<div class="spin"></div><p>Conectando con el mando…</p>`,
+    out:`<h2>Acceso restringido</h2><p>Inicia sesión con tu cuenta de MCF para entrar.</p><a class="btn pri" href="${MCF_LOGIN}">Iniciar sesión en MCF</a>`,
+    locked:`<div class="stamp">CLASIFICADO</div><h2>Próximamente</h2><p>MCF Frontline está en fase de desarrollo. El frente se abrirá muy pronto.</p><a class="btn" href="../">Volver a MCF Games</a>`,
+    err:`<h2>Sin conexión</h2><p>No se pudo conectar con el servidor. Recarga la página.</p>`};
+  g.innerHTML=`<div class="gbox"><div class="logo big">${LOGO}</div>${L[kind]||''}</div>`}
+const LOGO=`<svg viewBox="0 0 40 40"><path d="M20 2 37 11v18L20 38 3 29V11z" fill="#1d2418" stroke="#c9a54a" stroke-width="2"/><path d="M20 9l3.2 6.6 7.3 1-5.3 5.1 1.3 7.2L20 25.5l-6.5 3.4 1.3-7.2-5.3-5.1 7.3-1z" fill="#c9a54a"/></svg><b>MCF</b><span>FRONTLINE</span>`;
+
+/* ---------- mundo ---------- */
+function buildWorld(){const seed=G.cfg.seed;$('#loadmsg')&&($('#loadmsg').textContent='Generando continente…');
+  WORLD=genWorld(seed);TERR=renderTerrain(WORLD);
+  MINI=document.createElement('canvas');MINI.width=240;MINI.height=150;MINI.getContext('2d').drawImage(TERR,0,0,240,150);HOVC=null;
+  OWNC=renderOwners(WORLD,ownersArr(),colorMap());SEL=-1;fit();DIRTY=true;panel()}
+const ownersArr=()=>{const a=[];for(const k in G.own)a[k]=G.own[k];return a};
+const colorMap=()=>{const c={};for(const u in G.players)c[u]=G.players[u].col;return c};
+function fit(){const c=cv();cam.z=Math.max(c.width/WW,c.height/WH)*1;cam.x=WW/2-c.width/2/cam.z;cam.y=WH/2-c.height/2/cam.z;clampCam()}
+function clampCam(){const c=cv();const minZ=Math.min(c.width/WW,c.height/WH)*.9;cam.z=Math.max(minZ,Math.min(4,cam.z));const vw=c.width/cam.z,vh=c.height/cam.z;
+  cam.x=vw>WW?(WW-vw)/2:Math.max(0,Math.min(WW-vw,cam.x));cam.y=vh>WH?(WH-vh)/2:Math.max(0,Math.min(WH-vh,cam.y))}
+const s2w=(sx,sy)=>[sx/cam.z+cam.x,sy/cam.z+cam.y];
+const provAt=(wx,wy)=>{const x=Math.floor(wx/CELL),y=Math.floor(wy/CELL);if(x<0||y<0||x>=GW||y>=GH)return-1;return WORLD.own[y*GW+x]};
+
+/* ---------- dibujo ---------- */
+function draw(){const c=cv(),x=ctx();const W=WORLD;if(!W)return;const k=devicePixelRatio||1;const z=cam.z/k;
+  x.setTransform(1,0,0,1,0,0);x.fillStyle='#0c2238';x.fillRect(0,0,c.width,c.height);
+  x.setTransform(cam.z,0,0,cam.z,-cam.x*cam.z,-cam.y*cam.z);
+  x.imageSmoothingEnabled=true;x.imageSmoothingQuality=z>1.2?'low':'high';x.drawImage(TERR,0,0,WW,WH);
+  if(OWNC){x.drawImage(OWNC,0,0,WW,WH)}
+  if(SELC){x.drawImage(SELC,SELC.ox,SELC.oy,SELC.ow,SELC.oh)}
+  if(DEPLOY&&HOV>=0&&W.prov[HOV].land){x.globalAlpha=.6;if(!HOVC||HOVC.id!==HOV){HOVC=renderSel(WORLD,HOV,'#ffe9a8');HOVC.id=HOV}x.drawImage(HOVC,HOVC.ox,HOVC.oy,HOVC.ow,HOVC.oh);x.globalAlpha=1}
+  /* ciudades, capitales y nombres */
+  const vx0=cam.x-40,vy0=cam.y-40,vx1=cam.x+c.width/cam.z+40,vy1=cam.y+c.height/cam.z+40;
+  const caps={};for(const u in G.players)caps[G.players[u].cap]=u;
+  x.textAlign='center';x.textBaseline='middle';
+  const boxes=[];const vis=W.prov.filter(p=>p.land&&p.x>=vx0&&p.x<=vx1&&p.y>=vy0&&p.y<=vy1).sort((a,b)=>((caps[b.id]!=null?9:0)+b.city)-((caps[a.id]!=null?9:0)+a.city));
+  for(const p of vis){const cu=caps[p.id];
+    if(cu!=null){star(x,p.x,p.y,11/Math.sqrt(z)+4,G.players[cu].col)}
+    else if(p.city){const r=(2+p.city*1.6)/Math.sqrt(z)*1.3;x.fillStyle='#f4ecd8';x.strokeStyle='#1b1b14';x.lineWidth=1.6/z;x.beginPath();x.rect(p.x-r,p.y-r,r*2,r*2);x.fill();x.stroke();if(p.city===3){x.fillStyle='#1b1b14';x.fillRect(p.x-r*.4,p.y-r*.4,r*.8,r*.8)}}
+    if(p.oil&&z>.9){x.fillStyle='#111';x.font=`${9/z*1.2}px system-ui`;x.fillText('🛢',p.x+12/z,p.y-9/z)}
+    const showName=cu!=null||(p.city>=2&&z>.55)||(p.city>=1&&z>.95)||z>1.5;
+    if(showName){const fs=(cu!=null?13:p.city>=2?11.5:10)/Math.pow(z,.75);x.font=`${cu!=null||p.city>=2?700:600} ${fs}px Oswald,system-ui`;const ty=p.y+(p.city||cu!=null?13:0)/Math.sqrt(z)+fs*.25;const tw=x.measureText(p.name.toUpperCase()).width/2+2/z;const bb=[p.x-tw,ty-fs*.6,p.x+tw,ty+fs*.6];if(boxes.some(o=>o[0]<bb[2]&&o[2]>bb[0]&&o[1]<bb[3]&&o[3]>bb[1]))continue;boxes.push(bb);
+      x.lineWidth=3/z;x.strokeStyle='rgba(15,18,12,.85)';x.strokeText(p.name.toUpperCase(),p.x,ty);x.fillStyle=cu!=null?'#ffe9a8':'#f2ead2';x.fillText(p.name.toUpperCase(),p.x,ty)}}
+  /* noche */
+  x.setTransform(1,0,0,1,0,0);const h=madrid().h;if(isNight(h)){x.fillStyle='rgba(8,16,48,.32)';x.fillRect(0,0,c.width,c.height)}
+  drawMini()}
+function star(x,cx,cy,r,col){x.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.45:r;x.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr)}x.closePath();x.fillStyle=col;x.fill();x.lineWidth=2*(devicePixelRatio||1)/cam.z;x.strokeStyle='#fff6d0';x.stroke()}
+function drawMini(){const m=$('#mini');if(!m||!MINI)return;const x=m.getContext('2d');x.drawImage(MINI,0,0);if(OWNC){x.globalAlpha=.9;x.drawImage(OWNC,0,0,240,150);x.globalAlpha=1}
+  const c=cv(),k=240/WW;x.strokeStyle='#ffe9a8';x.lineWidth=1.5;x.strokeRect(cam.x*k,cam.y*k,c.width/cam.z*k,c.height/cam.z*k)}
+function loop(){if(DIRTY){DIRTY=false;draw()}requestAnimationFrame(loop)}
+
+/* ---------- entrada (ratón / táctil) ---------- */
+function bindInput(){const c=cv();const pts=new Map();let drag=null,moved=0,pinch=null;
+  c.addEventListener('pointerdown',e=>{c.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.offsetX,e.offsetY]);moved=0;
+    if(pts.size===1)drag={x:e.offsetX,y:e.offsetY,cx:cam.x,cy:cam.y};else if(pts.size===2){const [a,b]=[...pts.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1]),z:cam.z,w:s2w((a[0]+b[0])/2,(a[1]+b[1])/2)};drag=null}});
+  c.addEventListener('pointermove',e=>{const dpr=devicePixelRatio||1;
+    if(pts.has(e.pointerId))pts.set(e.pointerId,[e.offsetX,e.offsetY]);
+    if(pinch&&pts.size===2){const [a,b]=[...pts.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);cam.z=pinch.z*d/pinch.d;const mx=(a[0]+b[0])/2*dpr,my=(a[1]+b[1])/2*dpr;cam.x=pinch.w[0]-mx/cam.z;cam.y=pinch.w[1]-my/cam.z;clampCam();moved=99;DIRTY=true;return}
+    if(drag){const dx=e.offsetX-drag.x,dy=e.offsetY-drag.y;moved=Math.max(moved,Math.abs(dx)+Math.abs(dy));cam.x=drag.cx-dx*dpr/cam.z;cam.y=drag.cy-dy*dpr/cam.z;clampCam();DIRTY=true;c.style.cursor='grabbing'}
+    else if(WORLD){const [wx,wy]=s2w(e.offsetX*dpr,e.offsetY*dpr);const h=provAt(wx,wy);if(h!==HOV){HOV=h;tip(e,h);if(DEPLOY)DIRTY=true}else tipMove(e)}});
+  const up=e=>{pts.delete(e.pointerId);c.style.cursor='';if(pts.size<2)pinch=null;if(pts.size===0){if(drag&&moved<6&&WORLD){const dpr=devicePixelRatio||1;const [wx,wy]=s2w(e.offsetX*dpr,e.offsetY*dpr);clickProv(provAt(wx,wy))}drag=null}};
+  c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);
+  c.addEventListener('pointerleave',()=>{$('#tip').classList.add('hide')});
+  c.addEventListener('wheel',e=>{e.preventDefault();const dpr=devicePixelRatio||1;const [wx,wy]=s2w(e.offsetX*dpr,e.offsetY*dpr);cam.z*=Math.exp(-e.deltaY*.0015);clampCam();cam.x=wx-e.offsetX*dpr/cam.z;cam.y=wy-e.offsetY*dpr/cam.z;clampCam();DIRTY=true},{passive:false});
+  $('#mini').addEventListener('pointerdown',e=>{const k=WW/240;const c2=cv();cam.x=e.offsetX*k-c2.width/cam.z/2;cam.y=e.offsetY*k-c2.height/cam.z/2;clampCam();DIRTY=true});
+  addEventListener('resize',resize)}
+function resize(){const c=cv(),dpr=devicePixelRatio||1;const [cx,cy]=c.width?s2w(c.width/2,c.height/2):[WW/2,WH/2];c.width=innerWidth*dpr;c.height=innerHeight*dpr;cam.x=cx-c.width/2/cam.z;cam.y=cy-c.height/2/cam.z;clampCam();DIRTY=true}
+function tip(e,h){const t=$('#tip');if(h<0||!WORLD){t.classList.add('hide');return}const p=WORLD.prov[h];const o=ownerOf(h);const P=o&&G.players[o];
+  t.innerHTML=`<b>${esc(p.name)}</b><span>${TER[p.t].n}${p.city?' · '+CITYN[p.city]:''}${P?` · <i style="color:${P.col}">■</i> ${esc(P.n)}`:''}</span>`;t.classList.remove('hide');tipMove(e)}
+function tipMove(e){const t=$('#tip');t.style.transform=`translate(${e.clientX+14}px,${e.clientY+14}px)`}
+const CITYN=['','Pueblo','Ciudad','Metrópolis'];
+
+/* ---------- panel de provincia ---------- */
+function clickProv(id){if(id<0)return;SEL=id;SELC=renderSel(WORLD,id);DIRTY=true;panel()}
+function panel(){const el=$('#side');if(!WORLD){el.innerHTML='';return}
+  if(DEPLOY){el.innerHTML=deployPanel();bindDeploy();el.classList.remove('hide');return}
+  if(SEL<0){el.classList.add('hide');return}el.classList.remove('hide');
+  const p=WORLD.prov[SEL];const o=ownerOf(SEL);const P=o&&G.players[o];const y=provYield(p);const T=TER[p.t];
+  if(!p.land){el.innerHTML=`<div class="ph"><div><small>Zona marítima</small><h3>${esc(p.name)}</h3></div><button class="x" data-x>✕</button></div><p class="mu">Aguas navegables. La flota y los submarinos llegarán en una próxima fase.</p>`;el.querySelector('[data-x]').onclick=closeSel;return}
+  el.innerHTML=`<div class="ph"><div><small>${T.n}${p.coast?' · Costa':''}</small><h3>${esc(p.name)}</h3></div><button class="x" data-x>✕</button></div>
+  <div class="own">${P?`<i style="background:${P.col}"></i><span>${esc(P.n)}${o===UID?' <em>(tú)</em>':''}</span>${P.cap===SEL?'<b class="tag">CAPITAL</b>':''}`:'<i class="neu"></i><span>Territorio neutral · milicia local</span>'}</div>
+  <div class="grid3">
+    <div><small>Asentamiento</small><b>${p.city?CITYN[p.city]:'Rural'}</b></div>
+    <div><small>Defensa</small><b>×${(T.df||1).toFixed(2)}</b></div>
+    <div><small>Movimiento</small><b>×${(T.mv||1).toFixed(1)}</b></div></div>
+  <div class="sec">Producción por hora</div>
+  <div class="res3"><span class="r m">💶 ${y.m}</span><span class="r s">⚙️ ${y.s}</span><span class="r o">🛢️ ${y.o}</span></div>
+  ${p.oil?'<p class="mu sm">Yacimiento de petróleo en la zona.</p>':''}
+  <div class="sec">Fronteras</div><div class="nb">${p.nb.map(n=>WORLD.prov[n]).map(q=>`<button data-go="${q.id}" class="${q.land?'':'sea'}">${esc(q.name)}</button>`).join('')}</div>
+  <p class="mu sm soon">Reclutamiento y órdenes de ataque: próxima fase.</p>`;
+  el.querySelector('[data-x]').onclick=closeSel;el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const q=WORLD.prov[+b.dataset.go];clickProv(q.id);centerOn(q.x,q.y)})}
+function closeSel(){SEL=-1;SELC=null;DIRTY=true;panel()}
+function centerOn(wx,wy,z){const c=cv();if(z)cam.z=z;cam.x=wx-c.width/2/cam.z;cam.y=wy-c.height/2/cam.z;clampCam();DIRTY=true}
+
+/* ---------- despliegue (unirse) ---------- */
+let DCOL=null,DNAME='';
+function deployPanel(){const taken=new Set(Object.values(G.players).map(p=>p.col));if(!DCOL||taken.has(DCOL))DCOL=COLORS.find(c=>!taken.has(c))||COLORS[0];
+  const p=SEL>=0?WORLD.prov[SEL]:null;const ok=p&&p.land&&!ownerOf(SEL)&&!Object.keys(G.own).some(k=>G.own[k]!==UID&&tooClose(SEL,+k));
+  return`<div class="ph"><div><small>Nuevo país</small><h3>Despliegue inicial</h3></div></div>
+  <label class="fl">Nombre de tu país<input id="dn" maxlength="22" value="${esc(DNAME||MYNAME)}"></label>
+  <div class="fl">Color de bandera</div><div class="cols">${COLORS.map(c=>`<button data-c="${c}" style="background:${c}" class="${c===DCOL?'on':''}" ${taken.has(c)?'disabled':''}></button>`).join('')}</div>
+  <div class="fl">Punto de despliegue</div>
+  <div class="pick ${ok?'ok':''}">${p?`<b>${esc(p.name)}</b><span>${p.land?TER[p.t].n+(p.city?' · '+CITYN[p.city]:''):'Mar'}</span>${!ok?'<em>'+(p.land?'Ocupado o demasiado cerca de otro país':'Elige tierra firme')+'</em>':''}`:'<span>Toca una provincia del mapa</span>'}</div>
+  <button class="btn pri wide" id="dgo" ${ok?'':'disabled'}>Desplegar ejército</button>
+  <p class="mu sm">Empiezas con tu capital y las provincias vecinas libres, 500 💶, 200 ⚙️ y 100 🛢️.</p>`}
+function bindDeploy(){const el=$('#side');el.querySelector('#dn').oninput=e=>DNAME=e.target.value;
+  el.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{DCOL=b.dataset.c;panel()});
+  el.querySelector('#dgo').onclick=async e=>{e.target.disabled=true;e.target.textContent='Desplegando…';
+    try{await joinGame(DNAME||MYNAME,DCOL,SEL);DEPLOY=false;toast('Ejército desplegado. ¡Bienvenido al frente, comandante!','ok');const p=WORLD.prov[SEL];centerOn(p.x,p.y,1.4);SELC=renderSel(WORLD,SEL);panel()}
+    catch(err){toast(esc(err.message||err),'bad');panel()}}}
+
+/* ---------- barra superior ---------- */
+function hud(){const P=me();const t=madrid();const night=isNight(t.h);
+  const day=G.cfg?Math.floor((now()-G.cfg.start)/86400000)+1:1;
+  let r='';if(P){const R=resOf(UID),rt=rateOf(UID);const nP=Object.values(G.own).filter(u=>u===UID).length;
+    r=`<div class="res"><span title="Dinero">💶 <b>${fN(R.m)}</b><small>+${rt.m}/h</small></span><span title="Acero">⚙️ <b>${fN(R.s)}</b><small>+${rt.s}/h</small></span><span title="Petróleo">🛢️ <b>${fN(R.o)}</b><small>+${rt.o}/h</small></span><span title="Provincias">🗺️ <b>${nP}</b></span></div>`}
+  $('#top').innerHTML=`<a class="logo" href="../">${LOGO}</a>${r}<div class="sp"></div>
+  <div class="clock ${night?'night':''}" title="Hora de Madrid"><b>${t.t}</b><small>${night?'🌙 Noche':'☀️ Día'} · Día ${day}/30</small></div>
+  ${ROOTADMIN?'<button class="ib" id="adm" title="Administración">⚙</button>':''}
+  ${P?`<button class="ib" id="home" title="Ir a mi capital">★</button>`:''}`;
+  $('#adm')&&($('#adm').onclick=adminPanel);$('#home')&&($('#home').onclick=()=>{const p=WORLD.prov[P.cap];clickProv(p.id);centerOn(p.x,p.y,1.4)})}
+function legend(){const L=$('#legend');const pl=Object.entries(G.players);L.innerHTML=`<div class="lt">Naciones · ${pl.length}</div>`+(pl.length?pl.map(([u,p])=>{const n=Object.values(G.own).filter(x=>x===u).length;return`<button data-u="${u}"><i style="background:${p.col}"></i>${esc(p.n)}<b>${n}</b></button>`}).join(''):'<p class="mu sm">Nadie ha desplegado todavía.</p>');
+  L.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{const p=WORLD.prov[G.players[b.dataset.u].cap];clickProv(p.id);centerOn(p.x,p.y,1.2)})}
+
+/* ---------- admin ---------- */
+function adminPanel(){const m=$('#modal');const c=G.cfg||{};m.innerHTML=`<div class="mbox"><div class="ph"><div><small>Solo administrador</small><h3>Mando central</h3></div><button class="x" data-x>✕</button></div>
+  <label class="fl">Velocidad de la partida (×)<input id="asp" type="number" min="0.25" max="20" step="0.25" value="${c.speed||1}"></label>
+  <button class="btn" id="asv">Guardar velocidad</button>
+  <div class="sec">Mapa</div><p class="mu sm">Semilla actual: <b>${c.seed}</b> · Temporada ${c.season||1}. Generar otro continente borra todos los países.</p>
+  <div class="row"><button class="btn" id="aprev">Ver otro mapa</button><button class="btn bad" id="anew">Nueva temporada con este mapa</button></div>
+  <p class="mu sm" id="aseed"></p></div>`;m.classList.remove('hide');
+  let pending=null;
+  m.querySelector('[data-x]').onclick=()=>{m.classList.add('hide');if(pending!=null){G.cfg.seed=c.seed;buildWorld();refreshOwners()}};
+  m.querySelector('#asv').onclick=async()=>{await adminSet({speed:Math.max(.25,Math.min(20,+$('#asp').value||1))});toast('Velocidad guardada','ok')};
+  m.querySelector('#aprev').onclick=()=>{pending=Math.floor(Math.random()*1e6);const keep=G.own;G.own={};G.cfg.seed=pending;buildWorld();G.own=keep;$('#aseed').innerHTML=`Vista previa de la semilla <b>${pending}</b>. Pulsa “Nueva temporada” para usarla.`};
+  m.querySelector('#anew').onclick=async()=>{const s=pending!=null?pending:c.seed;if(!confirm('¿Empezar una nueva temporada? Se borrarán todos los países y territorios.'))return;pending=null;await adminReset(s);m.classList.add('hide');toast('Nueva temporada iniciada','ok')}}
+
+/* ---------- arranque ---------- */
+function refreshOwners(){if(!WORLD)return;OWNC=renderOwners(WORLD,ownersArr(),colorMap());DIRTY=true}
+function showApp(){$('#gate').classList.add('hide');$('#app').classList.remove('hide');resize()}
+function start(){gate('loading');bindInput();
+  netInit(s=>{if(s!=='in')gate(s)});
+  onG(w=>{if(w==='world'){gate('loading');$('#gate p').textContent='Generando el continente…';setTimeout(()=>{buildWorld();refreshOwners();showApp();hud();legend();panel()},40);return}
+    if(w==='players'||w==='own'){refreshOwners();if(SEL>=0)SELC=renderSel(WORLD,SEL)}
+    DEPLOY=!!(G.cfg&&UID&&!G.players[UID]);$('#app').classList.toggle('deploying',DEPLOY);
+    hud();legend();panel()});
+  setInterval(()=>{if(G.cfg)hud()},1000);
+  setInterval(()=>{DIRTY=true},60000);
+  loop()}
+document.addEventListener('DOMContentLoaded',start);
+</script>
+</body>
+</html>
