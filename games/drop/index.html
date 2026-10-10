@@ -827,6 +827,7 @@ const LSS=(k,v)=>{try{localStorage.setItem('mcfdrop.'+k,JSON.stringify(v))}catch
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const BLANK='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 const LOGO_SVG=`<svg class="logo" style="height:64px;margin:0 auto 18px" viewBox="0 0 148 34" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe07a"/><stop offset="1" stop-color="#ff9f00"/></linearGradient></defs><path d="M17 1.5 31 9.5v15L17 32.5 3 24.5v-15z" fill="url(#lg1)"/><path d="M17 1.5 31 9.5 17 17.5 3 9.5z" fill="#fff" opacity=".35"/><path d="M17 17.5v15" stroke="#7a4a00" stroke-width="1.6" opacity=".55"/><path d="M11.5 12.8h11l-5.5 9.6z" fill="#1a1300"/><text x="38" y="15" font-family="Inter,system-ui,sans-serif" font-weight="900" font-size="12.5" fill="#8d93b8" letter-spacing="2">MCF</text><text x="37" y="31" font-family="Inter,system-ui,sans-serif" font-weight="900" font-size="18" fill="#fff" letter-spacing="-.3">DROP<tspan fill="#ffc400">.</tspan></text></svg>`;
+const CLOSED=true;
 let BUSY=false,DIRTY=false,ROUTE='';
 document.body.insertAdjacentHTML('beforeend','<svg width="0" height="0" style="position:absolute"><filter id="mbf" x="-5%" width="110%"><feGaussianBlur id="mbv" stdDeviation="0 0"/></filter></svg>');const MB=document.getElementById('mbv');
 
@@ -887,6 +888,7 @@ const NAV=[['cajas','Cajas','cases'],['batallas','Batallas','battle'],['apuestas
 let ERRMSG='';function showGate(kind,e){if(e)ERRMSG=e&&(e.code||e.message)||e;$('#app').classList.add('hide');const g=$('#gate');g.classList.remove('hide');
   if(kind==='loading'){g.innerHTML=`<div class="box"><div class="loader"></div><p style="margin-top:18px">Cargando tu cuenta MCF…</p></div>`;return}
   if(kind==='error'){const perm=/permission|denied/i.test(String(ERRMSG));g.innerHTML=`<div class="box"><h1 style="font-size:34px">Ya has iniciado sesión</h1><p>Hola <b>${esc(FBUSER?mcfName(FBUSER):'')}</b>. Tu cuenta MCF está bien, pero el servidor de MCF Drop ${perm?'no deja guardar todavía: falta publicar las reglas de Firebase de MCF Drop.':'no responde ahora mismo.'}</p><button class="btn pri big" id="gRetry" style="width:100%">Reintentar</button><p style="font-size:12px;margin-top:12px;color:var(--mu2)">${esc(String(ERRMSG).slice(0,140))}</p><a class="btn" href="../">← Volver a MCF Games</a></div>`;$('#gRetry').onclick=()=>location.reload();return}
+  if(kind==='closed'){g.innerHTML=`<div class="box"><div style="font-size:64px">🔧</div><h1 style="font-size:34px">MCF Drop está cerrado temporalmente</h1><p>Por culpa de <b>Gonza</b> y <b>Yassirr</b>, los servidores de MCF tienen que resetearse.<br>Volveremos pronto.</p><a class="btn" href="../">← Volver a MCF Games</a></div>`;return}
   if(kind==='ban'){g.innerHTML=`<div class="box"><h1>Cuenta bloqueada</h1><p>Un administrador ha bloqueado tu cuenta en MCF Drop.</p><a class="btn" href="../">← MCF Games</a></div>`;return}
   const demo=CATL.filter(c=>c.r>=3).sort(()=>Math.random()-.5).slice(0,12);const cells=demo.concat(demo).map(c=>`<div style="--rc:${rc(c.r)}">${imgTag({w:c.w,s:c.s,f:.1})}</div>`).join('');
   g.innerHTML=`<div class="box"><canvas class="logo" id="gLogo" width="240" height="240"></canvas>${LOGO_SVG}
@@ -1358,7 +1360,7 @@ document.addEventListener('pointerdown',()=>SND.init(),{once:true});
 function boot(){showGate('loading');
   if(!window.firebase){showGate('out');$('#gate p').innerHTML='No se ha podido conectar con el servidor. Comprueba tu conexión y recarga.';return}
   netInit((st,e)=>{if(st==='out')showGate('out');else if(st==='loading')showGate('loading');else if(st==='error')showGate('error',e)});
-  on(w=>{if(w==='first'){if(ME.ban){showGate('ban');return}showApp();if(ME.fresh){setTimeout(()=>modal(`<div class="lvup"><div class="ring">🎁</div><h3>¡Bienvenido a MCF Drop, ${esc(ME.n)}!</h3><p class="mu">Te regalamos <span class="cr">50,00 €</span> para empezar. Abre tu primera caja, gira la rueda diaria y sube de nivel para ganar más.</p><a class="btn pri" href="#caja/${CASES[6].id}" data-close style="margin-top:14px">Abrir mi primera caja</a></div>`),600)}}})}
+  on(w=>{if(w==='first'){if(CLOSED&&!ROOTADMIN){showGate('closed');return}if(ME.ban){showGate('ban');return}showApp();if(ME.fresh){setTimeout(()=>modal(`<div class="lvup"><div class="ring">🎁</div><h3>¡Bienvenido a MCF Drop, ${esc(ME.n)}!</h3><p class="mu">Te regalamos <span class="cr">50,00 €</span> para empezar. Abre tu primera caja, gira la rueda diaria y sube de nivel para ganar más.</p><a class="btn pri" href="#caja/${CASES[6].id}" data-close style="margin-top:14px">Abrir mi primera caja</a></div>`),600)}}})}
 boot();
 
 /* ---------- APUESTAS 1 contra 1 ---------- */
