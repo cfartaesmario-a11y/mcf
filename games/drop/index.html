@@ -593,7 +593,7 @@ function rollCase(cs,r,luck){const od=caseOdds(cs,luck||1);let x=r(),acc=0,rr=2;
   const d=DEF[w];const stOk=!d.nw&&!d.st0&&!d.sv&&d.t!=='Guantes';const st=stOk&&r()<ST_CHANCE;const f=d.nw?0:genFloat(r);return{w,s,f,st:st?1:0,o:cs.id}}
 function caseEV(cs){const R=mulberry(hashStr(cs.id));let s=0;const N=6000;for(let i=0;i<N;i++)s+=itemValue(rollCase(cs,R,1));return s/N}
 const nicePrice=v=>{const m=v<100?5:v<500?10:v<2000?25:50;return Math.max(m,Math.round(v/m)*m)};
-{let prev=0;CASES.forEach(cs=>{cs.ev=caseEV(cs);cs.price=Math.max(nicePrice(cs.ev/.96),prev+5);prev=cs.price})}
+{let prev=0;CASES.forEach(cs=>{cs.ev=caseEV(cs);cs.price=Math.max(nicePrice(cs.ev/1.0),prev+5);prev=cs.price})}
 /* Niveles */
 const xpNeed=l=>Math.round(120*Math.pow(l,1.45));
 const levelReward=l=>({c:300+l*150,box:l%5===0?(l>=20?CASES[15].id:CASES[8].id):null});
@@ -663,7 +663,7 @@ function netInit(onState){
       const st=await R_('staff/'+UID).once('value').catch(()=>null);STAFF=ROOTADMIN||!!(st&&st.val()===true);
       const snap=await R_('users/'+UID).once('value');
       if(!snap.exists()){await R_('users/'+UID).set({n:mcfName(u),c:5000,xp:0,lvc:1,ld:0,op:0,best:0,bestN:'',t:TS()});ME.fresh=true}
-      R_('users/'+UID).on('value',s=>{const v=s.val()||{};ME.n=v.n||mcfName(u);ME.c=v.c||0;ME.xp=v.xp||0;ME.lvc=v.lvc||1;ME.ld=v.ld||0;ME.op=v.op||0;ME.best=v.best||0;ME.bestN=v.bestN||'';ME.ban=!!v.ban;ME.fb=v.freebox||{};ME.fbt=v.fbt||0;
+      R_('users/'+UID).on('value',s=>{const v=s.val()||{};ME.n=v.n||mcfName(u);ME.c=v.c||0;ME.xp=v.xp||0;ME.lvc=v.lvc||1;ME.ld=v.ld||0;ME.op=v.op||0;ME.best=v.best||0;ME.bestN=v.bestN||'';ME.ban=!!v.ban;ME.fb=v.freebox||{};ME.rs=v.rs||0;ME.fbt=v.fbt||0;
         const inv={},bad={};Object.entries(v.inv||{}).forEach(([k,raw])=>{const it=dec(raw);if(it){it.id=k;inv[k]=it}else bad['inv/'+k]=null});if(Object.keys(bad).length)R_('users/'+UID).update(bad).catch(()=>{});ME.inv=inv;const first=!ME.loaded;ME.loaded=true;emit(first?'first':'me')});
       R_('config').on('value',s=>{CFG=Object.assign({luck:1,disc:0,xp2:0,msg:'',until:0},s.val()||{});emit('cfg')});
       R_('payouts/'+UID).on('child_added',s=>claimPayout(s));
@@ -702,7 +702,7 @@ async function openCases(cs,n,free){
   return{items};
 }
 /* ---------- venta rápida ---------- */
-const QUICK=.9;
+const QUICK=.95;
 async function quickSell(ids){const its=ids.map(id=>ME.inv[id]).filter(Boolean);if(!its.length)return 0;const total=its.reduce((a,it)=>a+Math.floor(itemValue(it)*QUICK),0);
   await removeItems(its.map(i=>i.id));await addCredits(total);return total}
 /* ---------- tienda ---------- */
@@ -776,6 +776,7 @@ const ADM={
   setCredits:(u,v)=>R_('users/'+u+'/c').set(Math.max(0,Math.round(v))),
   give:(u,it)=>R_('users/'+u+'/inv/'+(it.id||uid())).set(enc(it)),
   take:(u,id)=>R_('users/'+u+'/inv/'+id).remove(),
+  del:async u=>{await R_('users/'+u).remove();await R_('rank/'+u).remove().catch(()=>{});await R_('staff/'+u).remove().catch(()=>{})},
   reset:u=>R_('users/'+u).update({c:5000,xp:0,lvc:1,op:0,best:0,bestN:'',inv:null,freebox:null}),
   ban:(u,v)=>R_('users/'+u+'/ban').set(v?true:null),
   staff:(u,v)=>R_('staff/'+u).set(v?true:null),
@@ -785,23 +786,28 @@ const ADM={
 /* ---------- apuestas 1 contra 1 (cara o cruz) ---------- */
 const FLIP_MS=5200;let FLIPS={};
 function flipCheck(){Object.entries(FLIPS).forEach(([id,F])=>{if(F&&F.st==='run'&&now()>(F.t0||0)+FLIP_MS&&!F.cl)claimFlip(id,F)})}
-function watchFlips(){R_('flips').limitToLast(50).on('value',s=>{FLIPS=s.val()||{};flipCheck();emit('flips')});setInterval(flipCheck,2000)}
+const FR_=p=>DB.ref('salas/mcfdropflips/'+p);
+function watchFlips(){FR_('').limitToLast(50).on('value',s=>{FLIPS=s.val()||{};flipCheck();emit('flips')});setInterval(flipCheck,2000)}
 function betValue(ids,c){return ids.reduce((a,id)=>a+(ME.inv[id]?itemValue(ME.inv[id]):0),0)+Math.max(0,Math.round(c||0))}
 async function createFlip(ids,c,side){const items={};for(const id of ids){const it=ME.inv[id];if(!it)return{err:'Falta un artículo'};items[id]=enc(it)}c=Math.max(0,Math.round(c||0));const v=betValue(ids,c);
   if(v<50)return{err:'La apuesta mínima es 0,50 €'};if(c&&!(await spend(c)))return{err:'No tienes saldo suficiente'};await removeItems(ids);
-  const ref=R_('flips').push();await ref.set({h:UID,hn:ME.n,side,hi:items,hc:c,v,st:'open',t:TS()});return{id:ref.key}}
-async function joinFlip(id,ids,c){const ref=R_('flips/'+id);const s=await ref.once('value');const F=s.val();if(!F||F.st!=='open')return{err:'Esta apuesta ya no está disponible'};if(F.h===UID)return{err:'Es tu propia apuesta'};
+  const ref=FR_('').push();await ref.set({h:UID,hn:ME.n,side,hi:items,hc:c,v,st:'open',t:TS()});return{id:ref.key}}
+async function joinFlip(id,ids,c){const ref=FR_(id);const s=await ref.once('value');const F=s.val();if(!F||F.st!=='open')return{err:'Esta apuesta ya no está disponible'};if(F.h===UID)return{err:'Es tu propia apuesta'};
   const items={};for(const x of ids){const it=ME.inv[x];if(!it)return{err:'Falta un artículo'};items[x]=enc(it)}c=Math.max(0,Math.round(c||0));const v=betValue(ids,c);
   if(v<F.v*.9||v>F.v*1.1)return{err:'Tu apuesta tiene que valer entre '+fmt(F.v*.9)+' y '+fmt(F.v*1.1)};
   if(c&&!(await spend(c)))return{err:'No tienes saldo suficiente'};await removeItems(ids);
   const tr=await ref.transaction(X=>{if(!X||X.st!=='open'||X.j)return;X.j=UID;X.jn=ME.n;X.ji=items;X.jc=c;X.jv=v;X.st='run';X.seed=Math.floor(rnd()*4294967295);X.t0=Date.now()+TOFF;return X});
   if(!tr.committed){await addItems(Object.values(items).map(dec).filter(Boolean));if(c)await addCredits(c);return{err:'Alguien se ha unido antes que tú'}}return{ok:1}}
-function flipResult(F){const tot=(F.v||0)+(F.jv||0);const x=mulberry((F.seed>>>0)||1)();const hw=x<(F.v||0)/tot;return{w:hw?'h':'j',coin:hw?F.side:(F.side==='ct'?'t':'ct'),p:(F.v||0)/tot}}
-async function claimFlip(id,F){const r=flipResult(F);if((r.w==='h'?F.h:F.j)!==UID)return;const tr=await R_('flips/'+id+'/cl').transaction(v=>v?undefined:true);if(!tr.committed)return;
+function flipResult(F){const x=mulberry((F.seed>>>0)||1)();const hw=x<.5;return{w:hw?'h':'j',coin:hw?F.side:(F.side==='ct'?'t':'ct'),p:.5}}
+async function claimFlip(id,F){const r=flipResult(F);if((r.w==='h'?F.h:F.j)!==UID)return;const tr=await FR_(id+'/cl').transaction(v=>v?undefined:true);if(!tr.committed)return;
   const all=Object.values(F.hi||{}).concat(Object.values(F.ji||{})).map(dec).filter(Boolean).map(it=>(it.id=uid(),it.t=Date.now(),it));if(all.length)await addItems(all);const c=(F.hc||0)+(F.jc||0);if(c)await addCredits(c);
-  await R_('flips/'+id).update({st:'end',w:r.w});emit({flipWon:{v:(F.v||0)+(F.jv||0)}})}
-async function cancelFlip(id){const ref=R_('flips/'+id);const tr=await ref.transaction(X=>{if(!X||X.st!=='open'||X.h!==UID)return;X.st='cancel';return X});if(!tr.committed)return{err:'Ya ha empezado'};
+  await FR_(id).update({st:'end',w:r.w});emit({flipWon:{v:(F.v||0)+(F.jv||0)}})}
+async function cancelFlip(id){const ref=FR_(id);const tr=await ref.transaction(X=>{if(!X||X.st!=='open'||X.h!==UID)return;X.st='cancel';return X});if(!tr.committed)return{err:'Ya ha empezado'};
   const F=tr.snapshot.val();const back=Object.values(F.hi||{}).map(dec).filter(Boolean);if(back.length)await addItems(back);if(F.hc)await addCredits(F.hc);return{ok:1}}
+
+const RESCUE=500,RESCUE_CD=20*60000;
+async function claimRescue(){const inv=Object.values(ME.inv).reduce((a,it)=>a+itemValue(it),0);if(ME.c>=150||inv>=300)return{err:'Todavía tienes dinero o artículos'};
+  const tr=await R_('users/'+UID+'/rs').transaction(v=>{if(now()-(v||0)<RESCUE_CD)return;return now()});if(!tr.committed)return{err:'Aún no está disponible'};await addCredits(RESCUE);return{ok:1}}
 
 /* ===================== MCF Drop · interfaz ===================== */
 'use strict';
@@ -934,8 +940,10 @@ const mmss=ms=>{const t=Math.ceil(ms/1000);return Math.floor(t/60)+':'+String(t%
 let FREET=0;function freeTick(onReady){clearInterval(FREET);FREET=setInterval(()=>{const l=freeLeft();$$('#fcd,.fcd').forEach(e=>e.textContent=mmss(l));if(l<=0){clearInterval(FREET);onReady&&onReady()}},250);PAGE_OFF.push(()=>clearInterval(FREET))}
 function freeCard(){const l=freeLeft();return`<a class="case freecase ${l?'':'ready'}" href="#caja/free" style="--cc:#3ad07a"><span class="free">GRATIS</span><div class="cimg"><img src="${renderCase(FREECASE)}" alt="" style="filter:hue-rotate(80deg) saturate(1.3)"><div class="freelbl">FREE</div></div>
   <h3>FREE BOX</h3><p>Una caja gratis cada minuto. Premios de hasta 50 €.</p><div class="upto">Hasta <b>${fmt(FREE_CAP)}</b></div><div class="row"><span class="price"><span class="cr">${l?'<span class="fcd">'+mmss(l)+'</span>':'GRATIS'}</span></span><span class="btn sm">${l?'Espera':'¡Abrir!'}</span></div></a>`}
-function pageCases(){if(freeLeft()>0)setTimeout(()=>freeTick(()=>{if(ROUTE==='cajas')softRefresh()}),0);const v=$('#view');const fb=ME.fb||{};
-  v.innerHTML=`${eventBanner()}<div class="h1"><div><h2>Cajas</h2><p>Las cajas del mercado de CS2, ordenadas de la más barata a la más cara. En todas pueden salir ★ cuchillos, guantes o joyas de más de 1.000 $.</p></div><div class="row"><a class="chip" href="../" title="Cada partida en MCF Games te da un poco de dinero para MCF Drop">🎮 Gana hasta 3 € al día jugando en MCF Games</a><span class="chip">${fmtN(ME.op)} cajas abiertas</span></div></div>
+function rescueBanner(){const inv=Object.values(ME.inv).reduce((a,it)=>a+itemValue(it),0);if(ME.c>=150||inv>=300)return'';const l=Math.max(0,RESCUE_CD-(now()-(ME.rs||0)));
+  return`<div class="banner" style="border-color:rgba(58,208,122,.45);background:linear-gradient(90deg,rgba(58,208,122,.16),rgba(58,208,122,.03))"><span style="font-size:26px">🛟</span><div><b style="color:var(--ok)">¿Te has quedado sin dinero?</b><div style="color:var(--mu);font-size:13px">Te regalamos ${fmt(RESCUE)} para seguir jugando (cada 20 minutos).</div></div><button class="btn ok" id="rescue" style="margin-left:auto" ${l?'disabled':''}>${l?'Disponible en '+mmss(l):'Recoger '+fmt(RESCUE)}</button></div>`}
+function pageCases(){setTimeout(()=>{const b=$('#rescue');if(b)b.onclick=async()=>{b.disabled=true;const r=await claimRescue();if(r.err){toast(r.err,'bad');return}SND.coin();celebrate(3);toast('+'+fmt(RESCUE)+' de rescate. ¡Suerte!','ok');softRefresh()}},0);if(freeLeft()>0)setTimeout(()=>freeTick(()=>{if(ROUTE==='cajas')softRefresh()}),0);const v=$('#view');const fb=ME.fb||{};
+  v.innerHTML=`${eventBanner()}${rescueBanner()}<div class="h1"><div><h2>Cajas</h2><p>Las cajas del mercado de CS2, ordenadas de la más barata a la más cara. En todas pueden salir ★ cuchillos, guantes o joyas de más de 1.000 $.</p></div><div class="row"><a class="chip" href="../" title="Cada partida en MCF Games te da un poco de dinero para MCF Drop">🎮 Gana hasta 3 € al día jugando en MCF Games</a><span class="chip">${fmtN(ME.op)} cajas abiertas</span></div></div>
   <div class="cases">${freeCard()}${CASES.map(cs=>{const p=casePrice(cs);return`<a class="case" href="#caja/${cs.id}" style="--cc:${cs.col[0]};text-decoration:none;color:inherit">${fb[cs.id]?`<span class="free">${fb[cs.id]} GRATIS</span>`:''}${cs.prof!=='normal'&&cs.prof!=='barata'?`<span class="tag">${cs.prof==='premium'?'PREMIUM':'+ SUERTE'}</span>`:''}
     <div class="cimg"><img src="${renderCase(cs)}" alt="">${(()=>{const top=cs.g.slice().sort((a,b)=>baseVal(b[0])-baseVal(a[0]))[CASES.indexOf(cs)%8];return top?`<img class="peek" src="${itemSrc(top[0])}" alt="">`:''})()}</div><h3>${esc(cs.n)}</h3><p>${esc(cs.d)}</p><div class="upto">Hasta <b>${fmt(Math.max(...cs.g.map(([w])=>baseVal(w))))}</b></div><div class="row"><span class="price">${p<cs.price?`<s>${fmt(cs.price)}</s>`:''}<span class="cr">${fmt(p)}</span></span><span class="btn sm">Abrir</span></div></a>`}).join('')}</div>`}
 
@@ -1186,7 +1194,7 @@ function battleRender(){const{B,id}=BV;const box=$('#bvw');const pl=B.pl||{};con
 /* ---------- MEJORADOR ---------- */
 const UPG={inp:[],tgt:null,twi:1,spinning:false,ang:0};
 function pageUpgrader(){const v=$('#view');UPG.inp=UPG.inp.filter(id=>ME.inv[id]);const inV=UPG.inp.reduce((a,id)=>a+itemValue(ME.inv[id]),0);
-  const tVal=UPG.tgt?itemValue({w:UPG.tgt.w,s:UPG.tgt.s,f:(WEAR[UPG.twi].a+WEAR[UPG.twi].b)/2}):0;const ch=UPG.tgt&&inV?Math.min(.8,inV/tVal*.92):0;
+  const tVal=UPG.tgt?itemValue({w:UPG.tgt.w,s:UPG.tgt.s,f:(WEAR[UPG.twi].a+WEAR[UPG.twi].b)/2}):0;const ch=UPG.tgt&&inV?Math.min(.9,inV/tVal):0;
   v.innerHTML=`<div class="h1"><div><h2>Mejorador</h2><p>Arriesga tus artículos para conseguir uno mejor. Si la aguja cae en verde, te lo llevas. Si no, lo pierdes.</p></div></div>
   <div class="upg"><div class="panel" style="padding:14px"><h4 style="margin-bottom:10px;display:flex;justify-content:space-between"><span>Arriesgas</span><span class="cr">${fmt(inV)}</span></h4>
     <div class="slotbox" id="upIn">${UPG.inp.length?`<div class="items" style="grid-template-columns:repeat(auto-fill,minmax(120px,1fr));width:100%">${UPG.inp.map(id=>itemCard(ME.inv[id],{mini:1})).join('')}</div>`:'Toca para elegir de tu inventario'}</div>
@@ -1219,7 +1227,7 @@ async function doUpgrade(ch,inV,tVal){if(UPG.spinning)return;const ids=UPG.inp.f
   pageUpgrader();pumpImgs()}
 function pickTarget(inV){let q='';const draw=()=>{const L=[];for(const c of CATL){if(q&&!(WPN[c.w].n+' '+SKIN[c.s].n).toLowerCase().includes(q))continue;for(const wi of(isNW(c.w)?[0]:[1,2])){const val=itemValue({w:c.w,s:c.s,f:(WEAR[wi].a+WEAR[wi].b)/2});if(val>inV*1.05)L.push({c,wi,val})}}
   L.sort((a,b)=>a.val-b.val);
-  const box=$('#tgl');box.innerHTML=L.slice(0,120).map(x=>itemCard({id:'',w:x.c.w,s:x.c.s,f:(WEAR[x.wi].a+WEAR[x.wi].b)/2},{mini:1,price:x.val,sub:`${(Math.min(.8,inV/x.val*.92)*100).toFixed(1)}% · ${WEAR[x.wi].k}`,attr:`data-tg="${x.c.k}|${x.wi}"`})).join('')||'<div class="empty">Nada</div>';
+  const box=$('#tgl');box.innerHTML=L.slice(0,120).map(x=>itemCard({id:'',w:x.c.w,s:x.c.s,f:(WEAR[x.wi].a+WEAR[x.wi].b)/2},{mini:1,price:x.val,sub:`${(Math.min(.9,inV/x.val)*100).toFixed(1)}% · ${WEAR[x.wi].k}`,attr:`data-tg="${x.c.k}|${x.wi}"`})).join('')||'<div class="empty">Nada</div>';
   $$('[data-tg]').forEach(b=>b.onclick=()=>{const[w,s,wi]=b.dataset.tg.split('|');UPG.tgt=CAT[w+'|'+s];UPG.twi=+wi;closeModal();pageUpgrader();pumpImgs()});pumpImgs()};
   modal(`<h3>Elige objetivo</h3><input class="inp" id="tq" placeholder="Buscar…" style="width:100%;margin:10px 0 14px"><div class="items" id="tgl" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))"></div>`,'wide');draw();
   $('#tq').oninput=e=>{q=e.target.value.toLowerCase();draw()}}
@@ -1261,7 +1269,7 @@ function pageRanking(){const v=$('#view');v.innerHTML=`<div class="h1"><div><h2>
   pageListen(R_('rank'),'value',s=>{const L=Object.entries(s.val()||{}).sort((a,b)=>(b[1][RKT]||0)-(a[1][RKT]||0)).slice(0,100);
     const val=p=>RKT==='o'||RKT==='l'?fmtN(p[RKT]||0):fmt(p[RKT]||0);const top=L.slice(0,3);
     $('#rkl').innerHTML=(top.length?`<div class="podium">${[1,0,2].map(i=>top[i]?`<div class="pd p${i+1}"><div class="pp">${i+1}</div><div class="av">${esc(String(top[i][1].n||'?').charAt(0).toUpperCase())}</div><b>${esc(top[i][1].n)}${top[i][0]===UID?' (tú)':''}</b><span class="${RKT==='o'||RKT==='l'?'':'cr'}">${val(top[i][1])}</span></div>`:'<div></div>').join('')}</div>`:'')+
-      (L.map(([u,p],i)=>`<div class="rkrow ${u===UID?'me':''}"><span class="pos">${i+1}</span><div class="who"><b>${esc(p.n)}${u===UID?' (tú)':''}</b><small>Nivel ${p.l||1}${RKT==='b'&&p.bn?' · '+esc(p.bn):''}</small></div><span class="val ${RKT==='o'||RKT==='l'?'':'cr'}">${val(p)}</span></div>`).join('')||'<div class="empty panel">Aún no hay nadie.</div>')})}
+      (L.map(([u,p],i)=>`<div class="rkrow ${u===UID?'rkme':''}"><span class="pos">${i+1}</span><div class="who"><b>${esc(p.n)}${u===UID?' (tú)':''}</b><small>Nivel ${p.l||1}${RKT==='b'&&p.bn?' · '+esc(p.bn):''}</small></div><span class="val ${RKT==='o'||RKT==='l'?'':'cr'}">${val(p)}</span></div>`).join('')||'<div class="empty panel">Aún no hay nadie.</div>')})}
 
 /* ---------- RECOMPENSA DIARIA ---------- */
 function dailyModal(){const left=86400000-(now()-(ME.ld||0));
@@ -1299,7 +1307,7 @@ function admDraw(){const U=ADMS.users;const L=Object.entries(U).filter(([u,x])=>
     <h4 style="margin-top:14px">Dar artículo</h4><div class="row wrap"><select class="inp" id="agi" style="max-width:260px">${CATL.slice().sort((a,b)=>b.r-a.r||(WPN[a.w].n+SKIN[a.s].n).localeCompare(WPN[b.w].n+SKIN[b.s].n)).map(c=>`<option value="${c.k}">${isGold(c.w)?'★ ':''}${esc(WPN[c.w].n)} | ${esc(SKIN[c.s].n)} (${RAR[c.r].n} · ${DEF[c.w].usd} $)</option>`).join('')}</select>
       <select class="inp" id="agw">${WEAR.map((W,i)=>`<option value="${i}">${W.n}</option>`).join('')}</select><label class="tog" id="agst"><i></i>ST™</label><button class="btn sm pri" id="ag">Dar</button><button class="btn sm" id="agall">Uno de cada ★ (cuchillos y guantes)</button><button class="btn sm" id="agjk">Todas las joyas +1.000 $</button></div>
     <h4 style="margin-top:14px">Cajas gratis</h4><div class="row wrap"><select class="inp" id="afb">${CASES.map(c=>`<option value="${c.id}">${esc(c.n)}</option>`).join('')}</select><button class="btn sm" data-fb="1">+1</button><button class="btn sm" data-fb="10">+10</button></div>
-    <h4 style="margin-top:14px">Moderación</h4><div class="row wrap"><button class="btn sm ${sel.ban?'ok':'bad'}" id="aban" ${ADMS.u===UID?'disabled':''}>${sel.ban?'Desbloquear':'Bloquear'}</button><button class="btn sm bad" id="arst">Reiniciar cuenta</button>
+    <h4 style="margin-top:14px">Moderación</h4><div class="row wrap"><button class="btn sm ${sel.ban?'ok':'bad'}" id="aban" ${ADMS.u===UID?'disabled':''}>${sel.ban?'Desbloquear':'Bloquear'}</button><button class="btn sm bad" id="arst">Reiniciar cuenta</button><button class="btn sm bad" id="adel" ${ADMS.u===UID?'disabled':''}>Eliminar jugador</button>
       <button class="btn sm ${ADMS.staff[ADMS.u]?'bad':''}" id="astf" ${ADMS.u===UID?'disabled':''}>${ADMS.staff[ADMS.u]?'Quitar permisos de admin':'Hacer admin (acceso total)'}</button></div></div>
   <div class="card"><h4>Inventario (toca un artículo para quitarlo)</h4><div class="items" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr))">${inv.map(it=>itemCard(it,{mini:1,attr:'data-take="1"'})).join('')||'<span class="mu">Vacío</span>'}</div></div>
   <div class="card"><h4>Evento global</h4><p class="mu" style="margin-bottom:10px">${eventOn()&&(luckNow()>1||discNow()||CFG.xp2)?'Hay un evento activo.':'No hay evento activo.'}</p>
@@ -1319,6 +1327,8 @@ function admDraw(){const U=ADMS.users;const L=Object.entries(U).filter(([u,x])=>
   $$('[data-fb]').forEach(b=>b.onclick=async()=>{await ADM.freebox(U_,$('#afb').value,+b.dataset.fb);toast('Cajas gratis añadidas','ok');re()});
   $('#aban').onclick=async()=>{await ADM.ban(U_,!ADMS.users[U_].ban);re()};
   $('#arst').onclick=()=>{modal(`<h3>¿Reiniciar la cuenta de ${esc(ADMS.users[U_].n)}?</h3><p class="mu">Se borra el inventario y vuelve a 50 € y nivel 1. No se puede deshacer.</p><div class="row end" style="margin-top:14px"><button class="btn" data-close>Cancelar</button><button class="btn bad" id="rsy">Reiniciar</button></div>`);$('#rsy').onclick=async()=>{await ADM.reset(U_);closeModal();toast('Cuenta reiniciada','ok');re()}};
+  $('#adel').onclick=()=>{modal(`<h3>¿Eliminar a ${esc(ADMS.users[U_].n)}?</h3><p class="mu">Se borran su cuenta de MCF Drop, su dinero, su inventario y su puesto en el ranking. Si vuelve a entrar empezará de cero. No se puede deshacer.</p><div class="row end" style="margin-top:14px"><button class="btn" data-close>Cancelar</button><button class="btn bad" id="dely">Eliminar</button></div>`);
+    $('#dely').onclick=async()=>{await ADM.del(U_);delete ADMS.users[U_];ADMS.u=UID;closeModal();toast('Jugador eliminado','ok');admDraw()}};
   $('#astf').onclick=async()=>{const on=!ADMS.staff[U_];await ADM.staff(U_,on);ADMS.staff[U_]=on||undefined;toast(on?'Ahora es admin':'Ya no es admin','ok');admDraw()};
   $$('[data-take]').forEach(b=>b.onclick=async()=>{await ADM.take(U_,b.dataset.iid);toast('Artículo quitado');re()});
   let ex=!!CFG.xp2;$('#ex').onclick=()=>{ex=!ex;$('#ex').classList.toggle('on',ex)};
@@ -1335,7 +1345,7 @@ boot();
 
 /* ---------- APUESTAS 1 contra 1 ---------- */
 const SIDE={ct:{n:'CT',c:'#4b8bff'},t:{n:'T',c:'#ff9a2e'}};
-function pageFlips(){$('#view').innerHTML=`<div class="h1"><div><h2>Apuestas 1 contra 1</h2><p>Apuesta armas o dinero contra un amigo. Se lanza una moneda: el ganador se lo lleva <b>todo</b>. Quien pone más valor tiene un poco más de probabilidad.</p></div><button class="btn pri" id="newF">Crear apuesta</button></div><div id="fl"></div>`;
+function pageFlips(){$('#view').innerHTML=`<div class="h1"><div><h2>Apuestas 1 contra 1</h2><p>Apuesta armas o dinero contra un amigo. Se lanza una moneda: el ganador se lo lleva <b>todo</b>. 50% para cada uno: cara o cruz de verdad.</p></div><button class="btn pri" id="newF">Crear apuesta</button></div><div id="fl"></div>`;
   $('#newF').onclick=()=>betModal(null);flipsRender()}
 function betThumbs(o){const L=Object.values(o||{}).map(dec).filter(Boolean);return L.slice(0,4).map(it=>`<span style="--rc:${rc(rarOf(it))}" title="${esc(itemName(it))}">${imgTag(it)}</span>`).join('')+(L.length>4?`<span class="chip">+${L.length-4}</span>`:'')}
 function flipsRender(){const box=$('#fl');if(!box)return;const L=Object.entries(FLIPS).filter(([,F])=>F&&(F.st==='open'||F.st==='run'||(F.st==='end'&&now()-(F.t0||0)<30*60000))).sort((a,b)=>({open:0,run:1,end:2}[a[1].st]-{open:0,run:1,end:2}[b[1].st])||(b[1].t||0)-(a[1].t||0));
@@ -1361,7 +1371,7 @@ function betModal(joinId){const F=joinId?FLIPS[joinId]:null;const sel=new Set();
     $('#bgo').onclick=async()=>{$('#bgo').disabled=true;const c2=Math.round((+$('#bc').value||0)*100);const r=F?await joinFlip(joinId,[...sel],c2):await createFlip([...sel],c2,side);if(r.err){SND.bad();toast(r.err,'bad');draw();return}
       closeModal();SND.coin();if(F)flipView(joinId);else toast('Apuesta publicada. Avisa a tus amigos: la verán en Apuestas.','ok')}};draw()}
 function flipView(id){const F=FLIPS[id];if(!F)return;const r=flipResult(F);const other=F.side==='ct'?'t':'ct';const start=(F.t0||now())+1500;
-  const m=modal(`<div class="lvup"><h3>${esc(F.hn)} <span class="mu">vs</span> ${esc(F.jn||'?')}</h3><p class="mu">${SIDE[F.side].n} ${(r.p*100).toFixed(1)}% · ${SIDE[other].n} ${((1-r.p)*100).toFixed(1)}% · bote <span class="cr">${fmt((F.v||0)+(F.jv||0))}</span></p>
+  const m=modal(`<div class="lvup"><h3>${esc(F.hn)} <span class="mu">vs</span> ${esc(F.jn||'?')}</h3><p class="mu">${SIDE[F.side].n} 50% · ${SIDE[other].n} 50% · bote <span class="cr">${fmt((F.v||0)+(F.jv||0))}</span></p>
     <div class="coinwrap"><div class="coin3d" id="c3d"><div class="face" style="--cc:${SIDE.ct.c}">CT</div><div class="face back" style="--cc:${SIDE.t.c}">T</div></div></div>
     <h3 id="fres" style="min-height:30px"></h3><button class="btn pri" data-close>Cerrar</button></div>`);
   const c=$('#c3d');const end=8*360+(r.coin==='t'?180:0);const already=now()>start+3600;
