@@ -538,6 +538,11 @@ RAW.forEach(([n,cat,name,type,usd,sale])=>{
   const star=t==='Cuchillo'||t==='Guantes';
   let r;if(star||usd>=1000)r=6;else if(usd<.5)r=0;else if(usd<3)r=1;else if(usd<10)r=2;else if(usd<30)r=3;else if(usd<50)r=4;else r=5;
   const k='i'+n;DEF[k]={k,n,w,s,t,r,usd,lw,nw,st0,sv,star,sale};WPN[k]={n:(st0?'StatTrak™ ':'')+w,t,gold:star};SKIN[k]={n:s}});
+/* ARMAS MÍTICAS: solo salen en las cajas MCF Exclusivas (precios en euros) */
+const MYTH=[[201,'Guantes','Pandora\'s Box','Sport Gloves',2,66,9500],[202,'Rifles','Howl','M4A4',0,10,18000],[203,'Rifles de francotirador','Dragon Lore','Souvenir AWP',0,80,45000],
+  [204,'Cuchillos','Fire & Ice','Butterfly Knife',0,54,90000],[205,'Cuchillos','Blue Gem','Karambit',1,52,250000],[206,'Rifles','Blue Gem #661','AK-47',1,2,600000],[207,'Cuchillos','Diamante MCF','Butterfly Knife',0,54,2500000]];
+MYTH.forEach(([n,cat,s,w,lw,img,eur])=>{const t=CATT[cat]||cat;const sv=/^Souvenir /.test(w)?1:0;const star=t==='Cuchillo'||t==='Guantes';const k='i'+n;
+  DEF[k]={k,n,img,w,s,t,r:6,usd:eur*100/USD,lw,nw:0,st0:0,sv,star,sale:1,my:1};WPN[k]={n:w,t,gold:star};SKIN[k]={n:s}});
 const isGold=w=>!!(DEF[w]&&DEF[w].star);
 const isNW=w=>!!(DEF[w]&&DEF[w].nw);
 function rarOf(it){const d=DEF[it.w];return d?d.r:2}
@@ -548,8 +553,8 @@ function itemValue(it){const d=DEF[it.w];if(!d)return 1;let v=d.usd*USD;
 const defF=w=>{const d=DEF[w];if(!d||d.nw)return 0;const W=WEAR[d.lw];return +((W.a+W.b)/2).toFixed(4)};
 function itemName(it){const d=DEF[it.w];if(!d)return'?';return(d.star?'★ ':'')+(it.st&&!d.st0?'StatTrak™ ':'')+WPN[it.w].n+' | '+d.s}
 const wearTxt=(it,short)=>isNW(it.w)?'—':WEAR[wearOf(it.f)][short?'k':'n'];
-const itemSrc=w=>'img/t/'+(DEF[w]?DEF[w].n:0)+'.webp';
-const itemSrcBig=w=>'img/'+(DEF[w]?DEF[w].n:0)+'.webp';
+const itemSrc=w=>'img/t/'+(DEF[w]?DEF[w].img||DEF[w].n:0)+'.webp';
+const itemSrcBig=w=>'img/'+(DEF[w]?DEF[w].img||DEF[w].n:0)+'.webp';
 const caseSrc=cs=>'img/c'+cs.img+'.webp';
 
 /* ---------- utilidades ---------- */
@@ -567,7 +572,7 @@ const PROF={
   normal:[0,0,75.2,17,4.7,2.27,.83],
   semi:[0,0,62,22,9,4.5,2.5],
   premium:[0,0,42,30,15,8.5,4.5]};
-const TIER={};Object.values(DEF).forEach(d=>{(TIER[d.r]||(TIER[d.r]=[])).push(d.k)});
+const TIER={};Object.values(DEF).forEach(d=>{if(d.my)return;(TIER[d.r]||(TIER[d.r]=[])).push(d.k)});
 const goldW=k=>1/Math.pow(Math.max(5,DEF[k].usd),.95);
 const CASES=(()=>{const L=CASE_RAW.slice().sort((a,b)=>a.usd-b.usd);const R=mulberry(20261009);
   const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -588,6 +593,13 @@ const CASES=(()=>{const L=CASE_RAW.slice().sort((a,b)=>a.usd-b.usd);const R=mulb
     const tier=Math.min(5,Math.floor(i/3.2));
     return{id:'c'+c.n,img:c.n,n:nm,usd:c.usd,sale:c.sale,d:`${prof==='premium'?'Premium · ':prof==='semi'?'Más suerte · ':''}En Steam: ${c.usd.toFixed(2).replace('.',',')} $`,prof,col:COLS[tier],
       i:items,g:g.map(k=>[k,k]),gw:g.map(goldW)}})})();
+/* Cajas MCF Exclusivas (las más caras): llevan armas míticas */
+PROF.elite=[0,0,34,30,18,10,8];PROF.leyenda=[0,0,0,42,30,16,12];PROF.mitica=[0,0,0,0,45,33,22];PROF.divina=[0,0,0,0,0,55,45];
+{const topT=(r,n)=>(TIER[r]||[]).slice().sort((a,b)=>DEF[b].usd-DEF[a].usd).slice(0,n);const golds=min=>TIER[6].filter(k=>DEF[k].usd>=min);
+  [['x1','Caja Élite MCF','elite',['i201','i202'],100,['#ff7a1a','#3a1600'],136,25],['x2','Caja Leyenda MCF','leyenda',['i202','i203','i204'],1000,['#ff3d6e','#3a0716'],137,60],
+   ['x3','Caja Mítica MCF','mitica',['i203','i204','i205','i206'],1000,['#00e5ff','#002a33'],138,250],['x4','Caja Divina MCF','divina',['i204','i205','i206','i207'],1700,['#ffffff','#2a2a3a'],139,1200]]
+  .forEach(([id,n,prof,my,min,col,img,mw])=>{const items=[];for(let r=2;r<=5;r++){if(PROF[prof][r])topT(r,5).forEach(k=>items.push([k,k,r]))}
+    const g=golds(min).concat(my);CASES.push({id,img,n,usd:0,sale:1,d:'MCF Exclusiva · puede tocar un arma mítica',prof,col,ex:1,i:items,g:g.map(k=>[k,k]),gw:g.map(k=>DEF[k].my?goldW(k)*mw:goldW(k))})})}
 const CASE=Object.fromEntries(CASES.map(c=>[c.id,c]));
 const CAT={};CASES.forEach(cs=>{cs.i.forEach(([w,s,r])=>{const k=w+'|'+s;(CAT[k]||(CAT[k]={k,w,s,r,cases:[]})).cases.push(cs.id)});cs.g.forEach(([w,s])=>{const k=w+'|'+s;(CAT[k]||(CAT[k]={k,w,s,r:6,cases:[]})).cases.push(cs.id)})});
 Object.values(DEF).forEach(d=>{const k=d.k+'|'+d.k;if(!CAT[k])CAT[k]={k,w:d.k,s:d.k,r:d.r,cases:[]}});
@@ -602,11 +614,11 @@ function rollCase(cs,r,luck){const od=caseOdds(cs,luck||1);let x=r(),acc=0,rr=2;
   const d=DEF[w];const stOk=!d.nw&&!d.st0&&!d.sv&&d.t!=='Guantes';const st=stOk&&r()<ST_CHANCE;const f=d.nw?0:genFloat(r);return{w,s,f,st:st?1:0,o:cs.id}}
 function caseEV(cs){const R=mulberry(hashStr(cs.id));let s=0;const N=6000;for(let i=0;i<N;i++)s+=itemValue(rollCase(cs,R,1));return s/N}
 const nicePrice=v=>{const m=v<100?5:v<500?10:v<2000?25:50;return Math.max(m,Math.round(v/m)*m)};
-{let prev=0;CASES.forEach(cs=>{cs.ev=caseEV(cs);cs.price=Math.max(nicePrice(cs.ev/1.0),prev+5);prev=cs.price})}
+{let prev=0;CASES.forEach(cs=>{cs.ev=caseEV(cs);cs.price=Math.max(nicePrice(cs.ev*.97),prev+5);prev=cs.price})}
 /* Niveles */
 const xpNeed=l=>Math.round(120*Math.pow(l,1.45));
-const levelReward=l=>({c:300+l*150,box:l%5===0?(l>=20?CASES[15].id:CASES[8].id):null});
-const DAILY_WHEEL=[200,300,500,200,800,300,1500,400,5000,250,CASES[8].id,450];
+const levelReward=l=>({c:1000+l*500,box:l%5===0?(l>=20?CASES[15].id:CASES[8].id):null});
+const DAILY_WHEEL=[1000,1500,2500,1000,4000,1500,7500,2000,25000,1200,CASES[8].id,2500];
 const BOTS=['Bot Pere','Bot Laia','Bot Nil','Bot Júlia','Bot Marc','Bot Ona','Bot Pol','Bot Aina','Bot Èric','Bot Martina'];
 
 function itemOdds(cs,w,luck){const od=caseOdds(cs,luck||1);const gi=cs.g.findIndex(x=>x[0]===w);if(gi>=0){const tot=cs.gw.reduce((a,b)=>a+b,0);return od[6]*cs.gw[gi]/tot}
@@ -624,7 +636,9 @@ CASE.free=FREECASE;
 function rollFree(r){let it=null;for(let k=0;k<12;k++){it=rollCase(FREECASE,r,1);if(itemValue(it)<=FREE_CAP)return it}
   const c=FREECASE.i.filter(e=>e[2]===0)[0];return{w:c[0],s:c[1],f:.8,st:0,o:'free'}}
 /* Recompensa por jugar en MCF Games (céntimos) */
-const GAME_REWARD_MAX_DAY=300;
+const START_C=20000,ECON_EP=2;
+const freshUser=(n,ban)=>({n,c:START_C,xp:0,lvc:1,ld:0,op:0,best:0,bestN:'',t:TS(),ep:ECON_EP,ban:ban?true:null});
+const GAME_REWARD_MAX_DAY=1500;
 
 /* ===================== MCF Drop · imágenes (catálogo real de CS2) ===================== */
 'use strict';
@@ -671,7 +685,13 @@ function netInit(onState){
       if(ROOTP==='drop'){const mine=await R_('users/'+UID).once('value');if(!mine.exists()){const old=await DB.ref('salas/mcfdrop/users/'+UID).once('value').catch(()=>null);if(old&&old.exists())await R_('users/'+UID).set(old.val())}}
       const st=await R_('staff/'+UID).once('value').catch(()=>null);STAFF=ROOTADMIN||!!(st&&st.val()===true);
       const snap=await R_('users/'+UID).once('value');
-      if(!snap.exists()){await R_('users/'+UID).set({n:mcfName(u),c:5000,xp:0,lvc:1,ld:0,op:0,best:0,bestN:'',t:TS()});ME.fresh=true}
+      let ep=await R_('config/ep').once('value').then(x=>x.val(),()=>null);
+      if(ep!==ECON_EP&&ROOTADMIN){/* reinicio global: todas las cuentas a cero, mercado, intercambios, batallas y ranking vacíos */
+        const all=(await R_('users').once('value')).val()||{};const up={market:null,trades:null,battles:null,feed:null,rank:null,payouts:null,'config/ep':ECON_EP};
+        Object.entries(all).forEach(([k,v])=>{up['users/'+k]=freshUser((v&&v.n)||'Jugador',v&&v.ban)});await DB.ref(ROOTP).update(up);DB.ref('salas/mcfdropflips').remove().catch(()=>{});ep=ECON_EP}
+      CLOSED=ep!==ECON_EP;
+      if(!snap.exists()){await R_('users/'+UID).set(freshUser(mcfName(u)));ME.fresh=true}
+      else if(!CLOSED&&(snap.val()||{}).ep!==ECON_EP){await R_('users/'+UID).set(freshUser((snap.val()||{}).n||mcfName(u),(snap.val()||{}).ban));ME.fresh=true}
       R_('users/'+UID).on('value',s=>{const v=s.val()||{};ME.n=v.n||mcfName(u);ME.c=v.c||0;ME.xp=v.xp||0;ME.lvc=v.lvc||1;ME.ld=v.ld||0;ME.op=v.op||0;ME.best=v.best||0;ME.bestN=v.bestN||'';ME.ban=!!v.ban;ME.fb=v.freebox||{};ME.rs=v.rs||0;ME.fbt=v.fbt||0;
         const inv={},bad={};Object.entries(v.inv||{}).forEach(([k,raw])=>{const it=dec(raw);if(it){it.id=k;inv[k]=it}else bad['inv/'+k]=null});if(Object.keys(bad).length)R_('users/'+UID).update(bad).catch(()=>{});ME.inv=inv;const first=!ME.loaded;ME.loaded=true;emit(first?'first':'me')});
       R_('config').on('value',s=>{CFG=Object.assign({luck:1,disc:0,xp2:0,msg:'',until:0},s.val()||{});emit('cfg')});
@@ -711,11 +731,11 @@ async function openCases(cs,n,free){
   return{items};
 }
 /* ---------- venta rápida ---------- */
-const QUICK=.95;
+const QUICK=.97;
 async function quickSell(ids){const its=ids.map(id=>ME.inv[id]).filter(Boolean);if(!its.length)return 0;const total=its.reduce((a,it)=>a+Math.floor(itemValue(it)*QUICK),0);
   await removeItems(its.map(i=>i.id));await addCredits(total);return total}
 /* ---------- tienda ---------- */
-const SHOP_MARKUP=1.25;
+const SHOP_MARKUP=1.10;
 const shopPrice=(w,s,wi,st)=>Math.round(itemValue({w,s,f:isNW(w)?0:(WEAR[wi].a+WEAR[wi].b)/2,st})*SHOP_MARKUP);
 async function shopBuy(w,s,wi,st){const p=shopPrice(w,s,wi,st);if(!(await spend(p)))return{err:'No tienes créditos suficientes'};
   const W=WEAR[wi];const it={id:uid(),w,s,f:isNW(w)?0:+(W.a+(W.b-W.a)*rnd()).toFixed(5),st:st?1:0,o:'tienda',t:Date.now()};await addItems([it]);return{it}}
@@ -786,7 +806,7 @@ const ADM={
   give:(u,it)=>R_('users/'+u+'/inv/'+(it.id||uid())).set(enc(it)),
   take:(u,id)=>R_('users/'+u+'/inv/'+id).remove(),
   del:async u=>{await R_('users/'+u).remove();await R_('rank/'+u).remove().catch(()=>{});await R_('staff/'+u).remove().catch(()=>{})},
-  reset:u=>R_('users/'+u).update({c:5000,xp:0,lvc:1,op:0,best:0,bestN:'',inv:null,freebox:null}),
+  reset:u=>R_('users/'+u).update({c:START_C,xp:0,lvc:1,op:0,best:0,bestN:'',inv:null,freebox:null}),
   ban:(u,v)=>R_('users/'+u+'/ban').set(v?true:null),
   staff:(u,v)=>R_('staff/'+u).set(v?true:null),
   config:o=>R_('config').update(o),
@@ -814,8 +834,8 @@ async function claimFlip(id,F){const r=flipResult(F);if((r.w==='h'?F.h:F.j)!==UI
 async function cancelFlip(id){const ref=FR_(id);const tr=await ref.transaction(X=>{if(!X||X.st!=='open'||X.h!==UID)return;X.st='cancel';return X});if(!tr.committed)return{err:'Ya ha empezado'};
   const F=tr.snapshot.val();const back=Object.values(F.hi||{}).map(dec).filter(Boolean);if(back.length)await addItems(back);if(F.hc)await addCredits(F.hc);return{ok:1}}
 
-const RESCUE=500,RESCUE_CD=20*60000;
-async function claimRescue(){const inv=Object.values(ME.inv).reduce((a,it)=>a+itemValue(it),0);if(ME.c>=150||inv>=300)return{err:'Todavía tienes dinero o artículos'};
+const RESCUE=2500,RESCUE_CD=10*60000;
+async function claimRescue(){const inv=Object.values(ME.inv).reduce((a,it)=>a+itemValue(it),0);if(ME.c>=1000||inv>=2000)return{err:'Todavía tienes dinero o artículos'};
   const tr=await R_('users/'+UID+'/rs').transaction(v=>{if(now()-(v||0)<RESCUE_CD)return;return now()});if(!tr.committed)return{err:'Aún no está disponible'};await addCredits(RESCUE);return{ok:1}}
 
 /* ===================== MCF Drop · interfaz ===================== */
@@ -827,7 +847,7 @@ const LSS=(k,v)=>{try{localStorage.setItem('mcfdrop.'+k,JSON.stringify(v))}catch
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const BLANK='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 const LOGO_SVG=`<svg class="logo" style="height:64px;margin:0 auto 18px" viewBox="0 0 148 34" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe07a"/><stop offset="1" stop-color="#ff9f00"/></linearGradient></defs><path d="M17 1.5 31 9.5v15L17 32.5 3 24.5v-15z" fill="url(#lg1)"/><path d="M17 1.5 31 9.5 17 17.5 3 9.5z" fill="#fff" opacity=".35"/><path d="M17 17.5v15" stroke="#7a4a00" stroke-width="1.6" opacity=".55"/><path d="M11.5 12.8h11l-5.5 9.6z" fill="#1a1300"/><text x="38" y="15" font-family="Inter,system-ui,sans-serif" font-weight="900" font-size="12.5" fill="#8d93b8" letter-spacing="2">MCF</text><text x="37" y="31" font-family="Inter,system-ui,sans-serif" font-weight="900" font-size="18" fill="#fff" letter-spacing="-.3">DROP<tspan fill="#ffc400">.</tspan></text></svg>`;
-const CLOSED=true;
+let CLOSED=true;
 let BUSY=false,DIRTY=false,ROUTE='';
 document.body.insertAdjacentHTML('beforeend','<svg width="0" height="0" style="position:absolute"><filter id="mbf" x="-5%" width="110%"><feGaussianBlur id="mbv" stdDeviation="0 0"/></filter></svg>');const MB=document.getElementById('mbv');
 
@@ -952,8 +972,8 @@ const mmss=ms=>{const t=Math.ceil(ms/1000);return Math.floor(t/60)+':'+String(t%
 let FREET=0;function freeTick(onReady){clearInterval(FREET);FREET=setInterval(()=>{const l=freeLeft();$$('#fcd,.fcd').forEach(e=>e.textContent=mmss(l));if(l<=0){clearInterval(FREET);onReady&&onReady()}},250);PAGE_OFF.push(()=>clearInterval(FREET))}
 function freeCard(){const l=freeLeft();return`<a class="case freecase ${l?'':'ready'}" href="#caja/free" style="--cc:#3ad07a"><span class="free">GRATIS</span><div class="cimg"><img src="${renderCase(FREECASE)}" alt="" style="filter:hue-rotate(80deg) saturate(1.3)"><div class="freelbl">FREE</div></div>
   <h3>FREE BOX</h3><p>Una caja gratis cada minuto. Premios de hasta 50 €.</p><div class="upto">Hasta <b>${fmt(FREE_CAP)}</b></div><div class="row"><span class="price"><span class="cr">${l?'<span class="fcd">'+mmss(l)+'</span>':'GRATIS'}</span></span><span class="btn sm">${l?'Espera':'¡Abrir!'}</span></div></a>`}
-function rescueBanner(){const inv=Object.values(ME.inv).reduce((a,it)=>a+itemValue(it),0);if(ME.c>=150||inv>=300)return'';const l=Math.max(0,RESCUE_CD-(now()-(ME.rs||0)));
-  return`<div class="banner" style="border-color:rgba(58,208,122,.45);background:linear-gradient(90deg,rgba(58,208,122,.16),rgba(58,208,122,.03))"><span style="font-size:26px">🛟</span><div><b style="color:var(--ok)">¿Te has quedado sin dinero?</b><div style="color:var(--mu);font-size:13px">Te regalamos ${fmt(RESCUE)} para seguir jugando (cada 20 minutos).</div></div><button class="btn ok" id="rescue" style="margin-left:auto" ${l?'disabled':''}>${l?'Disponible en '+mmss(l):'Recoger '+fmt(RESCUE)}</button></div>`}
+function rescueBanner(){const inv=Object.values(ME.inv).reduce((a,it)=>a+itemValue(it),0);if(ME.c>=1000||inv>=2000)return'';const l=Math.max(0,RESCUE_CD-(now()-(ME.rs||0)));
+  return`<div class="banner" style="border-color:rgba(58,208,122,.45);background:linear-gradient(90deg,rgba(58,208,122,.16),rgba(58,208,122,.03))"><span style="font-size:26px">🛟</span><div><b style="color:var(--ok)">¿Te has quedado sin dinero?</b><div style="color:var(--mu);font-size:13px">Te regalamos ${fmt(RESCUE)} para seguir jugando (cada ${Math.round(RESCUE_CD/60000)} minutos).</div></div><button class="btn ok" id="rescue" style="margin-left:auto" ${l?'disabled':''}>${l?'Disponible en '+mmss(l):'Recoger '+fmt(RESCUE)}</button></div>`}
 function pageCases(){setTimeout(()=>{const b=$('#rescue');if(b)b.onclick=async()=>{b.disabled=true;const r=await claimRescue();if(r.err){toast(r.err,'bad');return}SND.coin();celebrate(3);toast('+'+fmt(RESCUE)+' de rescate. ¡Suerte!','ok');softRefresh()}},0);if(freeLeft()>0)setTimeout(()=>freeTick(()=>{if(ROUTE==='cajas')softRefresh()}),0);const v=$('#view');const fb=ME.fb||{};
   v.innerHTML=`${eventBanner()}${rescueBanner()}<div class="h1"><div><h2>Cajas</h2><p>Las cajas del mercado de CS2, ordenadas de la más barata a la más cara. En todas pueden salir ★ cuchillos, guantes o joyas de más de 1.000 $.</p></div><div class="row"><a class="chip" href="../" title="Cada partida en MCF Games te da un poco de dinero para MCF Drop">🎮 Gana hasta 3 € al día jugando en MCF Games</a><span class="chip">${fmtN(ME.op)} cajas abiertas</span></div></div>
   <div class="cases">${freeCard()}${CASES.map(cs=>{const p=casePrice(cs);return`<a class="case" href="#caja/${cs.id}" style="--cc:${cs.col[0]};text-decoration:none;color:inherit">${fb[cs.id]?`<span class="free">${fb[cs.id]} GRATIS</span>`:''}${cs.prof!=='normal'&&cs.prof!=='barata'?`<span class="tag">${cs.prof==='premium'?'PREMIUM':'+ SUERTE'}</span>`:''}
@@ -1360,7 +1380,7 @@ document.addEventListener('pointerdown',()=>SND.init(),{once:true});
 function boot(){showGate('loading');
   if(!window.firebase){showGate('out');$('#gate p').innerHTML='No se ha podido conectar con el servidor. Comprueba tu conexión y recarga.';return}
   netInit((st,e)=>{if(st==='out')showGate('out');else if(st==='loading')showGate('loading');else if(st==='error')showGate('error',e)});
-  on(w=>{if(w==='first'){if(CLOSED&&!ROOTADMIN){showGate('closed');return}if(ME.ban){showGate('ban');return}showApp();if(ME.fresh){setTimeout(()=>modal(`<div class="lvup"><div class="ring">🎁</div><h3>¡Bienvenido a MCF Drop, ${esc(ME.n)}!</h3><p class="mu">Te regalamos <span class="cr">50,00 €</span> para empezar. Abre tu primera caja, gira la rueda diaria y sube de nivel para ganar más.</p><a class="btn pri" href="#caja/${CASES[6].id}" data-close style="margin-top:14px">Abrir mi primera caja</a></div>`),600)}}})}
+  on(w=>{if(w==='first'){if(CLOSED&&!ROOTADMIN){showGate('closed');return}if(ME.ban){showGate('ban');return}showApp();if(ME.fresh){setTimeout(()=>modal(`<div class="lvup"><div class="ring">🎁</div><h3>¡Bienvenido a MCF Drop, ${esc(ME.n)}!</h3><p class="mu">Te regalamos <span class="cr">${fmt(START_C)}</span> para empezar. Abre tu primera caja, gira la rueda diaria y sube de nivel para ganar más.</p><a class="btn pri" href="#caja/${CASES[6].id}" data-close style="margin-top:14px">Abrir mi primera caja</a></div>`),600)}}})}
 boot();
 
 /* ---------- APUESTAS 1 contra 1 ---------- */
