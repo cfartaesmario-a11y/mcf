@@ -627,7 +627,7 @@ const pct=p=>p>=.1?(p*100).toFixed(1)+'%':p>=.001?(p*100).toFixed(2)+'%':(p*100)
 
 /* ---------- FREE BOX: gratis cada 30 segundos, premio máximo 50 € ---------- */
 const FREE_CAP=5000,FREE_CD=30000;
-PROF.free=[12,30,32,15,7,3,1];
+PROF.free=[28,40,26,5,.8,.15,.05];
 const FREECASE=(()=>{const pool=Object.values(DEF).filter(d=>d.usd*USD<=FREE_CAP);
   const g=pool.filter(d=>d.r===6).map(d=>[d.k,d.k]);
   return{id:'free',img:CASES[0].img,n:'FREE BOX',d:'Gratis cada 30 segundos · premios de hasta 50 €',prof:'free',col:['#3ad07a','#0b2a18'],free:1,price:0,
