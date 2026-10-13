@@ -297,6 +297,13 @@ canvas.confetti{position:fixed;inset:0;z-index:95;pointer-events:none}
 .slotbox{min-height:150px;border-radius:16px;border:1px dashed var(--line2);display:grid;place-items:center;color:var(--mu);padding:10px;background:var(--p1)}
 .mults{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
 
+/* préstamos: contrato en papel */
+.paper{background:#f6f1e3;color:#1d1a14;font-family:Georgia,'Times New Roman',serif;padding:28px 30px;border-radius:4px;box-shadow:0 2px 0 #d8cfb5,0 18px 40px rgba(0,0,0,.45);line-height:1.5;font-size:14px;max-height:62vh;overflow:auto}
+.paper .ph1{text-align:center;font-size:22px;font-weight:700;letter-spacing:.12em}.paper .ph2{text-align:center;font-size:12px;color:#6b6250;margin-bottom:14px;border-bottom:1px solid #cfc5a8;padding-bottom:10px}
+.paper ol{padding-left:20px}.paper li{margin:6px 0}.paper b{color:#000}
+.sigrow{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-top:18px}.sigrow small{display:block;text-align:center;color:#6b6250;border-top:1px solid #1d1a14;padding-top:4px;margin-top:4px}
+.sigbox{height:90px;display:flex;align-items:center;justify-content:center}.sigbox canvas{width:100%;height:90px;background:repeating-linear-gradient(0deg,transparent 0 29px,#e6dcc2 29px 30px);cursor:crosshair;border:1px dashed #b9ad8c}.sigbox img{max-height:84px}
+.sigbox.stamp{color:#a3201c;border:3px double #a3201c;border-radius:50%;width:90px;margin:0 auto;font-weight:800;text-align:center;font-family:Inter,sans-serif;font-size:13px;transform:rotate(-12deg);opacity:.8}
 /* contratos */
 .ctr{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
 .ctr .cs{aspect-ratio:5/3.6;border-radius:12px;border:1px dashed var(--line2);background:var(--p1);display:grid;place-items:center;color:var(--mu2);font-weight:800;position:relative;overflow:hidden}
@@ -696,7 +703,7 @@ function netInit(onState){
           for(const n of ['market','trades','battles','feed','rank']){try{const ks=Object.keys((await R_(n).once('value')).val()||{});if(ks.length){const u2={};ks.forEach(x=>u2[x]=null);await R_(n).update(u2)}}catch(e){console.warn('reset',n,e)}}
           DB.ref('salas/mcfdropflips').remove().catch(()=>{})}
         await R_('users/'+UID).update({c:START_C,xp:0,lvc:1,ld:0,op:0,best:0,bestN:'',t:TS(),inv:null,freebox:null,rs:null,fbt:null});ME.fresh=true}
-      R_('users/'+UID).on('value',s=>{const v=s.val()||{};ME.n=v.n||mcfName(u);ME.c=v.c||0;ME.xp=v.xp||0;ME.lvc=v.lvc||1;ME.ld=v.ld||0;ME.op=v.op||0;ME.best=v.best||0;ME.bestN=v.bestN||'';ME.ban=!!v.ban;ME.fb=v.freebox||{};ME.rs=v.rs||0;ME.fbt=v.fbt||0;
+      R_('users/'+UID).on('value',s=>{const v=s.val()||{};ME.n=v.n||mcfName(u);ME.c=v.c||0;ME.xp=v.xp||0;ME.lvc=v.lvc||1;ME.ld=v.ld||0;ME.op=v.op||0;ME.best=v.best||0;ME.bestN=v.bestN||'';ME.ban=!!v.ban;ME.fb=v.freebox||{};ME.rs=v.rs||0;ME.fbt=v.fbt||0;ME.loan=v.loan||null;ME.lh=v.lh||0;
         const inv={},bad={};Object.entries(v.inv||{}).forEach(([k,raw])=>{const it=dec(raw);if(it){it.id=k;inv[k]=it}else bad['inv/'+k]=null});if(Object.keys(bad).length)R_('users/'+UID).update(bad).catch(()=>{});ME.inv=inv;const first=!ME.loaded;ME.loaded=true;emit(first?'first':'me')});
       R_('config').on('value',s=>{CFG=Object.assign({luck:1,disc:0,xp2:0,msg:'',until:0},s.val()||{});emit('cfg')});
       R_('payouts/'+UID).on('child_added',s=>claimPayout(s));
@@ -795,12 +802,16 @@ async function joinBattle(id,slot){const ref=R_('battles/'+id);const s=await ref
 async function fillBots(id){const ref=R_('battles/'+id);const s=await ref.once('value');const B=normB(s.val());if(!B||B.h!==UID||B.st!=='open')return;
   const up={};const used=Object.values(B.pl||{}).map(p=>p.n);let bi=Math.floor(rnd()*BOTS.length);for(let i=0;i<B.n;i++)if(!(B.pl||{})[i]){let nm=BOTS[bi++%BOTS.length];while(used.includes(nm))nm=BOTS[bi++%BOTS.length];used.push(nm);up['pl/'+i]={bot:1,n:nm}}
   await ref.update(up);maybeStart(id)}
-async function maybeStart(id){const ref=R_('battles/'+id);await ref.transaction(B=>{if(!B||B.st!=='open')return;const c=Object.values(B.pl||{}).filter(Boolean).length;if(c<B.n)return;B.st='run';B.seed=Math.floor(rnd()*4294967295);B.t0=Date.now()+TOFF;return B})}
+async function maybeStart(id){const ref=R_('battles/'+id);await ref.transaction(B=>{if(!B||B.st!=='open')return;const c=Object.values(B.pl||{}).filter(Boolean).length;if(c<B.n)return;B.st='run';B.seed=Math.floor(rnd()*4294967295);B.t0=Date.now()+TOFF;
+  /* el resultado se calcula UNA vez aquí y se guarda: todos los jugadores ven exactamente lo mismo */
+  const res=battleWinner(normB(JSON.parse(JSON.stringify(B))));B.rr=res.rolls.map(rs=>rs.map(enc));B.w=res.w;B.tot=res.tot;return B})}
+function battleResult(B){if(B&&B.rr){const rr=Array.isArray(B.rr)?B.rr:Object.values(B.rr);const rolls=rr.map((rs,i)=>(Array.isArray(rs)?rs:Object.values(rs)).map((x,r)=>{const it=dec(x)||{w:'i1',s:'i1',f:.5,st:0};it.id='b'+i+'r'+r;return it}));
+  const tot=rolls.map(rs=>rs.reduce((a,it)=>a+itemValue(it),0));return{w:B.w,tot,rolls}}return battleWinner(B)}
 async function cancelBattle(id){const ref=R_('battles/'+id);const tr=await ref.transaction(B=>{if(!B||B.st!=='open'||B.h!==UID)return;B.st='cancel';return B});return tr.committed}
 async function battleRefund(id,B){const slot=Object.entries(B.pl||{}).find(([i,p])=>p.u===UID);if(!slot)return;const tr=await R_('battles/'+id+'/pl/'+slot[0]+'/rf').transaction(v=>v?undefined:true);if(tr.committed)await addCredits(B.cost)}
 async function battleLeave(id,B){/* salir antes de empezar: devuelve el coste */const slot=Object.entries(B.pl||{}).find(([i,p])=>p.u===UID);if(!slot||B.st!=='open')return;
   const tr=await R_('battles/'+id).transaction(X=>{if(!X||X.st!=='open'||!X.pl||!X.pl[slot[0]]||X.pl[slot[0]].u!==UID)return;delete X.pl[slot[0]];return X});if(tr.committed)await addCredits(B.cost)}
-async function battleFinish(id,B){const res=battleWinner(B);await R_('battles/'+id).transaction(X=>{if(!X||X.st!=='run')return;X.st='end';X.w=res.w;X.tot=res.tot;return X});
+async function battleFinish(id,B){const res=battleResult(B);await R_('battles/'+id).transaction(X=>{if(!X||X.st!=='run')return;X.st='end';if(X.w==null){X.w=res.w;X.tot=res.tot}return X});
   const s=await R_('battles/'+id).once('value');const E=normB(s.val());if(!E||E.st!=='end')return;const wp=E.pl[E.w];
   if(wp&&wp.u===UID){const tr=await R_('battles/'+id+'/cl').transaction(v=>v?undefined:true);if(tr.committed){const all=res.rolls.flat().map(it=>({...it,id:uid(),t:Date.now()}));await addItems(all);emit({battleWon:E,items:all})}}}
 /* ---------- admin ---------- */
@@ -838,6 +849,34 @@ async function claimFlip(id,F){const r=flipResult(F);if((r.w==='h'?F.h:F.j)!==UI
 async function cancelFlip(id){const ref=FR_(id);const tr=await ref.transaction(X=>{if(!X||X.st!=='open'||X.h!==UID)return;X.st='cancel';return X});if(!tr.committed)return{err:'Ya ha empezado'};
   const F=tr.snapshot.val();const back=Object.values(F.hi||{}).map(dec).filter(Boolean);if(back.length)await addItems(back);if(F.hc)await addCredits(F.hc);return{ok:1}}
 
+/* ---------- PRÉSTAMOS: contrato firmado, cuota automática cada 4 h ---------- */
+const LOAN_TICK=4*3600000,LOAN_LATE=.10;
+const LOAN_PLANS=[{k:'p6',n:6,i:.08,t:'Rápido · 1 día'},{k:'p12',n:12,i:.15,t:'Normal · 2 días'},{k:'p24',n:24,i:.28,t:'Largo · 4 días'}];
+function netWorth(){return ME.c+Object.values(ME.inv).reduce((a,it)=>a+itemValue(it),0)}
+function loanLimit(){const l=levelOf(ME.xp).l;return Math.max(10000,Math.min(5000000,Math.round(30000+l*20000+netWorth()*.5)))}
+async function takeLoan(amt,plan,sig){const P=LOAN_PLANS.find(p=>p.k===plan);amt=Math.round(amt);if(!P||amt<1000||amt>loanLimit())return{err:'Cantidad no válida'};
+  const tot=Math.round(amt*(1+P.i));const L={p:amt,tot,n:P.n,q:Math.ceil(tot/P.n),paid:0,ar:0,col:0,t0:Date.now()+TOFF,pl:P.k,i:P.i,sig:sig||'',sn:ME.n};
+  const tr=await R_('users/'+UID+'/loan').transaction(x=>{if(x)return;return L});if(!tr.committed)return{err:'Ya tienes un préstamo activo'};await addCredits(amt);return{ok:1}}
+/* cobra del saldo; si no llega, embarga artículos; si aún falta, queda como atraso con recargo */
+async function loanCharge(amt){let took=0;await R_('users/'+UID+'/c').transaction(c=>{c=c||0;took=Math.min(c,amt);return c-took});let short=amt-took;const seized=[];
+  if(short>0){const its=Object.values(ME.inv).sort((a,b)=>itemValue(a)-itemValue(b));let got=0;const pick=[];for(const it of its){if(got>=short)break;pick.push(it);got+=Math.floor(itemValue(it)*QUICK)}
+    if(pick.length){await removeItems(pick.map(i=>i.id));pick.forEach(i=>seized.push(itemName(i)));if(got>short)await addCredits(got-short);short=Math.max(0,short-got)}}
+  return{took:amt-short,short,seized}}
+let LOAN_BUSY=false;
+async function loanTick(){const L=ME.loan;if(!UID||!L||LOAN_BUSY)return;LOAN_BUSY=true;try{
+    /* cada 4 h toca una cuota; pasado el plazo, cada 4 h se intenta cobrar lo que quede */
+    const due=Math.floor((now()-L.t0)/LOAN_TICK);const p0=L.paid||0;if(due<=p0)return;
+    const tr=await R_('users/'+UID+'/loan/paid').transaction(p=>{if((p||0)>=due)return;return due});if(!tr.committed)return;
+    const left=L.tot-(L.col||0);const amt=due>=L.n?left:Math.min(left,L.q*Math.min(due-p0,L.n-p0)+(L.ar||0));
+    const r=await loanCharge(amt);
+    if(left-r.took<=0){await R_('users/'+UID).update({loan:null,lh:(ME.lh||0)+1});toast('Préstamo pagado del todo. ¡Contrato cerrado!','ok');return}
+    const extra=Math.round(r.short*LOAN_LATE);await R_('users/'+UID+'/loan').update({col:(L.col||0)+r.took,ar:r.short,tot:L.tot+extra});
+    if(r.took)toast('Cuota del préstamo cobrada: −'+fmt(r.took),r.short?'bad':'');
+    if(r.seized.length)toast('Embargo: te han quitado '+r.seized.length+' artículo(s) para pagar la cuota','bad');
+    if(r.short)toast('No has podido pagar '+fmt(r.short)+'. Recargo del '+Math.round(LOAN_LATE*100)+' %: +'+fmt(extra),'bad')}catch(e){console.warn('loan',e)}finally{LOAN_BUSY=false}}
+async function loanPayAll(){const L=ME.loan;if(!L)return{err:'No tienes préstamo'};const left=Math.max(0,L.tot-(L.col||0));if(ME.c<left)return{err:'Necesitas '+fmt(left)+' para cancelarlo'};
+  if(!(await spend(left)))return{err:'No tienes créditos suficientes'};await R_('users/'+UID).update({loan:null,lh:(ME.lh||0)+1});return{ok:1}}
+setInterval(()=>loanTick(),60000);on(w=>{if(w==='first')setTimeout(loanTick,1500)});
 const RESCUE=2500,RESCUE_CD=10*60000;
 async function claimRescue(){const inv=Object.values(ME.inv).reduce((a,it)=>a+itemValue(it),0);if(ME.c>=1000||inv>=2000)return{err:'Todavía tienes dinero o artículos'};
   const tr=await R_('users/'+UID+'/rs').transaction(v=>{if(now()-(v||0)<RESCUE_CD)return;return now()});if(!tr.committed)return{err:'Aún no está disponible'};await addCredits(RESCUE);return{ok:1}}
@@ -906,7 +945,7 @@ const IC={
   admin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
   coin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="9" ry="9"/><path d="M9 9.5c.5-1 1.6-1.5 3-1.5 1.7 0 3 .9 3 2.2 0 2.8-6 1.6-6 4.4 0 1.3 1.3 2.2 3 2.2 1.4 0 2.5-.5 3-1.5M12 6v12"/></svg>',
   more:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>'};
-const NAV=[['cajas','Cajas','cases'],['batallas','Batallas','battle'],['apuestas','Apuestas','coin'],['mercado','Mercado','market'],['intercambios','Intercambios','trade'],['mejorador','Mejorador','up'],['contratos','Contratos','contract'],['inventario','Inventario','inv'],['ranking','Ranking','rank']];
+const NAV=[['cajas','Cajas','cases'],['batallas','Batallas','battle'],['apuestas','Apuestas','coin'],['mercado','Mercado','market'],['intercambios','Intercambios','trade'],['mejorador','Mejorador','up'],['prestamos','Préstamos','contract'],['inventario','Inventario','inv'],['ranking','Ranking','rank']];
 
 /* ---------- arranque y puerta ---------- */
 let ERRMSG='';function showGate(kind,e){if(e)ERRMSG=e&&(e.code||e.message)||e;$('#app').classList.add('hide');const g=$('#gate');g.classList.remove('hide');
@@ -949,12 +988,12 @@ addEventListener('hashchange',()=>route());
 function route(){if($('#app').classList.contains('hide'))return;const h=(location.hash||'#cajas').slice(1);const[p,a]=h.split('/');ROUTE=p;
   $$('[data-r]').forEach(x=>x.classList.toggle('on',x.dataset.r===p||(p==='caja'&&x.dataset.r==='cajas')||(p==='batalla'&&x.dataset.r==='batallas')));
   stopPageListeners();BUSY=false;const v=$('#view');v.innerHTML='';window.scrollTo(0,0);
-  ({cajas:pageCases,caja:()=>pageCase(a),apuestas:pageFlips,inventario:pageInventory,mercado:()=>pageMarket(a),intercambios:pageTrades,batallas:pageBattles,batalla:()=>pageBattle(a),mejorador:pageUpgrader,contratos:pageContracts,ranking:pageRanking,admin:pageAdmin,mas:pageMore}[p]||pageCases)();pumpImgs()}
+  ({cajas:pageCases,caja:()=>pageCase(a),apuestas:pageFlips,inventario:pageInventory,mercado:()=>pageMarket(a),intercambios:pageTrades,batallas:pageBattles,batalla:()=>pageBattle(a),mejorador:pageUpgrader,prestamos:pageLoans,ranking:pageRanking,admin:pageAdmin,mas:pageMore}[p]||pageCases)();pumpImgs()}
 let PAGE_OFF=[];function pageListen(ref,ev,fn){ref.on(ev,fn);PAGE_OFF.push(()=>ref.off(ev,fn))}
 function stopPageListeners(){PAGE_OFF.forEach(f=>{try{f()}catch(e){}});PAGE_OFF=[]}
 function refresh(){if(BUSY){DIRTY=true;return}const y=scrollY;route();window.scrollTo(0,y)}
 on(w=>{if(!ME.loaded||$('#app').classList.contains('hide'))return;
-  if(w==='me'){updateHeader();if(['inventario','contratos','mejorador'].includes(ROUTE)&&!$('#modal'))softRefresh()}
+  if(w==='me'){updateHeader();if(['inventario','prestamos','mejorador'].includes(ROUTE)&&!$('#modal'))softRefresh()}
   if(w==='trades'){updateHeader();if(ROUTE==='intercambios'&&!$('#modal'))softRefresh()}
   if(w==='cfg'&&ROUTE==='cajas')softRefresh();
   if(w&&w.levelUp)setTimeout(()=>levelUpModal(w),BUSY?3500:300);
@@ -1064,7 +1103,7 @@ function inspectModal(it,o){o=o||{};const r=rarOf(it),own=!!(it.id&&ME.inv[it.id
     ${o.cat?`<p class="mu">Puede salir en: ${CAT[it.w+'|'+it.s].cases.map(c=>esc(CASE[c].n)).join(', ')}.</p><p class="mu" style="margin-top:6px">${isNW(it.w)?`Valor <span class="cr">${fmt(itemValue(it))}</span>`:`Valor aproximado según desgaste: ${WEAR.map((W,i)=>`${W.k} <span class="cr">${fmt(itemValue({w:it.w,s:it.s,f:(W.a+W.b)/2}))}</span>`).join(' · ')}`}</p><p class="mu" style="margin-top:6px">En el mercado de Steam: ${DEF[it.w].usd.toLocaleString('es-ES',{minimumFractionDigits:2})} $ (${DEF[it.w].nw?'':WEAR[DEF[it.w].lw].n+' · '}${fmtN(DEF[it.w].sale)} en venta)</p>`:
     `${isNW(it.w)?'':`<div class="floatbar"><i style="left:calc(${(it.f*100).toFixed(2)}% - 1.5px)"></i></div>`}
     <div class="kv"><span>Tipo</span><b>${esc(DEF[it.w].t)}</b><span>Desgaste</span><b>${wearTxt(it)}</b>${isNW(it.w)?'':`<span>Float</span><b>${it.f.toFixed(6)}</b>`}<span>Steam</span><b>${DEF[it.w].usd.toLocaleString('es-ES',{minimumFractionDigits:2})} $</b><span>Origen</span><b>${esc(it.o&&CASE[it.o]?CASE[it.o].n:it.o==='tienda'?'Tienda':it.o==='contrato'?'Contrato':it.o==='mejora'?'Mejorador':it.o==='regalo'?'Regalo del admin':'—')}</b><span>Valor</span><b class="cr">${fmt(v)}</b></div>`}
-    ${own?`<div class="row wrap" style="margin-top:14px"><button class="btn" id="iSell">Vender · <span class="cr">${fmt(Math.floor(v*QUICK))}</span></button><button class="btn" id="iList">Poner en el mercado</button><button class="btn" id="iUp">Mejorar</button>${rarOf(it)<=5?'<button class="btn" id="iCt">Contrato</button>':''}</div>`:''}`,'mid');
+    ${own?`<div class="row wrap" style="margin-top:14px"><button class="btn" id="iSell">Vender · <span class="cr">${fmt(Math.floor(v*QUICK))}</span></button><button class="btn" id="iList">Poner en el mercado</button><button class="btn" id="iUp">Mejorar</button></div>`:''}`,'mid');
   const box=$('#insp'),img=$('#inspImg');let drag=null,ry=0,rx=0;
   box.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY,ry,rx};box.setPointerCapture(e.pointerId)};
   box.onpointermove=e=>{if(!drag){const b=box.getBoundingClientRect();const px=(e.clientX-b.left)/b.width-.5,py=(e.clientY-b.top)/b.height-.5;img.style.transform=`rotateY(${px*22}deg) rotateX(${-py*14}deg) scale(1.02)`;return}
@@ -1209,7 +1248,7 @@ function battleRender(){const{B,id}=BV;const box=$('#bvw');const pl=B.pl||{};con
     $$('[data-join]').forEach(b=>b.onclick=async()=>{b.disabled=true;const r=await joinBattle(id,+b.dataset.join);if(r.err){toast(r.err,'bad');b.disabled=false}else SND.click()});
     if($('#bbots'))$('#bbots').onclick=()=>fillBots(id);if($('#bcx'))$('#bcx').onclick=()=>cancelBattle(id);if($('#blv'))$('#blv').onclick=()=>battleLeave(id,B);return}
   /* en juego o terminada */
-  if(BV.anim)return;BV.anim=true;const res=battleWinner(B);const n=B.n,R=B.cs.length;const start=(B.t0||now())+BATTLE_DELAY;
+  if(BV.anim)return;BV.anim=true;const res=battleResult(B);const n=B.n,R=B.cs.length;const start=(B.t0||now())+BATTLE_DELAY;
   box.innerHTML=head+`<div id="cdn"></div><div class="arena" style="grid-template-columns:repeat(${n},minmax(0,1fr))">${[...Array(n)].map((_,i)=>`<div class="col" id="bc${i}"><div class="who"><span class="av">${pl[i].bot?'🤖':esc(String(pl[i].n).charAt(0).toUpperCase())}</span><b>${esc(pl[i].n)}${pl[i].u===UID?' (tú)':''}</b></div>
     <div class="vreel"><div class="vstrip" id="vs${i}"></div><div class="hl"></div><div class="fT"></div><div class="fB"></div></div><div class="total cr" id="bt${i}">0</div><div class="got" id="bg${i}"></div></div>`).join('')}</div><div id="bres"></div>`;
   res.rolls.flat().forEach(it=>defImg(it.w,it.s,wearOf(it.f)));
@@ -1220,7 +1259,7 @@ function battleRender(){const{B,id}=BV;const box=$('#bvw');const pl=B.pl||{};con
     const best=Math.max(...res.rolls.map(rs=>rarOf(rs[r])));SND.reveal(best);if(best>=5)celebrate(best);
     $$('#rnds [data-rd]').forEach(e=>{const k=+e.dataset.rd;e.classList.toggle('done',k<=r);e.classList.toggle('cur',k===r+1)})};
   const finish=()=>{for(let i=0;i<n;i++){$('#bc'+i).classList.add(i===res.w?'win':'lose')}const wp=pl[res.w];const all=res.rolls.flat();const pot=all.reduce((a,it)=>a+itemValue(it),0);
-    $('#bres').innerHTML=`<div class="banner" style="margin-top:16px"><span style="font-size:30px">🏆</span><div><b>${wp.bot?esc(wp.n)+' gana. La casa se queda el botín.':esc(wp.n)+' gana '+all.length+' artículos'}</b><div style="color:var(--mu);font-size:13px">Valor total <span class="cr">${fmt(pot)}</span>${wp.u===UID?' · ¡Ya están en tu inventario!':''}</div></div><a class="btn pri" style="margin-left:auto" href="#batallas">Otra batalla</a></div>`;
+    $('#bres').innerHTML=`<div class="banner" style="margin-top:16px"><span style="font-size:30px">🏆</span><div><b>${wp.bot?esc(wp.n)+' gana. La casa se queda el botín.':esc(wp.n)+' gana '+all.length+' artículos'}</b><div style="color:var(--mu);font-size:13px">Valor total <span class="cr">${fmt(pot)}</span>${wp.u===UID?' · ¡Ya están en tu inventario!':Object.values(pl).some(p=>p.u===UID)?' · Has perdido esta vez':''}</div></div><a class="btn pri" style="margin-left:auto" href="#batallas">Otra batalla</a></div>`;
     if(wp.u===UID){SND.lvl();celebrate(6)}if(B.st==='run'&&Object.values(pl).some(p=>p.u===UID))battleFinish(id,B);else if(B.st==='end'&&wp.u===UID&&!B.cl)battleFinish(id,B)};
   const loop=()=>{if(!BV||BV.id!==id)return;const t=now();
     if(t<start){$('#cdn').innerHTML=`<div class="countdown">${Math.ceil((start-t)/1000)}</div>`;BV.raf=requestAnimationFrame(loop);return}$('#cdn').innerHTML='';
@@ -1285,6 +1324,55 @@ function pickItems(o){const sel=new Set(o.pre||[]);const L=Object.values(ME.inv)
 /* ---------- CONTRATOS ---------- */
 const CTR={sel:[]};
 const ctrNeed=r=>r===5?5:10;
+/* ---------- PÁGINA PRÉSTAMOS ---------- */
+const LN={amt:20000,plan:'p12'};
+function loanLeft(L){return Math.max(0,L.tot-(L.col||0))}
+function paperHTML(o){const d=new Date(o.t0||now());const fecha=d.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});const P=LOAN_PLANS.find(p=>p.k===o.pl);
+  return`<div class="paper"><div class="ph1">CONTRATO DE PRÉSTAMO</div><div class="ph2">MCF Drop Banca · Nº ${String(Math.abs(hashStr(UID+(o.t0||0)))%900000+100000)}</div>
+  <p>En MCF Drop, a ${fecha}, de una parte <b>MCF Drop Banca</b> (el PRESTAMISTA) y de otra <b>${esc(o.sn||ME.n)}</b> (el PRESTATARIO), acuerdan:</p>
+  <ol><li><b>Importe.</b> El prestamista entrega al prestatario <b>${fmt(o.p)}</b> en créditos.</li>
+  <li><b>Intereses.</b> Interés fijo del <b>${Math.round(o.i*100)} %</b>. Total a devolver: <b>${fmt(o.tot)}</b>.</li>
+  <li><b>Cuotas.</b> ${o.n} cuotas de <b>${fmt(Math.ceil(o.tot/o.n))}</b>, cobradas <b>automáticamente cada 4 horas</b> desde la firma (${P?P.t:''}).</li>
+  <li><b>Impago.</b> Si el saldo no alcanza, se <b>embargarán artículos del inventario</b> (los de menor valor primero). La parte no cubierta pasa a atraso con un <b>recargo del ${Math.round(LOAN_LATE*100)} %</b> por cuota.</li>
+  <li><b>Cancelación.</b> Puede devolverse todo lo pendiente en cualquier momento sin penalización.</li>
+  <li><b>Exclusividad.</b> Solo puede existir un préstamo activo por prestatario.</li></ol>
+  <div class="sigrow"><div><div class="sigbox">${o.sig?`<img src="${o.sig}" alt="firma">`:'<canvas id="sigc" width="520" height="150"></canvas>'}</div><small>Firma del prestatario</small></div>
+  <div><div class="sigbox stamp">MCF<br>BANCA</div><small>Sello del prestamista</small></div></div></div>`}
+function pageLoans(){const v=$('#view');const L=ME.loan;
+  if(L){const left=loanLeft(L);const next=Math.max(0,L.t0+(L.paid+1)*LOAN_TICK-now());const h=Math.floor(next/3600000),m=Math.floor(next%3600000/60000);
+    v.innerHTML=`<div class="h1"><div><h2>Préstamos</h2><p>Tienes un préstamo activo. Las cuotas se cobran solas cada 4 horas.</p></div></div>
+    <div class="panel" style="padding:18px"><div class="row wrap" style="gap:22px">
+      <div><small class="mu">Pendiente</small><div style="font-size:26px;font-weight:850" class="cr">${fmt(left)}</div></div>
+      <div><small class="mu">Cuotas</small><div style="font-size:26px;font-weight:850">${Math.min(L.paid||0,L.n)} / ${L.n}</div></div>
+      <div><small class="mu">Próxima cuota</small><div style="font-size:26px;font-weight:850">${h+' h '+m+' min'}</div><small class="mu">${fmt(L.q)}</small></div>
+      ${L.ar?`<div><small style="color:var(--bad)">Atraso</small><div style="font-size:26px;font-weight:850;color:var(--bad)">${fmt(L.ar)}</div></div>`:''}</div>
+      <div style="height:8px;background:var(--p3);border-radius:8px;margin:16px 0;overflow:hidden"><div style="height:100%;width:${Math.min(100,(L.col||0)/L.tot*100)}%;background:var(--ok)"></div></div>
+      <div class="row wrap"><button class="btn pri" id="lPay">Devolver todo ahora · <span class="cr">${fmt(left)}</span></button><button class="btn" id="lDoc">Ver contrato firmado</button></div></div>`;
+    $('#lPay').onclick=async()=>{const r=await loanPayAll();if(r.err){toast(r.err,'bad');return}SND.coin();toast('Préstamo cancelado. ¡Sin deudas!','ok');setTimeout(softRefresh,300)};
+    $('#lDoc').onclick=()=>modal(paperHTML(L),'mid');return}
+  const lim=loanLimit();LN.amt=Math.min(Math.max(1000,LN.amt),lim);const P=LOAN_PLANS.find(p=>p.k===LN.plan);const tot=Math.round(LN.amt*(1+P.i));
+  v.innerHTML=`<div class="h1"><div><h2>Préstamos</h2><p>Pide créditos a MCF Drop Banca. Tienes que firmar un contrato y las cuotas se cobran solas cada 4 horas. Si no puedes pagar, te embargan artículos.</p></div></div>
+  <div class="panel" style="padding:18px"><small class="mu">¿Cuánto quieres? (máximo según tu nivel y patrimonio: <span class="cr">${fmt(lim)}</span>)</small>
+    <div style="font-size:34px;font-weight:850;margin:6px 0" class="cr" id="lAmtT">${fmt(LN.amt)}</div>
+    <input type="range" id="lAmt" min="1000" max="${lim}" step="500" value="${LN.amt}" style="width:100%">
+    <div class="row wrap" style="margin:16px 0;gap:10px">${LOAN_PLANS.map(p=>`<button class="btn ${p.k===LN.plan?'pri':''}" data-pl="${p.k}">${p.t} · ${Math.round(p.i*100)} %</button>`).join('')}</div>
+    <div class="row wrap" style="gap:22px;margin-bottom:16px"><div><small class="mu">Total a devolver</small><div style="font-size:22px;font-weight:800" class="cr" id="lTot">${fmt(tot)}</div></div>
+      <div><small class="mu">Cuota cada 4 h</small><div style="font-size:22px;font-weight:800" class="cr" id="lQ">${fmt(Math.ceil(tot/P.n))}</div></div><div><small class="mu">Número de cuotas</small><div style="font-size:22px;font-weight:800">${P.n}</div></div></div>
+    <button class="btn pri big" id="lGo" style="width:100%">Leer y firmar el contrato</button></div>`;
+  const upd=()=>{const t=Math.round(LN.amt*(1+P.i));$('#lAmtT').textContent=fmt(LN.amt);$('#lTot').textContent=fmt(t);$('#lQ').textContent=fmt(Math.ceil(t/P.n))};
+  $('#lAmt').oninput=e=>{LN.amt=+e.target.value;upd()};$$('[data-pl]').forEach(b=>b.onclick=()=>{LN.plan=b.dataset.pl;pageLoans()});
+  $('#lGo').onclick=()=>signLoan()}
+function signLoan(){const P=LOAN_PLANS.find(p=>p.k===LN.plan);const o={p:LN.amt,tot:Math.round(LN.amt*(1+P.i)),n:P.n,i:P.i,pl:P.k,t0:now(),sn:ME.n};
+  modal(paperHTML(o)+`<label class="row" style="margin:14px 0;gap:8px;align-items:flex-start"><input type="checkbox" id="lRead"><span>He leído el contrato y acepto que las cuotas se cobren solas cada 4 horas y que me puedan embargar artículos.</span></label>
+    <div class="row"><button class="btn" id="lClr">Borrar firma</button><span class="grow"></span><button class="btn pri" id="lSign" disabled>Firmar y recibir ${fmt(o.p)}</button></div>`,'mid');
+  const c=$('#sigc'),x=c.getContext('2d');x.lineWidth=3;x.lineCap='round';x.strokeStyle='#14306e';let drawing=false,len=0,lp=null;
+  const pos=e=>{const r=c.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return[(t.clientX-r.left)*c.width/r.width,(t.clientY-r.top)*c.height/r.height]};
+  const ok=()=>{$('#lSign').disabled=!(len>120&&$('#lRead').checked)};
+  const down=e=>{e.preventDefault();drawing=true;lp=pos(e)},move=e=>{if(!drawing)return;e.preventDefault();const p=pos(e);x.beginPath();x.moveTo(lp[0],lp[1]);x.lineTo(p[0],p[1]);x.stroke();len+=Math.hypot(p[0]-lp[0],p[1]-lp[1]);lp=p;ok()},up=()=>{drawing=false};
+  c.addEventListener('pointerdown',down);c.addEventListener('pointermove',move);window.addEventListener('pointerup',up);c.style.touchAction='none';
+  $('#lRead').onchange=ok;$('#lClr').onclick=()=>{x.clearRect(0,0,c.width,c.height);len=0;ok()};
+  $('#lSign').onclick=async()=>{$('#lSign').disabled=true;const sm=document.createElement('canvas');sm.width=260;sm.height=75;sm.getContext('2d').drawImage(c,0,0,260,75);
+    const r=await takeLoan(o.p,o.pl,sm.toDataURL('image/png'));if(r.err){toast(r.err,'bad');ok();return}closeModal();SND.coin();celebrate(4);toast('Contrato firmado: +'+fmt(o.p),'ok');setTimeout(softRefresh,300)}}
 function pageContracts(){const v=$('#view');CTR.sel=CTR.sel.filter(id=>ME.inv[id]);const r=CTR.sel.length?rarOf(ME.inv[CTR.sel[0]]):null;const need=r==null?10:ctrNeed(r);
   const avgF=CTR.sel.length?CTR.sel.reduce((a,id)=>a+ME.inv[id].f,0)/CTR.sel.length:0;const val=CTR.sel.reduce((a,id)=>a+itemValue(ME.inv[id]),0);
   v.innerHTML=`<div class="h1"><div><h2>Contratos</h2><p>Entrega 10 artículos de la misma rareza y recibe 1 de la rareza siguiente. Con 5 encubiertos puedes conseguir un <b style="color:var(--gold)">★ cuchillo o guantes</b>.</p></div></div>
