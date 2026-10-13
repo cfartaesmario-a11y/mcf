@@ -612,9 +612,13 @@ function pickGold(cs,r){const tot=cs.gw.reduce((a,b)=>a+b,0);let x=r()*tot;for(l
 function rollCase(cs,r,luck){const od=caseOdds(cs,luck||1);let x=r(),acc=0,rr=2;for(let i=0;i<7;i++){acc+=od[i];if(x<acc){rr=i;break}}
   let w,s;if(rr===6){[w,s]=pickGold(cs,r)}else{const pool=cs.i.filter(e=>e[2]===rr);[w,s]=pool[Math.floor(r()*pool.length)]}
   const d=DEF[w];const stOk=!d.nw&&!d.st0&&!d.sv&&d.t!=='Guantes';const st=stOk&&r()<ST_CHANCE;const f=d.nw?0:genFloat(r);return{w,s,f,st:st?1:0,o:cs.id}}
-function caseEV(cs){const R=mulberry(hashStr(cs.id));let s=0;const N=6000;for(let i=0;i<N;i++)s+=itemValue(rollCase(cs,R,1));return s/N}
+/* valor medio exacto de cada artículo (desgaste + StatTrak) y de cada caja */
+const EXPV={};function expVal(w){if(EXPV[w]!=null)return EXPV[w];const d=DEF[w];if(d.nw)return EXPV[w]=itemValue({w,f:0});const R=mulberry(hashStr(w));let s=0;const N=300;
+  for(let i=0;i<N;i++)s+=itemValue({w,f:genFloat(R),st:0});s/=N;const stOk=!d.st0&&!d.sv&&d.t!=='Guantes';if(stOk)s*=1+ST_CHANCE*(ST_MULT-1);return EXPV[w]=s}
+function caseEV(cs){const od=caseOdds(cs,1);let e=0;for(let r=0;r<6;r++){if(!od[r])continue;const pool=cs.i.filter(x=>x[2]===r);e+=od[r]*pool.reduce((a,x)=>a+expVal(x[0]),0)/pool.length}
+  if(od[6]){const tot=cs.gw.reduce((a,b)=>a+b,0);e+=od[6]*cs.g.reduce((a,[w],i)=>a+expVal(w)*cs.gw[i],0)/tot}return e}
 const nicePrice=v=>{const m=v<100?5:v<500?10:v<2000?25:50;return Math.max(m,Math.round(v/m)*m)};
-{let prev=0;CASES.forEach(cs=>{cs.ev=caseEV(cs);cs.price=Math.max(nicePrice(cs.ev*.97),prev+5);prev=cs.price})}
+CASES.forEach(cs=>{cs.ev=caseEV(cs);cs.price=nicePrice(cs.ev)});
 /* Niveles */
 const xpNeed=l=>Math.round(120*Math.pow(l,1.45));
 const levelReward=l=>({c:1000+l*500,box:l%5===0?(l>=20?CASES[15].id:CASES[8].id):null});
