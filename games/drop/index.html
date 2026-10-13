@@ -1310,13 +1310,15 @@ function pageUpgrader(){const v=$('#view');UPG.inp=UPG.inp.filter(id=>ME.inv[id]
   $('#upGo').onclick=()=>doUpgrade(ch,inV,tVal)}
 function drawDial(ch,ang){const c=$('#dial');if(!c)return;const x=c.getContext('2d');const W=600,R=270;x.clearRect(0,0,W,W);x.save();x.translate(300,300);
   x.lineWidth=34;x.strokeStyle='#1d1d22';x.beginPath();x.arc(0,0,R-30,0,7);x.stroke();
-  if(ch>0){x.strokeStyle='#3ad07a';x.shadowColor='#3ad07a';x.shadowBlur=24;x.beginPath();x.arc(0,0,R-30,-Math.PI/2,-Math.PI/2+ch*Math.PI*2);x.stroke();x.shadowBlur=0}
+  if(ch>0){x.strokeStyle='#3ad07a';x.shadowColor='#3ad07a';x.shadowBlur=8;x.beginPath();x.arc(0,0,R-30,-Math.PI/2,-Math.PI/2+ch*Math.PI*2);x.stroke();x.shadowBlur=0}
   for(let i=0;i<60;i++){const a=i/60*Math.PI*2;x.strokeStyle=i%5?'rgba(255,255,255,.12)':'rgba(255,255,255,.3)';x.lineWidth=i%5?2:3;x.beginPath();x.moveTo(Math.cos(a)*(R-6),Math.sin(a)*(R-6));x.lineTo(Math.cos(a)*(R+6),Math.sin(a)*(R+6));x.stroke()}
   x.rotate(ang-Math.PI/2);x.fillStyle='#fff';x.shadowColor='rgba(255,255,255,.8)';x.shadowBlur=16;x.beginPath();x.moveTo(R+14,0);x.lineTo(R-52,-12);x.lineTo(R-52,12);x.closePath();x.fill();x.restore()}
 async function doUpgrade(ch,inV,tVal){if(UPG.spinning)return;const ids=UPG.inp.filter(id=>ME.inv[id]);if(!ids.length||!UPG.tgt)return;SND.init();UPG.spinning=true;BUSY=true;$('#upGo').disabled=true;
   const roll=rnd();const win=roll<ch;const tgt=UPG.tgt,twi=UPG.twi;
   await removeItems(ids);let newIt=null;if(win){const W=WEAR[twi];newIt={id:uid(),w:tgt.w,s:tgt.s,f:+(W.a+(W.b-W.a)*rnd()).toFixed(5),st:0,o:'mejora',t:Date.now()};await addItems([newIt])}
-  const endA=Math.PI*2*6+roll*Math.PI*2;const startA=UPG.ang%(Math.PI*2);const t0=performance.now(),D=4200;let lastTick=0;
+  /* la flecha se para claramente dentro de su zona (nunca en el borde) */
+  const T=Math.PI*2,G=ch*T,mg=Math.min(T/90,(win?G:T-G)/4);const land=win?mg+rnd()*(G-2*mg):G+mg+rnd()*(T-G-2*mg);
+  const endA=T*6+land;const startA=UPG.ang%(Math.PI*2);const t0=performance.now(),D=4200;let lastTick=0;
   await new Promise(res=>{const st=()=>{const p=Math.min(1,(performance.now()-t0)/D),e=1-Math.pow(1-p,4);const a=startA+(endA-startA)*e;drawDial(ch,a);const tk=Math.floor(a/(Math.PI/30));if(tk!==lastTick){lastTick=tk;SND.tick()}if(p<1)requestAnimationFrame(st);else{UPG.ang=a;res()}};st()});
   UPG.spinning=false;BUSY=false;UPG.inp=[];
   if(win){SND.reveal(rarOf(newIt));celebrate(Math.max(4,rarOf(newIt)));modal(`<div class="lvup"><div class="ring" style="border-color:#3ad07a">✓</div><h3>¡Mejora conseguida!</h3><p class="mu">Ganas ${esc(itemName(newIt))}</p><div style="margin:14px auto;max-width:260px">${itemCard(newIt)}</div><button class="btn pri" data-close>Genial</button></div>`)}
