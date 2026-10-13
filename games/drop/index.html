@@ -568,7 +568,7 @@ const fmtN=n=>Math.round(n).toLocaleString('es-ES');
 
 /* ---------- cajas (las del PDF), ordenadas de barata a cara ---------- */
 const PROF={
-  barata:[50,28,14,5,1.6,.6,.8],
+  barata:[18,44,30,6,1.4,.3,.3],
   normal:[0,0,75.2,17,4.7,2.27,.83],
   semi:[0,0,62,22,9,4.5,2.5],
   premium:[0,0,42,30,15,8.5,4.5]};
@@ -627,7 +627,7 @@ const pct=p=>p>=.1?(p*100).toFixed(1)+'%':p>=.001?(p*100).toFixed(2)+'%':(p*100)
 
 /* ---------- FREE BOX: gratis cada 30 segundos, premio máximo 50 € ---------- */
 const FREE_CAP=5000,FREE_CD=30000;
-PROF.free=[28,40,26,5,.8,.15,.05];
+PROF.free=[45,35,15,4,.8,.15,.05];
 const FREECASE=(()=>{const pool=Object.values(DEF).filter(d=>d.usd*USD<=FREE_CAP);
   const g=pool.filter(d=>d.r===6).map(d=>[d.k,d.k]);
   return{id:'free',img:CASES[0].img,n:'FREE BOX',d:'Gratis cada 30 segundos · premios de hasta 50 €',prof:'free',col:['#3ad07a','#0b2a18'],free:1,price:0,
