@@ -613,7 +613,9 @@ Object.values(DEF).forEach(d=>{const k=d.k+'|'+d.k;if(!CAT[k])CAT[k]={k,w:d.k,s:
 const CATL=Object.values(CAT);
 
 /* Probabilidades de una caja (con suerte de evento) */
-function caseOdds(cs,luck){const p=PROF[cs.prof].slice();const has=p.map((v,i)=>i===6?cs.g.length>0:cs.i.some(x=>x[2]===i));
+/* la casa gana: las rarezas buenas salen menos de lo que marcaría el precio */
+const HOUSE=[1,1,1,.8,.6,.5,.5];
+function caseOdds(cs,luck,raw){const p=PROF[cs.prof].slice();if(!raw&&cs.prof!=='free')for(let i=0;i<7;i++)p[i]*=HOUSE[i];const has=p.map((v,i)=>i===6?cs.g.length>0:cs.i.some(x=>x[2]===i));
   for(let i=0;i<7;i++){if(!has[i])p[i]=0;if(i>=4&&luck>1)p[i]*=luck}const t=p.reduce((a,b)=>a+b,0);return p.map(v=>v/t)}
 function pickGold(cs,r){const tot=cs.gw.reduce((a,b)=>a+b,0);let x=r()*tot;for(let i=0;i<cs.g.length;i++){x-=cs.gw[i];if(x<=0)return cs.g[i]}return cs.g[cs.g.length-1]}
 function rollCase(cs,r,luck){const od=caseOdds(cs,luck||1);let x=r(),acc=0,rr=2;for(let i=0;i<7;i++){acc+=od[i];if(x<acc){rr=i;break}}
@@ -622,10 +624,11 @@ function rollCase(cs,r,luck){const od=caseOdds(cs,luck||1);let x=r(),acc=0,rr=2;
 /* valor medio exacto de cada artículo (desgaste + StatTrak) y de cada caja */
 const EXPV={};function expVal(w){if(EXPV[w]!=null)return EXPV[w];const d=DEF[w];if(d.nw)return EXPV[w]=itemValue({w,f:0});const R=mulberry(hashStr(w));let s=0;const N=300;
   for(let i=0;i<N;i++)s+=itemValue({w,f:genFloat(R),st:0});s/=N;const stOk=!d.st0&&!d.sv&&d.t!=='Guantes';if(stOk)s*=1+ST_CHANCE*(ST_MULT-1);return EXPV[w]=s}
-function caseEV(cs){const od=caseOdds(cs,1);let e=0;for(let r=0;r<6;r++){if(!od[r])continue;const pool=cs.i.filter(x=>x[2]===r);e+=od[r]*pool.reduce((a,x)=>a+expVal(x[0]),0)/pool.length}
+function caseEV(cs,real){const od=caseOdds(cs,1,!real);let e=0;for(let r=0;r<6;r++){if(!od[r])continue;const pool=cs.i.filter(x=>x[2]===r);e+=od[r]*pool.reduce((a,x)=>a+expVal(x[0]),0)/pool.length}
   if(od[6]){const tot=cs.gw.reduce((a,b)=>a+b,0);e+=od[6]*cs.g.reduce((a,[w],i)=>a+expVal(w)*cs.gw[i],0)/tot}return e}
 const nicePrice=v=>{const m=v<100?5:v<500?10:v<2000?25:50;return Math.max(m,Math.round(v/m)*m)};
-CASES.forEach(cs=>{cs.ev=caseEV(cs);cs.price=nicePrice(cs.ev)});
+const RTP=.85;/* de media cada caja devuelve el 85 % de lo que cuesta */
+CASES.forEach(cs=>{cs.ev=caseEV(cs,1);cs.price=nicePrice(cs.ev/RTP)});
 /* Niveles */
 const xpNeed=l=>Math.round(120*Math.pow(l,1.45));
 const levelReward=l=>({c:1000+l*500,box:l%5===0?(l>=20?CASES[15].id:CASES[8].id):null});
