@@ -636,7 +636,7 @@ CASE.free=FREECASE;
 function rollFree(r){let it=null;for(let k=0;k<12;k++){it=rollCase(FREECASE,r,1);if(itemValue(it)<=FREE_CAP)return it}
   const c=FREECASE.i.filter(e=>e[2]===0)[0];return{w:c[0],s:c[1],f:.8,st:0,o:'free'}}
 /* Recompensa por jugar en MCF Games (céntimos) */
-const START_C=20000,ECON_EP=2;
+const START_C=20000,ECON_EP=2;let RESET_T=0;
 const freshUser=(n,ban)=>({n,c:START_C,xp:0,lvc:1,ld:0,op:0,best:0,bestN:'',t:TS(),ep:ECON_EP,ban:ban?true:null});
 const GAME_REWARD_MAX_DAY=1500;
 
@@ -685,10 +685,13 @@ function netInit(onState){
       if(ROOTP==='drop'){const mine=await R_('users/'+UID).once('value');if(!mine.exists()){const old=await DB.ref('salas/mcfdrop/users/'+UID).once('value').catch(()=>null);if(old&&old.exists())await R_('users/'+UID).set(old.val())}}
       const st=await R_('staff/'+UID).once('value').catch(()=>null);STAFF=ROOTADMIN||!!(st&&st.val()===true);
       const snap=await R_('users/'+UID).once('value');
-      let ep=await R_('config/ep').once('value').then(x=>x.val(),()=>null);
-      if(ep!==ECON_EP&&ROOTADMIN){/* reinicio global: todas las cuentas a cero, mercado, intercambios, batallas y ranking vacíos */
-        const all=(await R_('users').once('value')).val()||{};const up={market:null,trades:null,battles:null,feed:null,rank:null,payouts:null,'config/ep':ECON_EP};
-        Object.entries(all).forEach(([k,v])=>{up['users/'+k]=freshUser((v&&v.n)||'Jugador',v&&v.ban)});await DB.ref(ROOTP).update(up);DB.ref('salas/mcfdropflips').remove().catch(()=>{});ep=ECON_EP}
+      const cfg0=await R_('config').once('value').then(x=>x.val()||{},()=>({}));let ep=cfg0.ep;RESET_T=cfg0.epT||0;
+      if(ep!==ECON_EP&&ROOTADMIN){/* reinicio global (hijo a hijo, para que lo acepten las reglas de Firebase) */
+        const kids=async n=>Object.keys((await R_(n).once('value').catch(()=>null))?.val()||{});
+        const all=(await R_('users').once('value')).val()||{};const up={};
+        Object.entries(all).forEach(([k,v])=>{up[k]=freshUser((v&&v.n)||'Jugador',v&&v.ban)});await R_('users').update(up);
+        for(const n of ['market','trades','battles','feed','rank']){const ks=await kids(n);if(!ks.length)continue;const u2={};ks.forEach(k=>u2[k]=null);await R_(n).update(u2).catch(e=>console.warn('reset',n,e))}
+        DB.ref('salas/mcfdropflips').remove().catch(()=>{});RESET_T=now();await R_('config').update({ep:ECON_EP,epT:RESET_T});ep=ECON_EP}
       CLOSED=ep!==ECON_EP;
       if(!snap.exists()){await R_('users/'+UID).set(freshUser(mcfName(u)));ME.fresh=true}
       else if(!CLOSED&&(snap.val()||{}).ep!==ECON_EP){await R_('users/'+UID).set(freshUser((snap.val()||{}).n||mcfName(u),(snap.val()||{}).ban));ME.fresh=true}
@@ -750,7 +753,7 @@ async function buyListing(lid){const ref=R_('market/'+lid);const s0=await ref.on
   if(!(await spend(L0.p))){await ref.update({b:null,bn:null});return{err:'No tienes créditos suficientes'}}
   const it=dec(L0.it);it.id=uid();await addItems([it]);
   await R_('payouts/'+L0.s).push({a:L0.p,n:itemName(it),bn:ME.n,t:TS()});await ref.remove();return{it}}
-async function claimPayout(s){const v=s.val();if(!v)return;const r=await s.ref.transaction(x=>{if(!x||x.done)return;x.done=true;return x});if(!r.committed)return;
+async function claimPayout(s){const v=s.val();if(!v)return;if(RESET_T&&(v.t||0)<RESET_T){s.ref.remove().catch(()=>{});return}const r=await s.ref.transaction(x=>{if(!x||x.done)return;x.done=true;return x});if(!r.committed)return;
   await addCredits(v.a);await s.ref.remove();emit({sold:v})}
 /* ---------- intercambios ---------- */
 const TRADES={in:{},out:{}};
