@@ -297,6 +297,9 @@ canvas.confetti{position:fixed;inset:0;z-index:95;pointer-events:none}
 .slotbox{min-height:150px;border-radius:16px;border:1px dashed var(--line2);display:grid;place-items:center;color:var(--mu);padding:10px;background:var(--p1)}
 .mults{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
 
+/* cárcel */
+.jail{position:relative;width:150px;height:150px;margin:0 auto;border-radius:20px;background:#1a1b22;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.jail .bars{position:absolute;inset:0;z-index:2;background:repeating-linear-gradient(90deg,transparent 0 16px,#8a8f9c 16px 22px);opacity:.85}
 /* préstamos: contrato en papel */
 .paper{background:#f6f1e3;color:#1d1a14;font-family:Georgia,'Times New Roman',serif;padding:28px 30px;border-radius:4px;box-shadow:0 2px 0 #d8cfb5,0 18px 40px rgba(0,0,0,.45);line-height:1.5;font-size:14px;max-height:62vh;overflow:auto}
 .paper .ph1{text-align:center;font-size:22px;font-weight:700;letter-spacing:.12em}.paper .ph2{text-align:center;font-size:12px;color:#6b6250;margin-bottom:14px;border-bottom:1px solid #cfc5a8;padding-bottom:10px}
@@ -721,7 +724,7 @@ function netInit(onState){
           for(const n of ['market','trades','battles','feed','rank']){try{const ks=Object.keys((await R_(n).once('value')).val()||{});if(ks.length){const u2={};ks.forEach(x=>u2[x]=null);await R_(n).update(u2)}}catch(e){console.warn('reset',n,e)}}
           DB.ref('salas/mcfdropflips').remove().catch(()=>{})}
         await R_('users/'+UID).update({c:START_C,xp:0,lvc:1,ld:0,op:0,best:0,bestN:'',t:TS(),inv:null,freebox:null,rs:null,fbt:null});ME.fresh=true}
-      R_('users/'+UID).on('value',s=>{const v=s.val()||{};ME.n=v.n||mcfName(u);ME.c=v.c||0;ME.xp=v.xp||0;ME.lvc=v.lvc||1;ME.ld=v.ld||0;ME.op=v.op||0;ME.best=v.best||0;ME.bestN=v.bestN||'';ME.ban=!!v.ban;ME.fb=v.freebox||{};ME.rs=v.rs||0;ME.fbt=v.fbt||0;ME.loan=v.loan||null;ME.lh=v.lh||0;
+      R_('users/'+UID).on('value',s=>{const v=s.val()||{};ME.n=v.n||mcfName(u);ME.c=v.c||0;ME.xp=v.xp||0;ME.lvc=v.lvc||1;ME.ld=v.ld||0;ME.op=v.op||0;ME.best=v.best||0;ME.bestN=v.bestN||'';ME.ban=!!v.ban;ME.fb=v.freebox||{};ME.rs=v.rs||0;ME.fbt=v.fbt||0;ME.loan=v.loan||null;ME.lh=v.lh||0;ME.jail=v.jail||null;ME.jc=v.jc||0;
         const inv={},bad={};Object.entries(v.inv||{}).forEach(([k,raw])=>{const it=dec(raw);if(it){it.id=k;inv[k]=it}else bad['inv/'+k]=null});if(Object.keys(bad).length)R_('users/'+UID).update(bad).catch(()=>{});ME.inv=inv;const first=!ME.loaded;ME.loaded=true;emit(first?'first':'me')});
       R_('config').on('value',s=>{CFG=Object.assign({luck:1,disc:0,xp2:0,msg:'',until:0},s.val()||{});emit('cfg')});
       R_('payouts/'+UID).on('child_added',s=>claimPayout(s));
@@ -872,29 +875,46 @@ const LOAN_TICK=4*3600000,LOAN_LATE=.10;
 const LOAN_PLANS=[{k:'p6',n:6,i:.08,t:'Rápido · 1 día'},{k:'p12',n:12,i:.15,t:'Normal · 2 días'},{k:'p24',n:24,i:.28,t:'Largo · 4 días'}];
 function netWorth(){return ME.c+Object.values(ME.inv).reduce((a,it)=>a+itemValue(it),0)}
 function loanLimit(){const l=levelOf(ME.xp).l;return Math.max(10000,Math.min(5000000,Math.round(30000+l*20000+netWorth()*.5)))}
+const num=x=>typeof x==='number'&&isFinite(x);
+const loanOk=x=>!!x&&num(x.tot)&&x.tot>0&&num(x.n)&&x.n>0&&num(x.q)&&x.q>0&&num(x.t0)&&x.t0>0;
 async function takeLoan(amt,plan,sig){const P=LOAN_PLANS.find(p=>p.k===plan);amt=Math.round(amt);if(!P||amt<1000||amt>loanLimit())return{err:'Cantidad no válida'};
-  const tot=Math.round(amt*(1+P.i));const L={p:amt,tot,n:P.n,q:Math.ceil(tot/P.n),paid:0,ar:0,col:0,t0:Date.now()+TOFF,pl:P.k,i:P.i,sig:sig||'',sn:ME.n};
-  const tr=await R_('users/'+UID+'/loan').transaction(x=>{if(x)return;return L});if(!tr.committed)return{err:'Ya tienes un préstamo activo'};await addCredits(amt);return{ok:1}}
-/* cobra del saldo; si no llega, embarga artículos; si aún falta, queda como atraso con recargo */
+  if(jailed())return{err:'Estás en la cárcel'};
+  const tot=Math.round(amt*(1+P.i));const L={p:amt,tot,n:P.n,q:Math.ceil(tot/P.n),paid:0,ar:0,col:0,t0:now(),pl:P.k,i:P.i,sig:sig||'',sn:ME.n};
+  const tr=await R_('users/'+UID+'/loan').transaction(x=>{if(x===null)return L;if(loanOk(x))return;return L});
+  if(!tr.committed||tr.snapshot.val().t0!==L.t0)return{err:'Ya tienes un préstamo activo'};await addCredits(amt);return{ok:1}}
+/* arregla préstamos rotos (de versiones anteriores) y los pasa al sistema de cuotas actual */
+async function loanRepair(){const x=ME.loan;if(!x||loanOk(x))return;
+  if(num(x.p)&&x.p>0){const P=LOAN_PLANS.find(p=>p.k===x.pl)||LOAN_PLANS[1];const tot=Math.max(1,Math.round((num(x.tot)?x.tot:x.p*(1+P.i))-(num(x.col)?x.col:0)));
+    await R_('users/'+UID+'/loan').set({p:x.p,tot,n:P.n,q:Math.ceil(tot/P.n),paid:0,ar:0,col:0,t0:now(),pl:P.k,i:P.i,sig:x.sig||'',sn:x.sn||ME.n});toast('Hemos arreglado tu préstamo: cuotas recalculadas','ok')}
+  else await R_('users/'+UID+'/loan').remove()}
+/* cobra del saldo; si no llega, embarga artículos */
 async function loanCharge(amt){let took=0;await R_('users/'+UID+'/c').transaction(c=>{c=c||0;took=Math.min(c,amt);return c-took});let short=amt-took;const seized=[];
   if(short>0){const its=Object.values(ME.inv).sort((a,b)=>itemValue(a)-itemValue(b));let got=0;const pick=[];for(const it of its){if(got>=short)break;pick.push(it);got+=Math.floor(itemValue(it)*QUICK)}
     if(pick.length){await removeItems(pick.map(i=>i.id));pick.forEach(i=>seized.push(itemName(i)));if(got>short)await addCredits(got-short);short=Math.max(0,short-got)}}
   return{took:amt-short,short,seized}}
 let LOAN_BUSY=false;
-async function loanTick(){const L=ME.loan;if(!UID||!L||LOAN_BUSY)return;LOAN_BUSY=true;try{
-    /* cada 4 h toca una cuota; pasado el plazo, cada 4 h se intenta cobrar lo que quede */
-    const due=Math.floor((now()-L.t0)/LOAN_TICK);const p0=L.paid||0;if(due<=p0)return;
-    const tr=await R_('users/'+UID+'/loan/paid').transaction(p=>{if((p||0)>=due)return;return due});if(!tr.committed)return;
-    const left=L.tot-(L.col||0);const amt=due>=L.n?left:Math.min(left,L.q*Math.min(due-p0,L.n-p0)+(L.ar||0));
+async function loanTick(){if(!UID||!ME.loan||LOAN_BUSY||jailed())return;LOAN_BUSY=true;try{
+    if(!loanOk(ME.loan)){await loanRepair();return}
+    let L=null,due=0,p0=0;
+    const tr=await R_('users/'+UID+'/loan').transaction(x=>{if(x===null)return null;if(!loanOk(x))return;const d=Math.floor((now()-x.t0)/LOAN_TICK);if(d<=(x.paid||0))return;p0=x.paid||0;due=d;x.paid=d;L=x;return x});
+    if(!tr.committed||!L||!tr.snapshot.exists())return;
+    const left=L.tot-(L.col||0);const amt=Math.max(0,due>=L.n?left:Math.min(left,L.q*Math.min(due-p0,L.n-p0)+(L.ar||0)));
     const r=await loanCharge(amt);
     if(left-r.took<=0){await R_('users/'+UID).update({loan:null,lh:(ME.lh||0)+1});toast('Préstamo pagado del todo. ¡Contrato cerrado!','ok');return}
     const extra=Math.round(r.short*LOAN_LATE);await R_('users/'+UID+'/loan').update({col:(L.col||0)+r.took,ar:r.short,tot:L.tot+extra});
     if(r.took)toast('Cuota del préstamo cobrada: −'+fmt(r.took),r.short?'bad':'');
     if(r.seized.length)toast('Embargo: te han quitado '+r.seized.length+' artículo(s) para pagar la cuota','bad');
-    if(r.short)toast('No has podido pagar '+fmt(r.short)+'. Recargo del '+Math.round(LOAN_LATE*100)+' %: +'+fmt(extra),'bad')}catch(e){console.warn('loan',e)}finally{LOAN_BUSY=false}}
-async function loanPayAll(){const L=ME.loan;if(!L)return{err:'No tienes préstamo'};const left=Math.max(0,L.tot-(L.col||0));if(ME.c<left)return{err:'Necesitas '+fmt(left)+' para cancelarlo'};
+    if(r.short){/* sin dinero y sin inventario: juicio */
+      await sleep(400);if(!Object.keys(ME.inv).length&&ME.c<=0){await goToTrial(left-r.took+extra);return}
+      toast('No has podido pagar '+fmt(r.short)+'. Recargo del '+Math.round(LOAN_LATE*100)+' %: +'+fmt(extra),'bad')}}catch(e){console.warn('loan',e)}finally{LOAN_BUSY=false}}
+async function loanPayAll(){const L=ME.loan;if(!loanOk(L))return{err:'No tienes préstamo'};const left=Math.max(0,L.tot-(L.col||0));if(ME.c<left)return{err:'Necesitas '+fmt(left)+' para cancelarlo'};
   if(!(await spend(left)))return{err:'No tienes créditos suficientes'};await R_('users/'+UID).update({loan:null,lh:(ME.lh||0)+1});return{ok:1}}
-setInterval(()=>loanTick(),60000);on(w=>{if(w==='first')setTimeout(loanTick,1500)});
+/* ---------- JUICIO Y CÁRCEL ---------- */
+const jailed=()=>!!(ME.jail&&ME.jail.u>now());
+const jailHours=debt=>Math.min(72,Math.max(6,Math.round(6+debt/10000)));/* 6 h + 1 h por cada 100 € de deuda, máx 72 h */
+async function goToTrial(debt){const h=jailHours(debt);const J={u:now()+h*3600000,h,debt:Math.round(debt),t:now(),n:(ME.jc||0)+1,cn:'MCF-'+String(Math.abs(hashStr(UID+now()))%90000+10000)};
+  await R_('users/'+UID).update({loan:null,jail:J,jc:J.n});ME.jail=J;showGate('jail')}
+setInterval(()=>loanTick(),60000);on(w=>{if(w==='first')setTimeout(()=>{loanRepair().then(loanTick)},1500)});
 const RESCUE=2500,RESCUE_CD=10*60000;
 async function claimRescue(){const inv=Object.values(ME.inv).reduce((a,it)=>a+itemValue(it),0);if(ME.c>=1000||inv>=2000)return{err:'Todavía tienes dinero o artículos'};
   const tr=await R_('users/'+UID+'/rs').transaction(v=>{if(now()-(v||0)<RESCUE_CD)return;return now()});if(!tr.committed)return{err:'Aún no está disponible'};await addCredits(RESCUE);return{ok:1}}
@@ -970,6 +990,16 @@ let ERRMSG='';function showGate(kind,e){if(e)ERRMSG=e&&(e.code||e.message)||e;$(
   if(kind==='loading'){g.innerHTML=`<div class="box"><div class="loader"></div><p style="margin-top:18px">Cargando tu cuenta MCF…</p></div>`;return}
   if(kind==='error'){const perm=/permission|denied/i.test(String(ERRMSG));g.innerHTML=`<div class="box"><h1 style="font-size:34px">Ya has iniciado sesión</h1><p>Hola <b>${esc(FBUSER?mcfName(FBUSER):'')}</b>. Tu cuenta MCF está bien, pero el servidor de MCF Drop ${perm?'no deja guardar todavía: falta publicar las reglas de Firebase de MCF Drop.':'no responde ahora mismo.'}</p><button class="btn pri big" id="gRetry" style="width:100%">Reintentar</button><p style="font-size:12px;margin-top:12px;color:var(--mu2)">${esc(String(ERRMSG).slice(0,140))}</p><a class="btn" href="../">← Volver a MCF Games</a></div>`;$('#gRetry').onclick=()=>location.reload();return}
   if(kind==='closed'){g.innerHTML=`<div class="box"><div style="font-size:64px">🔧</div><h1 style="font-size:34px">MCF Drop está cerrado temporalmente</h1><p>Por culpa de <b>Gonza</b> y <b>Yassirr</b>, los servidores de MCF tienen que resetearse.<br>Volveremos pronto.</p><a class="btn" href="../">← Volver a MCF Games</a></div>`;return}
+  if(kind==='jail'){const J=ME.jail||{};const tick=()=>{const l=Math.max(0,(J.u||0)-now());if(!l){location.reload();return}const h=Math.floor(l/3600000),m=Math.floor(l%3600000/60000),s=Math.floor(l%60000/1000);const e=$('#jcd');if(e){e.textContent=`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;setTimeout(tick,1000)}};
+    g.innerHTML=`<div class="box" style="max-width:560px"><div class="jail"><div class="bars"></div><div style="font-size:70px;position:relative">🧑‍⚖️</div></div>
+    <h1 style="font-size:30px;margin-top:10px">Sentencia: CULPABLE</h1>
+    <div class="paper" style="text-align:left;margin:14px 0;max-height:none"><div class="ph1">JUZGADO DE MCF DROP</div><div class="ph2">Causa nº ${esc(J.cn||'')} · ${new Date(J.t||now()).toLocaleString('es-ES')}</div>
+      <p>El acusado <b>${esc(ME.n)}</b> firmó un contrato de préstamo con <b>MCF Drop Banca</b> y no ha pagado sus cuotas. Se le embargó todo el inventario y aun así quedó una deuda de <b>${fmt(J.debt||0)}</b>.</p>
+      <p>Este tribunal le declara <b>CULPABLE de impago</b> y le condena a <b>${J.h} horas de cárcel</b>. Durante la condena no podrá abrir cajas, apostar, comerciar ni pedir préstamos. La deuda queda saldada al cumplir la pena.</p>
+      ${J.n>1?`<p><b>Reincidente:</b> es su condena nº ${J.n}.</p>`:''}
+      <div class="sigrow"><div><div class="sigbox" style="font-family:'Brush Script MT',cursive;font-size:30px">El Juez</div><small>Firma del juez</small></div><div><div class="sigbox stamp">MCF<br>JUZGADO</div><small>Sello</small></div></div></div>
+    <p>Sales en libertad en</p><div id="jcd" style="font-size:44px;font-weight:900;font-variant-numeric:tabular-nums">--:--:--</div>
+    <a class="btn" href="../" style="margin-top:14px">← Volver a MCF Games</a></div>`;tick();return}
   if(kind==='ban'){g.innerHTML=`<div class="box"><h1>Cuenta bloqueada</h1><p>Un administrador ha bloqueado tu cuenta en MCF Drop.</p><a class="btn" href="../">← MCF Games</a></div>`;return}
   const demo=CATL.filter(c=>c.r>=3).sort(()=>Math.random()-.5).slice(0,12);const cells=demo.concat(demo).map(c=>`<div style="--rc:${rc(c.r)}">${imgTag({w:c.w,s:c.s,f:.1})}</div>`).join('');
   g.innerHTML=`<div class="box"><canvas class="logo" id="gLogo" width="240" height="240"></canvas>${LOGO_SVG}
@@ -1358,11 +1388,12 @@ function paperHTML(o){const d=new Date(o.t0||now());const fecha=d.toLocaleDateSt
   <li><b>Intereses.</b> Interés fijo del <b>${Math.round(o.i*100)} %</b>. Total a devolver: <b>${fmt(o.tot)}</b>.</li>
   <li><b>Cuotas.</b> ${o.n} cuotas de <b>${fmt(Math.ceil(o.tot/o.n))}</b>, cobradas <b>automáticamente cada 4 horas</b> desde la firma (${P?P.t:''}).</li>
   <li><b>Impago.</b> Si el saldo no alcanza, se <b>embargarán artículos del inventario</b> (los de menor valor primero). La parte no cubierta pasa a atraso con un <b>recargo del ${Math.round(LOAN_LATE*100)} %</b> por cuota.</li>
+  <li><b>Juicio.</b> Si no queda ni saldo ni inventario para pagar, el prestatario será <b>juzgado y enviado a la cárcel</b> de 6 a 72 horas según la deuda, sin poder jugar.</li>
   <li><b>Cancelación.</b> Puede devolverse todo lo pendiente en cualquier momento sin penalización.</li>
   <li><b>Exclusividad.</b> Solo puede existir un préstamo activo por prestatario.</li></ol>
   <div class="sigrow"><div><div class="sigbox">${o.sig?`<img src="${o.sig}" alt="firma">`:'<canvas id="sigc" width="520" height="150"></canvas>'}</div><small>Firma del prestatario</small></div>
   <div><div class="sigbox stamp">MCF<br>BANCA</div><small>Sello del prestamista</small></div></div></div>`}
-function pageLoans(){const v=$('#view');const L=ME.loan;
+function pageLoans(){const v=$('#view');const L=loanOk(ME.loan)?ME.loan:null;if(ME.loan&&!L)loanRepair();
   if(L){const left=loanLeft(L);const next=Math.max(0,L.t0+(L.paid+1)*LOAN_TICK-now());const h=Math.floor(next/3600000),m=Math.floor(next%3600000/60000);
     v.innerHTML=`<div class="h1"><div><h2>Préstamos</h2><p>Tienes un préstamo activo. Las cuotas se cobran solas cada 4 horas.</p></div></div>
     <div class="panel" style="padding:18px"><div class="row wrap" style="gap:22px">
@@ -1387,7 +1418,7 @@ function pageLoans(){const v=$('#view');const L=ME.loan;
   $('#lAmt').oninput=e=>{LN.amt=+e.target.value;upd()};$$('[data-pl]').forEach(b=>b.onclick=()=>{LN.plan=b.dataset.pl;pageLoans()});
   $('#lGo').onclick=()=>signLoan()}
 function signLoan(){const P=LOAN_PLANS.find(p=>p.k===LN.plan);const o={p:LN.amt,tot:Math.round(LN.amt*(1+P.i)),n:P.n,i:P.i,pl:P.k,t0:now(),sn:ME.n};
-  modal(paperHTML(o)+`<label class="row" style="margin:14px 0;gap:8px;align-items:flex-start"><input type="checkbox" id="lRead"><span>He leído el contrato y acepto que las cuotas se cobren solas cada 4 horas y que me puedan embargar artículos.</span></label>
+  modal(paperHTML(o)+`<label class="row" style="margin:14px 0;gap:8px;align-items:flex-start"><input type="checkbox" id="lRead"><span>He leído el contrato y acepto que las cuotas se cobren solas cada 4 horas, que me puedan embargar artículos y que si no pago puedo ir a la cárcel.</span></label>
     <div class="row"><button class="btn" id="lClr">Borrar firma</button><span class="grow"></span><button class="btn pri" id="lSign" disabled>Firmar y recibir ${fmt(o.p)}</button></div>`,'mid');
   const c=$('#sigc'),x=c.getContext('2d');x.lineWidth=3;x.lineCap='round';x.strokeStyle='#14306e';let drawing=false,len=0,lp=null;
   const pos=e=>{const r=c.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return[(t.clientX-r.left)*c.width/r.width,(t.clientY-r.top)*c.height/r.height]};
@@ -1463,7 +1494,7 @@ function admDraw(){const U=ADMS.users;const L=Object.entries(U).filter(([u,x])=>
     <h4 style="margin-top:14px">Dar artículo</h4><div class="row wrap"><select class="inp" id="agi" style="max-width:260px">${CATL.slice().sort((a,b)=>b.r-a.r||(WPN[a.w].n+SKIN[a.s].n).localeCompare(WPN[b.w].n+SKIN[b.s].n)).map(c=>`<option value="${c.k}">${isGold(c.w)?'★ ':''}${esc(WPN[c.w].n)} | ${esc(SKIN[c.s].n)} (${RAR[c.r].n} · ${DEF[c.w].usd} $)</option>`).join('')}</select>
       <select class="inp" id="agw">${WEAR.map((W,i)=>`<option value="${i}">${W.n}</option>`).join('')}</select><label class="tog" id="agst"><i></i>ST™</label><button class="btn sm pri" id="ag">Dar</button><button class="btn sm" id="agall">Uno de cada ★ (cuchillos y guantes)</button><button class="btn sm" id="agjk">Todas las joyas +1.000 $</button></div>
     <h4 style="margin-top:14px">Cajas gratis</h4><div class="row wrap"><select class="inp" id="afb">${CASES.map(c=>`<option value="${c.id}">${esc(c.n)}</option>`).join('')}</select><button class="btn sm" data-fb="1">+1</button><button class="btn sm" data-fb="10">+10</button></div>
-    <h4 style="margin-top:14px">Moderación</h4><div class="row wrap"><button class="btn sm ${sel.ban?'ok':'bad'}" id="aban" ${ADMS.u===UID?'disabled':''}>${sel.ban?'Desbloquear':'Bloquear'}</button><button class="btn sm bad" id="arst">Reiniciar cuenta</button><button class="btn sm bad" id="adel" ${ADMS.u===UID?'disabled':''}>Eliminar jugador</button>
+    <h4 style="margin-top:14px">Moderación</h4><div class="row wrap"><button class="btn sm ${sel.ban?'ok':'bad'}" id="aban" ${ADMS.u===UID?'disabled':''}>${sel.ban?'Desbloquear':'Bloquear'}</button><button class="btn sm bad" id="arst">Reiniciar cuenta</button>${sel.jail&&sel.jail.u>now()?'<button class="btn sm ok" id="ajail">Sacar de la cárcel</button>':''}${sel.loan?'<button class="btn sm" id="aloan">Borrar préstamo</button>':''}<button class="btn sm bad" id="adel" ${ADMS.u===UID?'disabled':''}>Eliminar jugador</button>
       <button class="btn sm ${ADMS.staff[ADMS.u]?'bad':''}" id="astf" ${ADMS.u===UID?'disabled':''}>${ADMS.staff[ADMS.u]?'Quitar permisos de admin':'Hacer admin (acceso total)'}</button></div></div>
   <div class="card"><h4>Últimas 2 ruletas del mejorador de ${esc(sel.n||'?')}</h4><div class="row wrap" style="gap:14px;align-items:flex-start">${Object.values(sel.sp||{}).sort((a,b)=>b.t-a.t).slice(0,2).map(r=>`<div style="flex:1;min-width:220px;max-width:320px">
       ${r.img?`<img src="${r.img}" style="width:100%;border-radius:12px;display:block" alt="ruleta">`:''}<div style="margin-top:8px;font-size:13px;line-height:1.5"><b>${esc(r.n||'?')}</b> · ${new Date(r.t).toLocaleString('es-ES')}<br>
@@ -1480,6 +1511,7 @@ function admDraw(){const U=ADMS.users;const L=Object.entries(U).filter(([u,x])=>
   const U_=ADMS.u;const re=async()=>{const s=await R_('users/'+U_).once('value');ADMS.users[U_]=s.val()||{};admDraw();pumpImgs()};
   let qt;$('#aq').oninput=e=>{clearTimeout(qt);qt=setTimeout(()=>{ADMS.q=e.target.value.toLowerCase();admDraw();const q=$('#aq');q.focus();q.setSelectionRange(q.value.length,q.value.length)},250)};
   $$('[data-au]').forEach(b=>b.onclick=()=>{ADMS.u=b.dataset.au;admDraw();pumpImgs()});
+  if($('#ajail'))$('#ajail').onclick=async()=>{await R_('users/'+U_+'/jail').remove();toast('Liberado','ok');re()};if($('#aloan'))$('#aloan').onclick=async()=>{await R_('users/'+U_+'/loan').remove();toast('Préstamo borrado','ok');re()};
   $$('[data-ac]').forEach(b=>b.onclick=async()=>{await ADM.credits(U_,+b.dataset.ac);toast('Créditos añadidos','ok');re()});
   $('#acs').onclick=async()=>{const v=Math.round(+$('#acv').value*100);if(v>=0){await ADM.setCredits(U_,v);toast('Créditos fijados','ok');re()}};
   let ast=0;$('#agst').onclick=()=>{ast=ast?0:1;$('#agst').classList.toggle('on',!!ast)};
@@ -1502,7 +1534,7 @@ document.addEventListener('pointerdown',()=>SND.init(),{once:true});
 function boot(){showGate('loading');
   if(!window.firebase){showGate('out');$('#gate p').innerHTML='No se ha podido conectar con el servidor. Comprueba tu conexión y recarga.';return}
   netInit((st,e)=>{if(st==='out')showGate('out');else if(st==='loading')showGate('loading');else if(st==='error')showGate('error',e)});
-  on(w=>{if(w==='first'){if(CLOSED&&!ROOTADMIN){showGate('closed');return}if(ME.ban){showGate('ban');return}showApp();if(ME.fresh){setTimeout(()=>modal(`<div class="lvup"><div class="ring">🎁</div><h3>¡Bienvenido a MCF Drop, ${esc(ME.n)}!</h3><p class="mu">Te regalamos <span class="cr">${fmt(START_C)}</span> para empezar. Abre tu primera caja, gira la rueda diaria y sube de nivel para ganar más.</p><a class="btn pri" href="#caja/${CASES[6].id}" data-close style="margin-top:14px">Abrir mi primera caja</a></div>`),600)}}})}
+  on(w=>{if(w==='first'){if(CLOSED&&!ROOTADMIN){showGate('closed');return}if(ME.ban){showGate('ban');return}if(jailed()){showGate('jail');return}showApp();if(ME.fresh){setTimeout(()=>modal(`<div class="lvup"><div class="ring">🎁</div><h3>¡Bienvenido a MCF Drop, ${esc(ME.n)}!</h3><p class="mu">Te regalamos <span class="cr">${fmt(START_C)}</span> para empezar. Abre tu primera caja, gira la rueda diaria y sube de nivel para ganar más.</p><a class="btn pri" href="#caja/${CASES[6].id}" data-close style="margin-top:14px">Abrir mi primera caja</a></div>`),600)}}})}
 boot();
 
 /* ---------- APUESTAS 1 contra 1 ---------- */
