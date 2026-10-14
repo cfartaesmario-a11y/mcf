@@ -297,6 +297,17 @@ canvas.confetti{position:fixed;inset:0;z-index:95;pointer-events:none}
 .slotbox{min-height:150px;border-radius:16px;border:1px dashed var(--line2);display:grid;place-items:center;color:var(--mu);padding:10px;background:var(--p1)}
 .mults{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
 
+/* sorteos */
+.rfg{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.rfc{position:relative;padding:16px;border-radius:18px;background:linear-gradient(180deg,var(--p2),var(--p1));border:1px solid var(--line);text-align:center;display:flex;flex-direction:column;gap:6px}
+.rfc:not(.off){border-color:rgba(255,201,60,.5);box-shadow:0 0 0 1px rgba(255,201,60,.2),0 12px 40px rgba(255,180,0,.12)}
+.rfc.off{opacity:.8}.rfc h3{font-size:19px;font-weight:850}
+.rft{display:flex;justify-content:center}.rft .live{color:#ff4d4d;font-weight:800;font-size:11px;letter-spacing:.1em;animation:blink 1.2s steps(2) infinite}.rft .done{color:var(--mu);font-weight:800;font-size:11px;letter-spacing:.1em}
+.rfi{height:130px;display:flex;align-items:center;justify-content:center}.rfi img{max-height:130px;max-width:100%;object-fit:contain;filter:drop-shadow(0 10px 20px rgba(0,0,0,.5))}
+.rfp{font-weight:800;color:var(--gold)}.rfm{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:center;font-size:13px;color:var(--mu);margin:4px 0}
+.rfcd{font-family:ui-monospace,monospace;font-size:20px;font-weight:800;margin:4px 0}.rfw{padding:10px;border-radius:12px;background:rgba(255,201,60,.12);margin-top:4px}
+.rfroll{font-size:38px;font-weight:900;margin:24px 0;min-height:50px;font-family:ui-monospace,monospace}.rfroll.win{color:var(--gold);transform:scale(1.15);transition:transform .3s;text-shadow:0 0 20px rgba(255,201,60,.6)}
+@keyframes blink{50%{opacity:.25}}
 /* cárcel */
 .prison{position:fixed;inset:0;overflow:auto;background:radial-gradient(ellipse at 50% 0%,#2a2d38 0%,#0d0e13 70%);z-index:5;display:flex;justify-content:center;padding:24px 14px}
 .prison .wall{position:fixed;inset:0;pointer-events:none;opacity:.18;background-image:linear-gradient(#000 2px,transparent 2px),linear-gradient(90deg,#000 2px,transparent 2px),linear-gradient(90deg,#000 2px,transparent 2px);background-size:80px 40px,80px 40px,80px 40px;background-position:0 0,0 0,40px 20px}
@@ -750,7 +761,7 @@ function netInit(onState){
           for(const n of ['market','trades','battles','feed','rank']){try{const ks=Object.keys((await R_(n).once('value')).val()||{});if(ks.length){const u2={};ks.forEach(x=>u2[x]=null);await R_(n).update(u2)}}catch(e){console.warn('reset',n,e)}}
           DB.ref('salas/mcfdropflips').remove().catch(()=>{})}
         await R_('users/'+UID).update({c:START_C,xp:0,lvc:1,ld:0,op:0,best:0,bestN:'',t:TS(),inv:null,freebox:null,rs:null,fbt:null});ME.fresh=true}
-      R_('users/'+UID).on('value',s=>{const v=s.val()||{};ME.n=v.n||mcfName(u);ME.c=v.c||0;ME.xp=v.xp||0;ME.lvc=v.lvc||1;ME.ld=v.ld||0;ME.op=v.op||0;ME.best=v.best||0;ME.bestN=v.bestN||'';ME.ban=!!v.ban;ME.fb=v.freebox||{};ME.rs=v.rs||0;ME.fbt=v.fbt||0;ME.loan=v.loan||null;ME.lh=v.lh||0;ME.jail=v.jail||null;ME.jc=v.jc||0;
+      R_('users/'+UID).on('value',s=>{const v=s.val()||{};ME.n=v.n||mcfName(u);ME.c=v.c||0;ME.xp=v.xp||0;ME.lvc=v.lvc||1;ME.ld=v.ld||0;ME.op=v.op||0;ME.best=v.best||0;ME.bestN=v.bestN||'';ME.ban=!!v.ban;ME.fb=v.freebox||{};ME.rs=v.rs||0;ME.fbt=v.fbt||0;ME.loan=v.loan||null;ME.lh=v.lh||0;ME.rf=v.rf||{};ME.jail=v.jail||null;ME.jc=v.jc||0;
         const inv={},bad={};Object.entries(v.inv||{}).forEach(([k,raw])=>{const it=dec(raw);if(it){it.id=k;inv[k]=it}else bad['inv/'+k]=null});if(Object.keys(bad).length)R_('users/'+UID).update(bad).catch(()=>{});ME.inv=inv;const first=!ME.loaded;ME.loaded=true;emit(first?'first':'me')});
       R_('config').on('value',s=>{CFG=Object.assign({luck:1,disc:0,xp2:0,msg:'',until:0},s.val()||{});emit('cfg')});
       R_('payouts/'+UID).on('child_added',s=>claimPayout(s));
@@ -936,6 +947,49 @@ async function loanTick(){if(!UID||!ME.loan||LOAN_BUSY||jailed())return;LOAN_BUS
       toast('No has podido pagar '+fmt(r.short)+'. Recargo del '+Math.round(LOAN_LATE*100)+' %: +'+fmt(extra),'bad')}}catch(e){console.warn('loan',e)}finally{LOAN_BUSY=false}}
 async function loanPayAll(){const L=ME.loan;if(!loanOk(L))return{err:'No tienes préstamo'};const left=Math.max(0,L.tot-(L.col||0));if(ME.c<left)return{err:'Necesitas '+fmt(left)+' para cancelarlo'};
   if(!(await spend(left)))return{err:'No tienes créditos suficientes'};await R_('users/'+UID).update({loan:null,lh:(ME.lh||0)+1});return{ok:1}}
+/* ---------- SORTEOS (los crea el admin) ---------- */
+const RAFS=()=>Object.entries((CFG&&CFG.raffles)||{}).map(([id,r])=>({...r,id})).filter(r=>r&&r.n);
+const rfPrizeTxt=p=>!p?'?':p.k==='c'?fmt(p.v):p.k==='box'?`${p.q||1}× ${esc((CASE[p.id]||{}).n||'Caja')}`:p.k==='it'?esc(itemName({w:p.w,s:p.w,f:(WEAR[p.wi||0].a+WEAR[p.wi||0].b)/2,st:p.st})):'?';
+const rfPrizeVal=p=>!p?0:p.k==='c'?p.v:p.k==='box'?casePrice(CASE[p.id]||{price:0})*(p.q||1):p.k==='it'?itemValue({w:p.w,s:p.w,f:(WEAR[p.wi||0].a+WEAR[p.wi||0].b)/2,st:p.st}):0;
+let RF_USERS=null,RF_T=0;async function rfUsers(force){if(!force&&RF_USERS&&Date.now()-RF_T<20000)return RF_USERS;const s=await R_('users').once('value');RF_USERS=s.val()||{};RF_T=Date.now();return RF_USERS}
+const rfEntrants=(U,id)=>Object.entries(U).filter(([u,x])=>x&&x.rf&&x.rf[id]&&!x.ban).map(([u,x])=>({u,n:x.n||'?',k:x.rf[id]===true?1:+x.rf[id]||1}));
+async function rfJoin(r,k){k=Math.max(1,Math.min(r.max||1,k||1));if(jailed())return{err:'Estás en la cárcel'};if(r.st!=='open'||now()>r.end)return{err:'El sorteo ya ha cerrado'};
+  if(levelOf(ME.xp).l<(r.lv||0))return{err:'Necesitas nivel '+r.lv};const have=+((ME.rf||{})[r.id]||0);const add=k-have;if(add<=0)return{err:'Ya tienes esas participaciones'};
+  if(r.cost&&!(await spend(r.cost*add)))return{err:'No tienes créditos suficientes'};await R_('users/'+UID+'/rf/'+r.id).set(k);RF_T=0;return{ok:1}}
+async function rfDraw(id){const ref=R_('config/raffles/'+id);const s=await ref.once('value');const r=s.val();if(!r||r.st!=='open')return{err:'Ya está sorteado'};
+  const U=await rfUsers(true);const E=rfEntrants(U,id);if(!E.length){await ref.update({st:'end',w:null,wn:'Nadie participó',np:0});return{ok:1}}
+  const tot=E.reduce((a,e)=>a+e.k,0);let x=rnd()*tot,win=E[E.length-1];for(const e of E){x-=e.k;if(x<=0){win=e;break}}
+  const tr=await ref.transaction(R0=>{if(!R0||R0.st!=='open')return;R0.st='end';R0.w=win.u;R0.wn=win.n;R0.np=E.length;R0.tk=tot;R0.dt=now();return R0});if(!tr.committed)return{err:'Ya está sorteado'};
+  const p=r.pz||{};if(p.k==='c')await ADM.credits(win.u,p.v);else if(p.k==='box')await ADM.freebox(win.u,p.id,p.q||1);
+  else if(p.k==='it'){const W=WEAR[p.wi||0];await ADM.give(win.u,{id:uid(),w:p.w,s:p.w,f:+(W.a+(W.b-W.a)*rnd()).toFixed(5),st:p.st?1:0,o:'regalo',t:Date.now()})}
+  return{ok:1,win}}
+/* si hay un admin conectado, los sorteos acabados se sortean solos */
+setInterval(()=>{if(!STAFF||!UID)return;RAFS().filter(r=>r.st==='open'&&now()>r.end).slice(0,1).forEach(r=>rfDraw(r.id).then(()=>{if(ROUTE==='sorteos')softRefresh()}))},20000);
+function raffleWinCheck(){if(!UID)return;RAFS().filter(r=>r.st==='end'&&r.w===UID&&!LSG('rfw.'+r.id,false)).slice(0,1).forEach(r=>{LSS('rfw.'+r.id,true);setTimeout(()=>{SND.lvl();celebrate(6);
+  modal(`<div class="lvup"><div class="ring">🎉</div><h3>¡Has ganado el sorteo!</h3><p class="mu">«${esc(r.n)}»</p><p style="font-size:20px;font-weight:850;margin:10px 0">${rfPrizeTxt(r.pz)}</p><p class="mu">Ya está en tu cuenta.</p><button class="btn pri" data-close style="margin-top:12px">¡Genial!</button></div>`)},800)})}
+function rfCountdown(t){const l=Math.max(0,t-now());const d=Math.floor(l/86400000),h=Math.floor(l%86400000/3600000),m=Math.floor(l%3600000/60000),s=Math.floor(l%60000/1000);return l?(d?d+' d ':'')+h+' h '+String(m).padStart(2,'0')+' min '+String(s).padStart(2,'0')+' s':'Cerrado'}
+async function pageRaffles(){const v=$('#view');const L=RAFS().sort((a,b)=>(a.st==='open'?0:1)-(b.st==='open'?0:1)||(a.st==='open'?a.end-b.end:(b.dt||0)-(a.dt||0)));
+  v.innerHTML=`<div class="h1"><div><h2>Sorteos</h2><p>Sorteos organizados por los admins. Apúntate antes de que se acabe el tiempo.</p></div></div><div id="rfl">${L.length?'<div class="loader"></div>':'<div class="empty panel">Ahora mismo no hay sorteos. ¡Vuelve pronto!</div>'}</div>`;
+  if(!L.length)return;const U=await rfUsers();if(ROUTE!=='sorteos')return;
+  $('#rfl').innerHTML=`<div class="rfg">${L.map(r=>{const E=rfEntrants(U,r.id);const tk=E.reduce((a,e)=>a+e.k,0);const mine=+((ME.rf||{})[r.id]||0);const open=r.st==='open'&&now()<r.end;const p=r.pz||{};
+    const img=p.k==='it'?`<img src="${itemSrcBig(p.w)}" alt="">`:p.k==='box'&&CASE[p.id]?`<img src="${renderCase(CASE[p.id])}" alt="">`:`<div style="font-size:64px">💰</div>`;
+    return`<div class="rfc ${open?'':'off'}"><div class="rft">${open?'<span class="live">● EN DIRECTO</span>':r.st==='end'?'<span class="done">FINALIZADO</span>':'<span class="done">ESPERANDO SORTEO</span>'}</div>
+      <div class="rfi">${img}</div><h3>${esc(r.n)}</h3><div class="rfp">${rfPrizeTxt(p)} <small class="mu">(${fmt(rfPrizeVal(p))})</small></div>
+      ${r.d?`<p class="mu" style="font-size:13px">${esc(r.d)}</p>`:''}
+      <div class="rfm"><span>👥 ${E.length} jugadores</span><span>🎟️ ${tk} papeletas</span>${r.cost?`<span>Entrada <b class="cr">${fmt(r.cost)}</b></span>`:'<span><b style="color:var(--ok)">GRATIS</b></span>'}${r.lv?`<span>Nivel ${r.lv}+</span>`:''}</div>
+      ${r.st==='end'?`<div class="rfw">🏆 Ganador: <b>${esc(r.wn||'—')}</b>${r.w===UID?' (¡tú!)':''}</div>`:
+      `<div class="rfcd" data-end="${r.end}">${rfCountdown(r.end)}</div>${mine?`<div class="mu" style="font-size:13px;margin-bottom:6px">Tienes ${mine} papeleta${mine>1?'s':''}${tk?` · ${(mine/tk*100).toFixed(1)} % de ganar`:''}</div>`:''}
+      ${open?(mine<(r.max||1)?`<button class="btn pri" style="width:100%" data-rfj="${r.id}">${mine?'Comprar otra papeleta':'Participar'}${r.cost?' · '+fmt(r.cost):''}</button>`:'<button class="btn" style="width:100%" disabled>✓ Ya participas</button>'):'<button class="btn" style="width:100%" disabled>Inscripción cerrada</button>'}`}
+      ${STAFF&&r.st==='open'?`<button class="btn bad sm" style="width:100%;margin-top:8px" data-rfd="${r.id}">Sortear ahora (admin)</button>`:''}</div>`}).join('')}</div>`;
+  $$('[data-rfj]').forEach(b=>b.onclick=async()=>{b.disabled=true;const r=L.find(x=>x.id===b.dataset.rfj);const res=await rfJoin(r,+((ME.rf||{})[r.id]||0)+1);if(res.err){toast(res.err,'bad');b.disabled=false;return}SND.coin();toast('¡Estás dentro del sorteo!','ok');pageRaffles()});
+  $$('[data-rfd]').forEach(b=>b.onclick=()=>rfDrawShow(b.dataset.rfd));
+  const iv=setInterval(()=>{if(ROUTE!=='sorteos'){clearInterval(iv);return}$$('.rfcd').forEach(e=>e.textContent=rfCountdown(+e.dataset.end))},1000);PAGE_OFF.push(()=>clearInterval(iv))}
+/* animación del sorteo (admin) */
+async function rfDrawShow(id){const U=await rfUsers(true);const E=rfEntrants(U,id);const r=RAFS().find(x=>x.id===id);if(!r)return;
+  if(!E.length){await rfDraw(id);toast('Nadie participó','bad');pageRaffles();return}
+  modal(`<div class="lvup"><h3>Sorteando «${esc(r.n)}»</h3><div class="rfroll" id="rfroll">…</div><p class="mu" id="rfmsg">${E.length} jugadores en el bombo</p></div>`,'mid');
+  const res=await rfDraw(id);if(res.err){closeModal();toast(res.err,'bad');return}
+  const el=$('#rfroll');let k=0,d=40;const names=E.map(e=>e.n);const spin=()=>{if(!el)return;el.textContent=names[k++%names.length];SND.tick();d*=1.09;if(d<420)setTimeout(spin,d);else{el.textContent=res.win.n;el.classList.add('win');SND.lvl();celebrate(6);$('#rfmsg').innerHTML=`🏆 Gana <b>${esc(res.win.n)}</b> · ${rfPrizeTxt(r.pz)}`;pageRaffles()}};spin()}
 /* ---------- JUICIO Y CÁRCEL ---------- */
 const jailed=()=>!!(ME.jail&&ME.jail.u>now());
 const jailHours=debt=>Math.min(72,Math.max(6,Math.round(6+debt/10000)));/* 6 h + 1 h por cada 100 € de deuda, máx 72 h */
@@ -999,6 +1053,7 @@ function celebrate(r){const col=RAR[r].c;if(r>=4){const f=document.createElement
 
 /* ---------- iconos ---------- */
 const IC={
+raffle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 10h18v4H3zM5 14h14v7H5zM12 10v11M12 10c-2-4-6-5-6-2s4 2 6 2c2 0 6 1 6-2s-4-2-6 2"/></svg>',
   cases:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 8l9-4 9 4v9l-9 4-9-4z"/><path d="M3 8l9 4 9-4M12 12v9"/></svg>',
   battle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l9 9M4 4h4M4 4v4M20 4l-9 9M20 4h-4M20 4v4M7 17l-3 3M17 17l3 3M9 15l-2 2M15 15l2 2"/></svg>',
   market:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 9l1.5-5h13L20 9M4 9h16v11H4zM9 20v-6h6v6"/></svg>',
@@ -1010,7 +1065,7 @@ const IC={
   admin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
   coin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="9" ry="9"/><path d="M9 9.5c.5-1 1.6-1.5 3-1.5 1.7 0 3 .9 3 2.2 0 2.8-6 1.6-6 4.4 0 1.3 1.3 2.2 3 2.2 1.4 0 2.5-.5 3-1.5M12 6v12"/></svg>',
   more:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>'};
-const NAV=[['cajas','Cajas','cases'],['batallas','Batallas','battle'],['apuestas','Apuestas','coin'],['mercado','Mercado','market'],['intercambios','Intercambios','trade'],['mejorador','Mejorador','up'],['prestamos','Préstamos','contract'],['inventario','Inventario','inv'],['ranking','Ranking','rank']];
+const NAV=[['cajas','Cajas','cases'],['batallas','Batallas','battle'],['apuestas','Apuestas','coin'],['mercado','Mercado','market'],['intercambios','Intercambios','trade'],['mejorador','Mejorador','up'],['prestamos','Préstamos','contract'],['inventario','Inventario','inv'],['sorteos','Sorteos','raffle'],['ranking','Ranking','rank']];
 
 /* ---------- arranque y puerta ---------- */
 let ERRMSG='';function showGate(kind,e){if(e)ERRMSG=e&&(e.code||e.message)||e;$('#app').classList.add('hide');const g=$('#gate');g.classList.remove('hide');
@@ -1081,14 +1136,15 @@ addEventListener('hashchange',()=>route());
 function route(){if($('#app').classList.contains('hide'))return;const h=(location.hash||'#cajas').slice(1);const[p,a]=h.split('/');ROUTE=p;
   $$('[data-r]').forEach(x=>x.classList.toggle('on',x.dataset.r===p||(p==='caja'&&x.dataset.r==='cajas')||(p==='batalla'&&x.dataset.r==='batallas')));
   stopPageListeners();BUSY=false;const v=$('#view');v.innerHTML='';window.scrollTo(0,0);
-  ({cajas:pageCases,caja:()=>pageCase(a),apuestas:pageFlips,inventario:pageInventory,mercado:()=>pageMarket(a),intercambios:pageTrades,batallas:pageBattles,batalla:()=>pageBattle(a),mejorador:pageUpgrader,prestamos:pageLoans,ranking:pageRanking,admin:pageAdmin,mas:pageMore}[p]||pageCases)();pumpImgs()}
+  ({cajas:pageCases,caja:()=>pageCase(a),apuestas:pageFlips,inventario:pageInventory,mercado:()=>pageMarket(a),intercambios:pageTrades,batallas:pageBattles,batalla:()=>pageBattle(a),mejorador:pageUpgrader,prestamos:pageLoans,sorteos:pageRaffles,ranking:pageRanking,admin:pageAdmin,mas:pageMore}[p]||pageCases)();pumpImgs()}
 let PAGE_OFF=[];function pageListen(ref,ev,fn){ref.on(ev,fn);PAGE_OFF.push(()=>ref.off(ev,fn))}
 function stopPageListeners(){PAGE_OFF.forEach(f=>{try{f()}catch(e){}});PAGE_OFF=[]}
 function refresh(){if(BUSY){DIRTY=true;return}const y=scrollY;route();window.scrollTo(0,y)}
 on(w=>{if(!ME.loaded||$('#app').classList.contains('hide'))return;
   if(w==='me'){updateHeader();if(['inventario','prestamos','mejorador'].includes(ROUTE)&&!$('#modal'))softRefresh()}
   if(w==='trades'){updateHeader();if(ROUTE==='intercambios'&&!$('#modal'))softRefresh()}
-  if(w==='cfg'&&ROUTE==='cajas')softRefresh();
+  if(w==='cfg'&&(ROUTE==='cajas'||ROUTE==='sorteos')&&!$('#modal'))softRefresh();
+  if(w==='cfg'||w==='first')raffleWinCheck();
   if(w&&w.levelUp)setTimeout(()=>levelUpModal(w),BUSY?3500:300);
   if(w&&w.sold){SND.coin();toast(`💰 <b>${esc(w.sold.bn)}</b> ha comprado tu ${esc(w.sold.n)} por <span class="cr">${fmt(w.sold.a)}</span>`,'ok')}
   if(w&&w.tradeDone){toast(`🤝 <b>${esc(w.tradeDone.bn)}</b> ha aceptado tu intercambio`,'ok')}
@@ -1529,7 +1585,32 @@ function profileModal(){const items=Object.values(ME.inv);const v=items.reduce((
 
 /* ---------- ADMIN ---------- */
 const ADMS={u:null,q:'',users:{}};
-async function pageAdmin(){if(!STAFF){location.hash='#cajas';return}const v=$('#view');v.innerHTML=`<div class="h1"><div><h2>Panel de admin</h2><p>Créditos, artículos, eventos, moderación y permisos.</p></div><button class="btn" id="arf">Actualizar</button></div><div id="admb"><div class="loader"></div></div>`;
+function admRaffles(){const box=$('#admr');if(!box)return;const L=RAFS().sort((a,b)=>(b.t||0)-(a.t||0));
+  box.innerHTML=`<div class="card" style="margin-bottom:14px"><h4>🎁 Sorteos</h4>
+    <div class="row wrap" style="gap:8px;margin:8px 0"><input class="inp" id="rn" placeholder="Título del sorteo" style="width:220px"><input class="inp" id="rd" placeholder="Descripción (opcional)" style="width:240px"></div>
+    <div class="row wrap" style="gap:8px"><select class="inp" id="rk"><option value="c">Premio: créditos</option><option value="it">Premio: artículo</option><option value="box">Premio: cajas gratis</option></select>
+      <input class="inp" id="rv" type="number" step="0.01" placeholder="€" value="100" style="width:110px">
+      <select class="inp hide" id="rw" style="max-width:260px">${CATL.slice().sort((a,b)=>DEF[b.w].usd-DEF[a.w].usd).map(c=>`<option value="${c.w}">${isGold(c.w)?'★ ':''}${esc(WPN[c.w].n)} | ${esc(SKIN[c.s].n)} (${fmt(baseVal(c.w))})</option>`).join('')}</select>
+      <select class="inp hide" id="rwi">${WEAR.map((W,i)=>`<option value="${i}">${W.n}</option>`).join('')}</select>
+      <select class="inp hide" id="rb">${CASES.map(c=>`<option value="${c.id}">${esc(c.n)} (${fmt(c.price)})</option>`).join('')}</select><input class="inp hide" id="rq" type="number" min="1" value="1" style="width:70px" title="Cantidad"></div>
+    <div class="row wrap" style="gap:8px;margin-top:8px"><label class="mu">Dura</label><input class="inp" id="rh" type="number" min="0.05" step="0.5" value="1" style="width:80px"><span class="mu">h</span>
+      <label class="mu">Entrada</label><input class="inp" id="rc" type="number" min="0" step="0.01" value="0" style="width:90px"><span class="mu">€</span>
+      <label class="mu">Papeletas máx.</label><input class="inp" id="rm" type="number" min="1" value="1" style="width:70px"><label class="mu">Nivel mín.</label><input class="inp" id="rl" type="number" min="0" value="0" style="width:70px">
+      <button class="btn pri sm" id="rgo">Crear sorteo</button></div>
+    ${L.length?`<div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">${L.map(r=>`<div class="row" style="gap:8px;padding:8px 10px;border-radius:10px;background:var(--p2)"><b class="grow">${esc(r.n)}</b><span class="mu" style="font-size:12px">${rfPrizeTxt(r.pz)} · ${r.st==='end'?'ganó '+esc(r.wn||'—'):now()<r.end?'acaba en '+rfCountdown(r.end):'esperando sorteo'}</span>
+      ${r.st==='open'?`<button class="btn sm pri" data-ard="${r.id}">Sortear</button>`:''}<button class="btn sm bad" data-arx="${r.id}">Borrar</button></div>`).join('')}</div>`:''}
+    <h4 style="margin-top:16px">💸 Regalo para todos</h4><div class="row wrap" style="gap:8px"><input class="inp" id="gall" type="number" step="0.01" value="10" style="width:110px"><span class="mu">€ a cada jugador</span><button class="btn sm" id="gallb">Regalar a todos</button></div></div>`;
+  const sync=()=>{const k=$('#rk').value;$('#rv').classList.toggle('hide',k!=='c');['#rw','#rwi'].forEach(x=>$(x).classList.toggle('hide',k!=='it'));['#rb','#rq'].forEach(x=>$(x).classList.toggle('hide',k!=='box'))};$('#rk').onchange=sync;sync();
+  $('#rgo').onclick=async()=>{const n=$('#rn').value.trim();if(!n){toast('Ponle un título','bad');return}const k=$('#rk').value;
+    const pz=k==='c'?{k,v:Math.round(+$('#rv').value*100)}:k==='it'?{k,w:$('#rw').value,wi:+$('#rwi').value}:{k,id:$('#rb').value,q:Math.max(1,+$('#rq').value||1)};
+    if(k==='c'&&!(pz.v>0)){toast('Pon una cantidad','bad');return}
+    const id='r'+Date.now().toString(36);await R_('config/raffles/'+id).set({n:n.slice(0,60),d:$('#rd').value.slice(0,160),pz,t:now(),end:now()+Math.max(.05,+$('#rh').value||1)*3600000,cost:Math.max(0,Math.round(+$('#rc').value*100)),max:Math.max(1,+$('#rm').value||1),lv:Math.max(0,+$('#rl').value||0),st:'open'});
+    toast('Sorteo creado','ok');setTimeout(admRaffles,300)};
+  $$('[data-ard]').forEach(b=>b.onclick=()=>rfDrawShow(b.dataset.ard));
+  $$('[data-arx]').forEach(b=>b.onclick=async()=>{await R_('config/raffles/'+b.dataset.arx).remove();toast('Sorteo borrado','ok');setTimeout(admRaffles,300)});
+  $('#gallb').onclick=async()=>{const v=Math.round(+$('#gall').value*100);if(!(v>0))return;const U=await rfUsers(true);const ks=Object.keys(U).filter(u=>!U[u].ban);$('#gallb').disabled=true;
+    for(const u of ks)await ADM.credits(u,v).catch(()=>{});toast('Regalados '+fmt(v)+' a '+ks.length+' jugadores','ok');$('#gallb').disabled=false}}
+async function pageAdmin(){if(!STAFF){location.hash='#cajas';return}const v=$('#view');v.innerHTML=`<div class="h1"><div><h2>Panel de admin</h2><p>Créditos, artículos, eventos, moderación y permisos.</p></div><button class="btn" id="arf">Actualizar</button></div><div id="admr"></div><div id="admb"><div class="loader"></div></div>`;admRaffles();
   $('#arf').onclick=()=>pageAdmin();const s=await R_('users').once('value');ADMS.users=s.val()||{};const st=await R_('staff').once('value');ADMS.staff=st.val()||{};if(!ADMS.u)ADMS.u=UID;admDraw()}
 function admDraw(){const U=ADMS.users;const L=Object.entries(U).filter(([u,x])=>!ADMS.q||String(x.n||'').toLowerCase().includes(ADMS.q)).sort((a,b)=>(b[1].c||0)-(a[1].c||0));const sel=U[ADMS.u]||{};
   const inv=Object.entries(sel.inv||{}).map(([k,raw])=>{const it=dec(raw);if(it)it.id=k;return it}).filter(Boolean).sort((a,b)=>itemValue(b)-itemValue(a));const iv=inv.reduce((a,it)=>a+itemValue(it),0);
