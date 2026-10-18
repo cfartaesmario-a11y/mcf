@@ -1,0 +1,1479 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCF Apuntes</title>
+<style>
+  :root {
+    --bg: #f5f4f0; --side: #fbfaf7; --paper: #ffffff; --ink: #1d2025; --muted: #6c707a; --faint: #a3a6ad;
+    --line: #e5e2da; --hover: #eeebe4; --sel: #e6ebfc; --sel-ink: #2448c9;
+    --accent: #2f5bea; --accent-hover: #2149d4; --accent-ink: #fff;
+    --rec: #e5383b; --rec-soft: rgba(229,56,59,.15); --ok: #2f9e61;
+    --warn-bg: #fff6db; --warn-line: #efc451; --danger: #c92a2a;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.05);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141518; --side: #18191d; --paper: #1d1f23; --ink: #e9e7e2; --muted: #9b9ea6; --faint: #6c6f77;
+      --line: #2b2e34; --hover: #24272d; --sel: #233059; --sel-ink: #a9bcff;
+      --accent: #5b7fff; --accent-hover: #6f8fff; --accent-ink: #fff;
+      --rec: #ff5a5f; --rec-soft: rgba(255,90,95,.18); --ok: #4cc283;
+      --warn-bg: #362d14; --warn-line: #8a6d1f; --danger: #ff6b6b;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--ink); }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  .app { display: flex; height: 100vh; }
+
+  /* ---------- barra lateral ---------- */
+  aside { width: 300px; flex-shrink: 0; background: var(--side); border-right: 1px solid var(--line); display: flex; flex-direction: column; overflow: hidden; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 18px 18px 10px; font-weight: 700; font-size: 17px; }
+  .brand .logo { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 16px; }
+  .search { padding: 4px 14px 10px; }
+  .search input { width: 100%; padding: 9px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--paper); outline: none; }
+  .search input:focus { border-color: var(--accent); }
+  .side-scroll { flex: 1; overflow-y: auto; padding: 0 10px 10px; }
+  .sec-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 8px 6px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .icon { border: 0; background: transparent; width: 28px; height: 28px; border-radius: 7px; cursor: pointer; color: var(--muted); font-size: 16px; display: grid; place-items: center; }
+  .icon:hover { background: var(--hover); color: var(--ink); }
+  .folder, .note { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; user-select: none; }
+  .folder:hover, .note:hover { background: var(--hover); }
+  .folder.sel, .note.sel { background: var(--sel); color: var(--sel-ink); }
+  .folder .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .folder .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .folder .count { font-size: 12px; color: var(--muted); }
+  .folder .tag { font-size: 11px; color: var(--muted); }
+  .note { flex-direction: column; align-items: stretch; gap: 2px; }
+  .note .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .note .s { font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .note.sel .s { color: inherit; opacity: .75; }
+  .empty { color: var(--muted); font-size: 13px; padding: 10px; }
+  .side-foot { border-top: 1px solid var(--line); padding: 10px 14px; display: flex; gap: 6px; }
+
+  /* ---------- botons ---------- */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border-radius: 9px; border: 1px solid var(--line); background: var(--paper); cursor: pointer; white-space: nowrap; font-size: 14px; }
+  .btn:hover { background: var(--hover); }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .btn.primary:hover { background: var(--accent-hover); }
+  .btn.ghost { background: transparent; border-color: transparent; }
+  .btn.ghost:hover { background: var(--hover); }
+  .btn.danger { color: var(--danger); }
+  .btn.sm { padding: 6px 10px; font-size: 13px; }
+  .btn.block { width: 100%; justify-content: center; }
+
+  /* ---------- zona principal ---------- */
+  main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .top { display: flex; align-items: center; gap: 14px; padding: 14px 22px; border-bottom: 1px solid var(--line); background: var(--side); flex-wrap: wrap; }
+  #menuBtn { display: none; }
+  .recbtn { display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px 10px 14px; border-radius: 999px; border: 0; background: var(--rec); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; box-shadow: 0 2px 10px var(--rec-soft); }
+  .recbtn:hover { filter: brightness(1.06); }
+  .recbtn .dot { width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+  .recbtn.on { background: var(--ink); color: var(--bg); }
+  .recbtn.on .dot { border-radius: 3px; background: var(--rec); animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+  .langs { display: inline-flex; background: var(--hover); border-radius: 10px; padding: 3px; }
+  .langs button { border: 0; background: transparent; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--muted); }
+  .langs button.on { background: var(--paper); color: var(--ink); box-shadow: var(--shadow); }
+  .live { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--muted); margin-left: auto; }
+  #status { font-weight: 600; }
+  #status.rec { color: var(--rec); }
+  #timer { font-variant-numeric: tabular-nums; }
+  .meter { width: 70px; height: 6px; border-radius: 3px; background: var(--hover); overflow: hidden; }
+  .meter i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .08s; }
+
+  .warn { margin: 14px 22px 0; background: var(--warn-bg); border: 1px solid var(--warn-line); padding: 10px 14px; border-radius: 10px; font-size: 14px; }
+  .stage { flex: 1; overflow-y: auto; padding: 22px; display: flex; justify-content: center; }
+  .paper { width: 100%; max-width: 860px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 100%; }
+  .note-head { padding: 22px 28px 8px; border-bottom: 1px solid var(--line); }
+  #title { width: 100%; border: 0; outline: none; background: transparent; font-size: 24px; font-weight: 700; padding: 0; }
+  .meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 0 6px; font-size: 13px; color: var(--muted); }
+  #moveTo { border: 1px solid var(--line); background: var(--hover); border-radius: 7px; padding: 3px 6px; font-size: 13px; cursor: pointer; }
+  .badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--hover); }
+  #text { flex: 1; width: 100%; min-height: 50vh; border: 0; outline: none; resize: none; background: transparent; padding: 20px 28px; font-size: 17px; line-height: 1.75; }
+  #interim { margin: 0 28px 18px; min-height: 0; color: var(--muted); font-style: italic; font-size: 16px; }
+  #interim:not(:empty) { padding: 10px 14px; background: var(--hover); border-radius: 10px; }
+
+  .tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 12px 22px; border-top: 1px solid var(--line); background: var(--side); }
+  .tools .sp { flex: 1; }
+  .chk { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--muted); cursor: pointer; }
+
+  /* ---------- diàlegs ---------- */
+  dialog { border: 1px solid var(--line); border-radius: 16px; padding: 0; background: var(--paper); color: var(--ink); width: min(480px, calc(100vw - 32px)); box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+  dialog::backdrop { background: rgba(0,0,0,.35); }
+  .dlg { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+  .dlg h2 { margin: 0; font-size: 19px; }
+  .dlg p { margin: 0; color: var(--muted); font-size: 14px; }
+  .field { display: flex; flex-direction: column; gap: 5px; font-size: 13.5px; font-weight: 600; }
+  .field input[type=text], .field input:not([type]) { padding: 9px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--bg); font-weight: 400; outline: none; }
+  .field input:focus { border-color: var(--accent); }
+  .field small { font-weight: 400; color: var(--muted); }
+  .switch { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; cursor: pointer; }
+  .switch input { margin-top: 3px; width: 17px; height: 17px; accent-color: var(--accent); }
+  .switch small { display: block; color: var(--muted); }
+  .dlg-foot { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+  .dlg-foot .sp { flex: 1; }
+  .steps { margin: 0; padding-left: 20px; font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
+  #testOut { font-size: 18px; padding: 8px 12px; background: var(--hover); border-radius: 9px; min-height: 40px; }
+
+  #toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--bg); padding: 11px 18px; border-radius: 10px; font-size: 14px; opacity: 0; pointer-events: none; transition: .2s; max-width: calc(100vw - 32px); z-index: 50; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  #scrim { display: none; }
+  @media (max-width: 820px) {
+    aside { position: fixed; z-index: 30; top: 0; bottom: 0; left: 0; transform: translateX(-100%); transition: transform .2s; box-shadow: var(--shadow); }
+    body.menu aside { transform: none; }
+    body.menu #scrim { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 20; }
+    #menuBtn { display: grid; }
+    .top { padding: 10px 14px; gap: 10px; }
+    .live { margin-left: 0; width: 100%; }
+    .stage { padding: 12px; }
+    .note-head { padding: 16px 16px 6px; }
+    #text { padding: 14px 16px; }
+    #interim { margin: 0 16px 14px; }
+    .tools { padding: 10px 12px; }
+    .tools .sp { display: none; }
+  }
+  .account { display: flex; flex-direction: column; gap: 6px; }
+  .account .who { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .account .row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .side-foot { flex-direction: column; }
+  #sync { font-size: 13px; }
+  #sync.err { color: var(--danger); font-weight: 600; }
+  .warn .btn { margin-left: 8px; }
+  .gbtn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--paper); cursor: pointer; font-weight: 600; font-size: 14px; width: 100%; justify-content: center; }
+  .gbtn:hover { background: var(--hover); }
+  .gbtn svg { width: 18px; height: 18px; }
+  #text[readonly] { cursor: default; }
+  .hint { font-size: 12.5px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside>
+    <div class="brand"><a href="../" title="Volver a MCF Workspace" style="color:inherit;text-decoration:none;display:flex;align-items:center;gap:10px"><div class="logo">✎</div>MCF Apuntes</a></div>
+    <div class="search"><input id="search" placeholder="🔍  Cercar a tots els apunts"></div>
+    <div class="side-scroll">
+      <div class="sec-head"><span>Assignatures</span><button class="icon" id="addFolder" title="Nova assignatura">＋</button></div>
+      <div id="folders"></div>
+      <div class="sec-head"><span id="notesHead">Classes</span><button class="icon" id="folderSettings" title="Configuració de l'assignatura">⚙</button></div>
+      <div style="padding: 0 0 8px"><button id="addNote" class="btn primary block">＋ Nova classe</button></div>
+      <div id="notes"></div>
+    </div>
+    <div class="side-foot">
+      <div class="account" id="account"></div>
+      <div class="row" id="localTools" style="display:flex;gap:6px">
+        <button id="backup" class="btn ghost sm" title="Descarrega tots els apunts en un fitxer">💾 Còpia</button>
+        <label class="btn ghost sm" title="Recupera una còpia de seguretat">📂 Restaurar<input type="file" id="restore" accept=".json" hidden></label>
+      </div>
+    </div>
+  </aside>
+  <div id="scrim"></div>
+
+  <main>
+    <header class="top">
+      <button class="icon" id="menuBtn" title="Menú">☰</button>
+      <button id="rec" class="recbtn" title="Alt+R"><span class="dot"></span><span id="recLabel">Gravar classe</span></button>
+      <div class="langs" id="langs" title="Idioma que parla el professor">
+        <button data-lang="ca-ES">Català</button>
+        <button data-lang="es-ES">Castellano</button>
+        <button data-lang="en-GB">English</button>
+      </div>
+      <div class="live"><span id="sync"></span><span id="status">Aturat</span><span id="timer"></span><div class="meter" title="Nivell del micròfon"><i id="level"></i></div></div>
+    </header>
+
+    <div id="warn" class="warn" hidden></div>
+
+    <div class="stage">
+      <section class="paper">
+        <div class="note-head">
+          <input id="title" placeholder="Títol de la classe">
+          <div class="meta"><select id="moveTo" title="Moure a una altra assignatura"></select><span id="meta"></span><span id="sentBadge" class="badge" hidden></span></div>
+        </div>
+        <textarea id="text" placeholder="Prem «Gravar classe» i el que digui el professor apareixerà aquí."></textarea>
+        <div id="interim"></div>
+      </section>
+    </div>
+
+    <footer class="tools">
+      <button id="toDocs" class="btn primary">📄 Enviar a Google Docs</button>
+      <button id="toClaude" class="btn" title="Copia els apunts amb les instruccions per a Claude i obre claude.ai">✨ Fer apunts amb Claude</button>
+      <button id="copy" class="btn">Copiar</button>
+      <button id="exportNote" class="btn" title="Descarregar com a .txt">⬇ .txt</button>
+      <button id="convertAll" class="btn" title="Aplica la conversió de mates a tot el text">√ Mates</button>
+      <span class="sp"></span>
+      <label class="chk"><input type="checkbox" id="ts"> Hora als paràgrafs</label>
+      <button id="delNote" class="btn ghost danger">Esborrar</button>
+    </footer>
+  </main>
+</div>
+
+<!-- Configuració d'assignatura -->
+<dialog id="dlgFolder">
+  <form class="dlg" method="dialog">
+    <h2>Assignatura</h2>
+    <label class="field">Nom<input id="fName" placeholder="Ex: Matemàtiques"></label>
+    <label class="switch"><input type="checkbox" id="fMath"><span>Mode mates<small>Converteix el que es diu en símbols: √25, x², 3 × 4 = 12, π, ≤ …</small></span></label>
+    <label class="field" id="fDriveRow">Carpeta de Google Drive <small>(opcional) Obre la carpeta a Drive i copia l'enllaç de la barra d'adreces. Els Google Docs es crearan directament allà.</small>
+      <input id="fDrive" placeholder="https://drive.google.com/drive/folders/..."></label>
+    <a id="fOpenDrive" class="btn ghost sm" target="_blank" rel="noopener" style="align-self:flex-start;text-decoration:none">📁 Obrir la carpeta a Google Drive</a>
+    <details><summary style="cursor:pointer;font-size:14px">🧪 Provar el mode mates</summary>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+        <input id="testIn" style="padding:9px 12px;border-radius:9px;border:1px solid var(--line);background:var(--bg)" placeholder="l'arrel quadrada de x al quadrat més dos és igual a cinc">
+        <div id="testOut"></div>
+      </div>
+    </details>
+    <div class="dlg-foot">
+      <button type="button" id="fDelete" class="btn ghost danger">Esborrar</button>
+      <button type="button" id="fExport" class="btn ghost">⬇ Descarregar tot</button>
+      <span class="sp"></span>
+      <button type="submit" id="fSave" class="btn primary">Fet</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Enviar a Google Docs (mode local) -->
+<dialog id="dlgDocs">
+  <form class="dlg" method="dialog">
+    <h2>📄 Enviar a Google Docs</h2>
+    <ol class="steps">
+      <li>Prem <b>Copiar i obrir Google Docs</b>.</li>
+      <li>S'obrirà un document nou. Prem <b>Ctrl + V</b> per enganxar-hi els apunts (amb el format).</li>
+      <li>Llest: el document ja es desa sol al teu Drive.</li>
+    </ol>
+    <label class="field">Carpeta de Drive per a <span id="dFolderName"></span>
+      <input id="dDrive" placeholder="Enganxa l'enllaç de la carpeta (opcional)">
+      <small id="dDriveHint">Si no en poses cap, el document es crea a «La meva unitat».</small></label>
+    <label class="switch"><input type="checkbox" id="dPrompt"><span>Posar les instruccions per a Claude a l'inici<small>Així després només has de passar el document a Claude i ja sabrà què ha de fer.</small></span></label>
+    <div class="dlg-foot">
+      <button type="submit" class="btn ghost" value="cancel">Cancel·lar</button>
+      <button type="button" id="dGo" class="btn primary">Copiar i obrir Google Docs</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast"></div>
+
+<script>
+// MATH-START
+const MathConv = (() => {
+  const B = '(?<![\\p{L}\\p{N}])', E = '(?![\\p{L}\\p{N}])';
+  const NUMS = {
+    zero:0, cero:0, u:1, un:1, una:1, uno:1, one:1, dos:2, two:2, tres:3, three:3,
+    quatre:4, cuatro:4, four:4, cinc:5, cinco:5, five:5, sis:6, seis:6, six:6,
+    set:7, siete:7, seven:7, vuit:8, ocho:8, eight:8, nou:9, nueve:9, nine:9,
+    deu:10, diez:10, ten:10, onze:11, once:11, eleven:11, dotze:12, doce:12, twelve:12,
+    tretze:13, trece:13, thirteen:13, catorze:14, catorce:14, fourteen:14, quinze:15, quince:15, fifteen:15,
+    setze:16, 'dieciséis':16, sixteen:16, disset:17, diecisiete:17, seventeen:17,
+    divuit:18, dieciocho:18, eighteen:18, dinou:19, diecinueve:19, nineteen:19,
+    vint:20, veinte:20, twenty:20, trenta:30, treinta:30, thirty:30, quaranta:40, cuarenta:40, forty:40,
+    cinquanta:50, cincuenta:50, fifty:50, cent:100, cien:100, hundred:100, mil:1000, thousand:1000
+  };
+  const ORD = { segona:2, segunda:2, second:2, tercera:3, third:3, quarta:4, cuarta:4, fourth:4,
+    cinquena:5, quinta:5, fifth:5, sisena:6, sexta:6, sixth:6 };
+  const keys = o => Object.keys(o).sort((a, b) => b.length - a.length).join('|');
+  const NUMW_ALL = keys(NUMS);
+  const NUMW_OP = Object.keys(NUMS).filter(k => !['un', 'una', 'uno'].includes(k)).sort((a, b) => b.length - a.length).join('|');
+  const ORDW = keys(ORD);
+  const LET = '[bcdfghjkmnpqrstvwxyzBCDFGHJKMNPQRSTVWXYZ]';   // lletres-variable (sense a,e,i,o,u,l)
+  const GREEK = 'αβγδΔθλμσωεπ∞';
+  const SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹⁻ⁿˣʸᵏ';
+  const LEFT = `(?:${B}(?:\\d+(?:[.,]\\d+)*[a-zA-Z]?|${LET}|${NUMW_OP})|[${GREEK}${SUP})!°%\\u0001])`;
+  const RIGHT = `(?:\\d|[${GREEK}√∛∜(−\\-\\u0002]|(?:${LET}|${NUMW_OP}|sin|cos|tan|log|ln)${E})`;
+  const LEFT_END = new RegExp(LEFT + '\\s*$', 'u');
+  const RIGHT_START = new RegExp('^\\s*' + RIGHT, 'u');
+  const OPB = /[+\-−×÷=/<>≤≥≠±≈^(√∛∜\u0002]\s*$/u;       // operador just abans
+  const OPA = /^\s*[+\-−×÷=/<>≤≥≠±≈^)²³!%°\u0001]/u;      // operador just després
+  const START = /(^|[.:;!?\n]\s*)$/u;
+
+  const SUPMAP = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻','−':'⁻','n':'ⁿ','x':'ˣ','y':'ʸ','k':'ᵏ' };
+  const SUBMAP = { '0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉' };
+  const toNum = w => { const k = w.toLowerCase(); return k in NUMS ? String(NUMS[k]) : k in ORD ? String(ORD[k]) : w; };
+  const sup = s => [...toNum(s.trim())].map(c => SUPMAP[c.toLowerCase()] || c).join('');
+  const sub = s => [...toNum(s.trim())].map(c => SUBMAP[c] || c).join('');
+
+  const A = '\u0001';   // enganxa al que hi ha a l'esquerra (x², 5%, 3!)
+  const Z = '\u0002';   // enganxa al que hi ha a la dreta (√x, (x)
+  const COP = '(?:(?:és|es|is|són|son|are|serà|será|sigui|sea)\\s+)?';
+
+  const R = (src, out, ctx = 'none', guard) => ({ re: new RegExp(B + '(?:' + src + ')' + E, 'giu'), out, ctx, guard });
+
+  const RULES = [
+    // lletres dites en veu alta
+    R('ics|equis', 'x'),
+    R('i\\s+grega|y\\s+griega', 'y'),
+    // parèntesis
+    R('(?:obre|obrim|obrir|abre|abrimos|abrir|open)\\s+(?:un\\s+)?(?:parèntesis?|paréntesis|parentesis|parenthesis)', '(' + Z),
+    R('(?:tanca|tanquem|tancar|cierra|cerramos|cerrar|close)\\s+(?:el\\s+)?(?:parèntesis?|paréntesis|parentesis|parenthesis)', A + ')'),
+    // percentatge i graus
+    R('per\\s+cent|por\\s+ciento|percent|per\\s+cento', A + '%', 'left'),
+    R('(?:graus|grados|degrees)(?:\\s+(?:centígrads|centigrads|centígrados|centigrados|celsius))?', m => /c[eè]l|cent/i.test(m) ? A + '°C' : A + '°', 'left'),
+    // relacions (de més llarga a més curta)
+    R(COP + '(?:aproximadament|aproximadamente|approximately)\\s+(?:igual\\s+(?:a|que)|equal\\s+to)', ' ≈ '),
+    R(COP + '(?:(?:més\\s+petit|més\\s+petita|menor|más\\s+pequeño|más\\s+pequeña)\\s+o\\s+igual\\s+(?:que|a)|less\\s+than\\s+or\\s+equal\\s+to)', ' ≤ ', 'either'),
+    R(COP + '(?:(?:més\\s+gran|major|mayor|más\\s+grande)\\s+o\\s+igual\\s+(?:que|a)|greater\\s+than\\s+or\\s+equal\\s+to)', ' ≥ ', 'either'),
+    R(COP + '(?:(?:més\\s+petit|més\\s+petita|menor|más\\s+pequeño|más\\s+pequeña)\\s+(?:que|de)|less\\s+than|smaller\\s+than)', ' < ', 'either'),
+    R(COP + '(?:(?:més\\s+gran|major|mayor|más\\s+grande)\\s+(?:que|de)|greater\\s+than|bigger\\s+than)', ' > ', 'either'),
+    R(COP + '(?:(?:diferent|diferente|distint|distinto|distinta)\\s+(?:de|a|que)|not\\s+equal\\s+to)', ' ≠ ', 'either'),
+    R(COP + '(?:igual\\s+(?:a|que|de)|equals?|equal\\s+to|igual)', ' = ', 'either'),
+    // potències
+    R('(?:(?:elevat|elevada|elevado)\\s+)?al\\s+(?:quadrat|cuadrado)|squared', A + '²', 'left'),
+    R('(?:(?:elevat|elevada|elevado)\\s+)?al\\s+(?:cub|cubo)|cubed', A + '³', 'left'),
+    R(`(?:elevat|elevada|elevado|raised)\\s+(?:a|to)(?:\\s+(?:la|the))?(?:\\s+power\\s+of)?\\s+(menys\\s+|menos\\s+|minus\\s+|-|−)?(\\d+|${NUMW_ALL}|${ORDW}|[nxyk])`,
+      (m, neg, v) => A + (neg ? '⁻' : '') + sup(v), 'left'),
+    R(`to\\s+the\\s+power\\s+of\\s+(minus\\s+)?(\\d+|${NUMW_ALL}|[nxyk])`, (m, neg, v) => A + (neg ? '⁻' : '') + sup(v), 'left'),
+    R(`a\\s+la\\s+(menys\\s+|menos\\s+)?(${ORDW}|[nxk])`, (m, neg, v) => A + (neg ? '⁻' : '') + sup(v), 'left'),
+    R('(?:elevat|elevada|elevado)\\s+a|to\\s+the\\s+power\\s+of', A + '^' + Z, 'left'),
+    // arrels
+    R("(?:l'|la\\s+|el\\s+)?(?:arrel|raíz|raiz)\\s+(?:quadrada|cuadrada)(?:\\s+de)?|(?:the\\s+)?square\\s+root(?:\\s+of)?", '√' + Z),
+    R("(?:l'|la\\s+|el\\s+)?(?:arrel|raíz|raiz)\\s+(?:cúbica|cubica)(?:\\s+de)?|(?:the\\s+)?cube\\s+root(?:\\s+of)?", '∛' + Z),
+    R("(?:l'|la\\s+|el\\s+)?(?:arrel|raíz|raiz)\\s+(?:quarta|cuarta)(?:\\s+de)?|fourth\\s+root(?:\\s+of)?", '∜' + Z),
+    // funcions
+    R('(?:el\\s+)?(?:sinus|seno|sine)(?:\\s+(?:de|of))?', 'sin ', 'right'),
+    R('(?:el\\s+)?(?:cosinus|coseno|cosine)(?:\\s+(?:de|of))?', 'cos ', 'right'),
+    R('(?:la\\s+)?(?:tangent|tangente)(?:\\s+(?:de|of))?', 'tan ', 'right'),
+    R('(?:el\\s+)?(?:logaritme|logaritmo|logarithm)\\s+(?:neperià|neperiano|natural)(?:\\s+(?:de|of))?|natural\\s+(?:log|logarithm)(?:\\s+of)?', 'ln '),
+    R(`(?:el\\s+)?(?:logaritme|logaritmo|logarithm|log)\\s+(?:en\\s+|in\\s+)?base\\s+(\\d+|${NUMW_ALL})(?:\\s+(?:de|of))?`, (m, b) => 'log' + sub(b) + ' '),
+    R('(?:el\\s+)?(?:logaritme|logaritmo|logarithm)(?:\\s+(?:de|of))?', 'log ', 'right'),
+    R('(?:la\\s+)?integral(?:\\s+(?:de|of))?', '∫ ', 'right'),
+    R('(?:el\\s+)?(?:sumatori|sumatorio|summation)(?:\\s+(?:de|of))?', 'Σ '),
+    R('factorial', A + '!', 'left'),
+    // lletres gregues i constants
+    R('alfa|alpha', 'α'), R('beta', 'β'), R('gamma', 'γ'), R('delta', 'Δ'),
+    R('theta|teta', 'θ'), R('lambda', 'λ'), R('sigma', 'σ'), R('omega', 'ω'), R('[èée]psilon', 'ε'),
+    R('(?:menys|menos|minus)\\s+(?:infinit|infinito|infinity)', '−∞'),
+    R('infinit|infinito|infinity', '∞'),
+    R('(?:(?:el\\s+)?(?:nombre|número|number)\\s+)?pi', 'π', 'pi'),
+    // operacions
+    R('més\\s+o\\s+menys|más\\s+o\\s+menos|plus\\s+or\\s+minus|plus\\s+minus', ' ± ', 'pm'),
+    R('(?:multiplicat|multiplicada|multiplicado|multiplied)\\s+(?:per|por|by)', ' × ', 'right'),
+    R('(?:dividit|dividida|dividido|divided)\\s+(?:per|entre|por|by)', ' ÷ ', 'right'),
+    R('més|más|plus', ' + ', 'both'),
+    R('menys|menos|minus', ' − ', 'both'),
+    R('menys|menos|minus', '−' + Z, 'neg'),
+    R('per|por|times', ' × ', 'both'),
+    R('sobre|over', A + '/' + Z, 'both'),
+    R('entre', ' ÷ ', 'both', (b, a) => !/^\s*\S+\s+(?:i|y|e|and)\s/u.test(a)),
+    R('(?:pertany|pertanyen|pertenece|pertenecen|belongs)\\s+(?:a|al|to)', ' ∈ ', 'either'),
+    R('és|es|dona|da|equals|is', ' = ', 'both'),
+  ];
+
+  function applyRule(text, r) {
+    return text.replace(r.re, (...args) => {
+      const m = args[0], str = args[args.length - 1], off = args[args.length - 2];
+      const caps = args.slice(1, -2);
+      const before = str.slice(Math.max(0, off - 40), off), after = str.slice(off + m.length, off + m.length + 40);
+      const L = LEFT_END.test(before), Rt = RIGHT_START.test(after);
+      let ok;
+      switch (r.ctx) {
+        case 'both': ok = L && Rt; break;
+        case 'either': ok = L || Rt; break;
+        case 'left': ok = L; break;
+        case 'right': ok = Rt; break;
+        case 'neg': ok = Rt && (OPB.test(before) || START.test(str.slice(0, off))); break;
+        case 'pm': ok = Rt && (L || OPB.test(before) || START.test(str.slice(0, off))); break;
+        case 'pi': ok = L || Rt || OPB.test(before) || OPA.test(after) || /(?:nombre|número|number)/i.test(m); break;
+        default: ok = true;
+      }
+      if (ok && r.guard) ok = r.guard(before, after);
+      if (!ok) return m;
+      return typeof r.out === 'function' ? r.out(m, ...caps) : r.out;
+    });
+  }
+
+  const NUM_RE = new RegExp(`(?<![\\p{L}\\p{N}\\-])(?:${NUMW_ALL})(?![\\p{L}\\p{N}\\-])`, 'giu');
+  function numbersNearSymbols(text) {
+    return text.replace(NUM_RE, (m, off, str) => {
+      const before = str.slice(Math.max(0, off - 10), off), after = str.slice(off + m.length, off + m.length + 10);
+      return (OPB.test(before) || OPA.test(after)) ? toNum(m) : m;
+    });
+  }
+
+  function cleanup(t) {
+    return t
+      .replace(/\s*\u0001/g, '')
+      .replace(/\u0002\s*/g, '')
+      .replace(/(\d)\s*π/g, '$1π')
+      .replace(/(\d) x(?=$|[\s.,;:+\-−=)²³])/g, '$1x')
+      .replace(/\(\s+/g, '(').replace(/\s+\)/g, ')')
+      .replace(/[ \t]{2,}/g, ' ')
+      .replace(/ +([.,;:])/g, '$1')
+      .trim();
+  }
+
+  function convert(text) {
+    if (!text) return text;
+    let t = text;
+    for (let pass = 0; pass < 2; pass++) {
+      for (const r of RULES) t = applyRule(t, r);
+      t = numbersNearSymbols(t);
+    }
+    return cleanup(t);
+  }
+  return { convert };
+})();
+// MATH-END
+
+/* ============================================================
+   CONFIGURACIÓ DE FIREBASE
+   Enganxa aquí la configuració del teu projecte (mira SETUP.md).
+   Si es deixa a null, l'app funciona en mode local (sense Google Drive).
+   ============================================================ */
+const FIREBASE_CONFIG = {apiKey:"AIzaSyAS2sEiZ3vh3DpvG-Vx85w73zoAOdaFCNs",authDomain:"marela-8d4e5.firebaseapp.com",projectId:"marela-8d4e5",storageBucket:"marela-8d4e5.firebasestorage.app"};
+const FIREBASE_VERSION = '10.12.2';
+
+/* ============================================================
+   DADES LOCALS (IndexedDB, amb localStorage de reserva)
+   ============================================================ */
+const $ = id => document.getElementById(id);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const LSKEY = 'apunts-classe-v1';
+const CUR_KEY = 'apunts-drive-cur';
+const PENDING_KEY = 'apunts-drive-pending';
+const TOKEN_KEY = 'apunts-drive-token';
+const DEFAULT_SUBJECTS = [['Matemàtiques', true], ['Física i Química', true], ['Català', false],
+  ['Castellà', false], ['Anglès', false], ['Història', false], ['Altres', false]];
+const DEFAULT_SETTINGS = { lang: 'ca-ES', ts: true, docsPrompt: true };
+let db = null;      // dades locals (sempre existeixen; també guarden la configuració)
+let S = null;       // estat actiu: db (mode local) o la memòria cau de Drive
+let mode = 'local'; // 'local' | 'drive'
+let idb = null;
+
+function idbOpen() {
+  return new Promise((res, rej) => {
+    try {
+      const r = indexedDB.open('apunts-classe', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    } catch (e) { rej(e); }
+  });
+}
+function idbGet() {
+  return new Promise((res, rej) => {
+    const q = idb.transaction('kv').objectStore('kv').get('db');
+    q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error);
+  });
+}
+function idbPut(val) {
+  return new Promise((res, rej) => {
+    const tx = idb.transaction('kv', 'readwrite');
+    tx.objectStore('kv').put(val, 'db');
+    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+  });
+}
+
+function defaultDb() {
+  const folders = DEFAULT_SUBJECTS.map(([name, math]) => ({ id: uid(), name, math, drive: '' }));
+  return { folders, notes: [], settings: { ...DEFAULT_SETTINGS }, cur: { folder: folders[0].id, note: null } };
+}
+
+async function loadDb() {
+  try { idb = await idbOpen(); db = await idbGet(); } catch (e) { idb = null; }
+  if (!db) { try { db = JSON.parse(localStorage.getItem(LSKEY)); } catch (e) { db = null; } }
+  if (!db || !Array.isArray(db.folders)) db = defaultDb();
+  fixDb();
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
+}
+function fixDb() {
+  db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings || {});
+  if (db.settings.lang === 'en-US') db.settings.lang = 'en-GB';
+  db.cur = db.cur || { folder: null, note: null };
+  if (!db.folders.length) db.folders.push({ id: uid(), name: 'General', math: false, drive: '' });
+  if (!db.folders.find(f => f.id === db.cur.folder)) db.cur.folder = db.folders[0].id;
+}
+
+let saveTimer = null;
+function save() { clearTimeout(saveTimer); saveTimer = setTimeout(saveNow, 400); }
+async function saveNow() {
+  clearTimeout(saveTimer);
+  const snapshot = JSON.parse(JSON.stringify(db));
+  let ok = false;
+  if (idb) { try { await idbPut(snapshot); ok = true; } catch (e) {} }
+  try { localStorage.setItem(LSKEY, JSON.stringify(snapshot)); ok = true; } catch (e) { /* ple: ja tenim IndexedDB */ }
+  if (!ok && mode === 'local') warn('⚠️ No s\'han pogut desar els apunts. Fes una còpia de seguretat ara!');
+}
+
+/* ============================================================
+   UTILITATS
+   ============================================================ */
+const curFolder = () => S.folders.find(f => f.id === S.cur.folder);
+const curNote = () => S.notes.find(n => n.id === S.cur.note);
+const folderOf = n => S.folders.find(f => f.id === n.folderId);
+const notesOf = fid => S.notes.filter(n => n.folderId === fid).sort((a, b) => b.created - a.created);
+const pad = n => String(n).padStart(2, '0');
+const hhmm = (d = new Date()) => pad(d.getHours()) + ':' + pad(d.getMinutes());
+const fecha = (d = new Date()) => pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear();
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const COLORS = ['#3b6cf6', '#e8590c', '#2f9e61', '#9c36b5', '#d6336c', '#0c8599', '#e0a100', '#5c6ac4', '#868e96'];
+const folderColor = f => COLORS[Math.max(0, S.folders.indexOf(f)) % COLORS.length];
+const LANG_NAMES = { 'ca-ES': 'Català', 'es-ES': 'Castellano', 'en-GB': 'English', 'en-US': 'English' };
+const LANG_FULL = { 'ca-ES': 'catalán', 'es-ES': 'castellano', 'en-GB': 'inglés', 'en-US': 'inglés' };
+const docUrl = n => 'https://docs.google.com/document/d/' + n.id + '/edit';
+const folderUrl = id => 'https://drive.google.com/drive/folders/' + id;
+
+function warn(msg, btnLabel, onBtn) {
+  const w = $('warn');
+  w.innerHTML = msg || '';
+  if (msg && btnLabel) {
+    const b = document.createElement('button'); b.className = 'btn sm primary'; b.textContent = btnLabel; b.onclick = onBtn;
+    w.appendChild(b);
+  }
+  w.hidden = !msg;
+}
+let toastT;
+function toast(msg, ms = 3500) { const t = $('toast'); t.innerHTML = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms); }
+
+function driveId(s) {
+  s = (s || '').trim();
+  if (!s) return '';
+  const m = s.match(/folders\/([\w-]{10,})/) || s.match(/[?&]id=([\w-]{10,})/);
+  if (m) return m[1];
+  return /^[\w-]{10,}$/.test(s) ? s : null;   // null = enllaç no vàlid
+}
+
+function download(name, content, type = 'text/plain') {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type: type + ';charset=utf-8' }));
+  a.download = name.replace(/[\\/:*?"<>|]/g, '-');
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+async function copyRich(html, text) {
+  try {
+    if (html) {
+      await navigator.clipboard.write([new ClipboardItem({
+        'text/html': new Blob([html], { type: 'text/html' }),
+        'text/plain': new Blob([text], { type: 'text/plain' })
+      })]);
+    } else await navigator.clipboard.writeText(text);
+    return true;
+  } catch (e) {}
+  // reserva: seleccionar un bloc ocult i copiar
+  const div = document.createElement('div');
+  div.contentEditable = 'true';
+  div.style.cssText = 'position:fixed;left:-9999px;top:0;white-space:pre-wrap';
+  if (html) div.innerHTML = html; else div.textContent = text;
+  document.body.appendChild(div);
+  const r = document.createRange(); r.selectNodeContents(div);
+  const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+  let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+  sel.removeAllRanges(); div.remove();
+  return ok;
+}
+
+/* ============================================================
+   GOOGLE: inici de sessió (Firebase) i accés a Drive / Docs
+   ============================================================ */
+class NeedAuth extends Error {}
+let fb = null, gUser = null, token = null, tokenExp = 0;
+
+function setToken(t) {
+  token = t; tokenExp = Date.now() + 55 * 60 * 1000;
+  try { sessionStorage.setItem(TOKEN_KEY, JSON.stringify({ t, exp: tokenExp })); } catch (e) {}
+}
+function loadToken() {
+  try { const o = JSON.parse(sessionStorage.getItem(TOKEN_KEY)); if (o && o.exp > Date.now()) { token = o.t; tokenExp = o.exp; } } catch (e) {}
+}
+const tokenOk = () => !!token && Date.now() < tokenExp;
+
+async function g(url, opts = {}) {
+  if (!tokenOk()) throw new NeedAuth('login');
+  let r;
+  try {
+    r = await fetch(url, { ...opts, headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', ...(opts.headers || {}) } });
+  } catch (e) { const err = new Error('Sense connexió'); err.offline = true; throw err; }
+  if (r.status === 401) { token = null; throw new NeedAuth('expired'); }
+  if (!r.ok) {
+    let msg = ''; try { msg = (await r.json()).error.message; } catch (e) {}
+    const err = new Error('Google ' + r.status + (msg ? ': ' + msg : '')); err.status = r.status; throw err;
+  }
+  return r.status === 204 ? null : r.json();
+}
+
+async function fbInit() {
+  if (!FIREBASE_CONFIG) { renderAccount(); return; }
+  try {
+    const appM = await import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app.js`);
+    const authM = await import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-auth.js`);
+    const app = appM.initializeApp(FIREBASE_CONFIG);
+    const auth = authM.getAuth(app);
+    const provider = new authM.GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/drive.file');
+    fb = { auth, authM, provider };
+    loadToken();
+    authM.onAuthStateChanged(auth, user => {
+      gUser = user;
+      renderAccount();
+      if (user && tokenOk()) enterDrive();
+      else if (user) warn('☁ Connecta amb Google Drive per veure i continuar els teus apunts.', 'Connectar Drive', signIn);
+      else if (mode === 'drive') leaveDrive();
+    });
+  } catch (e) {
+    console.error(e);
+    warn('No s\'ha pogut carregar l\'inici de sessió de Google. Revisa la connexió o la configuració de Firebase.');
+    renderAccount();
+  }
+}
+
+async function signIn() {
+  if (!fb) { toast('Primer cal configurar Firebase (mira SETUP.md).'); return false; }
+  try {
+    if (gUser && gUser.email) fb.provider.setCustomParameters({ login_hint: gUser.email });
+    const r = await fb.authM.signInWithPopup(fb.auth, fb.provider);
+    const cred = fb.authM.GoogleAuthProvider.credentialFromResult(r);
+    if (!cred || !cred.accessToken) throw new Error('Google no ha donat accés a Drive');
+    setToken(cred.accessToken);
+    gUser = r.user; renderAccount();
+    warn('');
+    if (mode === 'drive') { flush(); return true; }
+    await enterDrive();
+    return true;
+  } catch (e) {
+    if (e && (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request')) return false;
+    console.error(e);
+    toast('⚠️ No s\'ha pogut iniciar sessió: ' + esc(e.code || e.message), 6000);
+    return false;
+  }
+}
+
+async function signOutGoogle() {
+  if (running) { toast('Atura la gravació primer.'); return; }
+  await flush();
+  if (S.notes && S.notes.some(n => n.pending) && !confirm('Hi ha text que encara no s\'ha pujat a Drive. Sortir igualment? (Es quedarà guardat en aquest navegador.)')) return;
+  try { await fb.authM.signOut(fb.auth); } catch (e) {}
+  token = null; try { sessionStorage.removeItem(TOKEN_KEY); } catch (e) {}
+  leaveDrive();
+}
+
+function needAuth() {
+  setSync('err');
+  warn('🔑 Cal tornar a connectar amb Google (l\'accés caduca cada hora). El text que falta pujar està guardat i es pujarà en connectar.', 'Tornar a connectar', signIn);
+}
+
+async function guard(fn, what = 'Google Drive') {
+  try { return await fn(); }
+  catch (e) {
+    if (e instanceof NeedAuth) needAuth();
+    else { console.error(e); toast('⚠️ Error amb ' + what + ': ' + esc(e.message || e), 6000); }
+    return undefined;
+  }
+}
+
+/* ---------- emmagatzematge LOCAL ---------- */
+const LocalStore = {
+  async createFolder(name, math) { const f = { id: uid(), name, math, drive: '' }; db.folders.push(f); save(); return f; },
+  async updateFolder(f, patch) { Object.assign(f, patch); save(); },
+  async deleteFolder(f) { db.notes = db.notes.filter(n => n.folderId !== f.id); db.folders = db.folders.filter(x => x !== f); save(); },
+  async listNotes() {},
+  async createNote(folderId, title) {
+    const now = Date.now();
+    const n = { id: uid(), folderId, title, text: '', created: now, updated: now, lang: db.settings.lang };
+    db.notes.push(n); save(); return n;
+  },
+  async updateNote(n, patch) { Object.assign(n, patch, { updated: Date.now() }); save(); },
+  async deleteNote(n) { db.notes = db.notes.filter(x => x !== n); save(); },
+  async loadNote() {},
+  append(n, chunk) { n.text += chunk; n.updated = Date.now(); save(); },
+  async search(q) { q = q.toLowerCase(); return db.notes.filter(n => (n.title + '\n' + n.text).toLowerCase().includes(q)); },
+};
+
+/* ---------- emmagatzematge a GOOGLE DRIVE ---------- */
+const DOC_MIME = 'application/vnd.google-apps.document', FOLDER_MIME = 'application/vnd.google-apps.folder';
+const DRIVE_API = 'https://www.googleapis.com/drive/v3/files';
+const DOCS_API = 'https://docs.googleapis.com/v1/documents/';
+const qs = o => new URLSearchParams(o).toString();
+const qEsc = s => String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+const FILE_FIELDS = 'id,name,createdTime,appProperties,parents';
+
+async function gList(q) {
+  const out = []; let pageToken = '';
+  do {
+    const p = { q, fields: `nextPageToken,files(${FILE_FIELDS})`, pageSize: '200', spaces: 'drive' };
+    if (pageToken) p.pageToken = pageToken;
+    const r = await g(DRIVE_API + '?' + qs(p));
+    out.push(...(r.files || [])); pageToken = r.nextPageToken || '';
+  } while (pageToken);
+  return out;
+}
+function docText(d) {
+  let t = '';
+  const walk = els => {
+    for (const e of els || []) {
+      if (e.paragraph) for (const pe of e.paragraph.elements || []) if (pe.textRun) t += pe.textRun.content;
+      if (e.table) for (const row of e.table.tableRows || []) for (const c of row.tableCells || []) walk(c.content);
+    }
+  };
+  walk(d.body && d.body.content);
+  return t;
+}
+function noteFromFile(f, folderId) {
+  let n = S.notes.find(x => x.id === f.id);
+  if (!n) { n = { id: f.id, folderId, title: f.name, text: '', created: Date.parse(f.createdTime) || Date.now(), loaded: false, pending: '' }; S.notes.push(n); }
+  else { n.title = f.name; n.folderId = folderId; if (f.createdTime) n.created = Date.parse(f.createdTime); }
+  return n;
+}
+
+const DriveStore = {
+  root: null,
+  async init() {
+    const st = { folders: [], notes: [], cur: { folder: null, note: null }, loaded: {} };
+    const roots = await gList(`appProperties has { key='apunts' and value='root' } and trashed=false`);
+    let root = roots[0];
+    if (!root) root = await g(DRIVE_API + '?fields=' + FILE_FIELDS, { method: 'POST', body: JSON.stringify({ name: 'Apunts de Classe', mimeType: FOLDER_MIME, appProperties: { apunts: 'root' } }) });
+    this.root = root.id;
+    let subs = await gList(`'${root.id}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`);
+    if (!subs.length) for (const [name, math] of DEFAULT_SUBJECTS) subs.push(await this._mkFolder(name, math));
+    subs.sort((a, b) => (a.createdTime || '') < (b.createdTime || '') ? -1 : 1);
+    st.folders = subs.map(f => ({ id: f.id, name: f.name, math: !!(f.appProperties && f.appProperties.math === '1') }));
+    let saved = {}; try { saved = JSON.parse(localStorage.getItem(CUR_KEY)) || {}; } catch (e) {}
+    st.cur.folder = st.folders.find(f => f.id === saved.folder) ? saved.folder : st.folders[0].id;
+    S = st;
+    restorePending();
+    await this.listNotes(S.cur.folder);
+    if (saved.note && S.notes.find(n => n.id === saved.note && n.folderId === S.cur.folder)) S.cur.note = saved.note;
+    else { const first = notesOf(S.cur.folder)[0]; S.cur.note = first ? first.id : null; }
+    if (curNote()) await this.loadNote(curNote());
+  },
+  _mkFolder(name, math) {
+    return g(DRIVE_API + '?fields=' + FILE_FIELDS, { method: 'POST', body: JSON.stringify({ name, mimeType: FOLDER_MIME, parents: [this.root], appProperties: { apunts: 'subject', math: math ? '1' : '0' } }) });
+  },
+  async listNotes(folderId) {
+    const files = await gList(`'${folderId}' in parents and mimeType='${DOC_MIME}' and trashed=false`);
+    const ids = new Set(files.map(f => f.id));
+    S.notes = S.notes.filter(n => n.folderId !== folderId || ids.has(n.id) || n.pending);
+    for (const f of files) noteFromFile(f, folderId);
+    S.loaded[folderId] = true;
+  },
+  async createFolder(name, math) {
+    const f = await this._mkFolder(name, math);
+    const nf = { id: f.id, name: f.name, math }; S.folders.push(nf); S.loaded[nf.id] = true; return nf;
+  },
+  async updateFolder(f, patch) {
+    const body = {};
+    if (patch.name !== undefined && patch.name !== f.name) body.name = patch.name;
+    if (patch.math !== undefined && patch.math !== f.math) body.appProperties = { math: patch.math ? '1' : '0' };
+    if (Object.keys(body).length) await g(DRIVE_API + '/' + f.id + '?fields=id', { method: 'PATCH', body: JSON.stringify(body) });
+    Object.assign(f, patch);
+  },
+  async deleteFolder(f) {
+    await g(DRIVE_API + '/' + f.id + '?fields=id', { method: 'PATCH', body: JSON.stringify({ trashed: true }) });
+    S.notes = S.notes.filter(n => n.folderId !== f.id); S.folders = S.folders.filter(x => x !== f); persistPending();
+  },
+  async createNote(folderId, title) {
+    const d = await g(DRIVE_API + '?fields=' + FILE_FIELDS, { method: 'POST', body: JSON.stringify({ name: title, mimeType: DOC_MIME, parents: [folderId] }) });
+    const n = noteFromFile(d, folderId); n.loaded = true; return n;
+  },
+  async updateNote(n, patch) {
+    if (patch.title !== undefined) await g(DRIVE_API + '/' + n.id + '?fields=id', { method: 'PATCH', body: JSON.stringify({ name: patch.title || 'Sense títol' }) });
+    if (patch.folderId && patch.folderId !== n.folderId)
+      await g(DRIVE_API + '/' + n.id + '?' + qs({ addParents: patch.folderId, removeParents: n.folderId, fields: 'id' }), { method: 'PATCH', body: '{}' });
+    Object.assign(n, patch); persistPending();
+  },
+  async deleteNote(n) {
+    await g(DRIVE_API + '/' + n.id + '?fields=id', { method: 'PATCH', body: JSON.stringify({ trashed: true }) });
+    S.notes = S.notes.filter(x => x !== n); persistPending();
+  },
+  async loadNote(n) {
+    const d = await g(DOCS_API + n.id + '?fields=body');
+    n.text = docText(d).replace(/\n$/, '') + (n.pending || '');
+    n.loaded = true;
+  },
+  append(n, chunk) { n.text += chunk; n.pending = (n.pending || '') + chunk; persistPending(); scheduleFlush(); },
+  async search(q) {
+    const files = await gList(`fullText contains '${qEsc(q)}' and mimeType='${DOC_MIME}' and trashed=false`);
+    const out = [];
+    for (const f of files) {
+      const fid = (f.parents || []).find(p => S.folders.some(x => x.id === p));
+      if (fid) out.push(noteFromFile(f, fid));
+    }
+    return out;
+  },
+};
+const store = () => mode === 'drive' ? DriveStore : LocalStore;
+
+/* ---------- cua de pujada: el text no es perd mai ---------- */
+function persistPending() {
+  if (mode !== 'drive') return;
+  const p = {};
+  for (const n of S.notes) if (n.pending) p[n.id] = { text: n.pending, folderId: n.folderId, title: n.title };
+  try { localStorage.setItem(PENDING_KEY, JSON.stringify(p)); } catch (e) {}
+}
+function restorePending() {
+  let p = {}; try { p = JSON.parse(localStorage.getItem(PENDING_KEY)) || {}; } catch (e) {}
+  for (const [id, v] of Object.entries(p)) {
+    if (!v || !v.text) continue;
+    let n = S.notes.find(x => x.id === id);
+    if (!n) { n = { id, folderId: v.folderId, title: v.title || '', text: '', created: Date.now(), loaded: false, pending: '' }; S.notes.push(n); }
+    n.pending = v.text;
+  }
+}
+let flushTimer = null, flushing = null;
+function scheduleFlush(ms = 5000) { if (flushTimer) return; flushTimer = setTimeout(() => { flushTimer = null; flush(); }, ms); }
+function flush() {
+  if (mode !== 'drive') return Promise.resolve();
+  if (flushing) return flushing;
+  flushing = (async () => {
+    await null;   // perquè «flushing» ja estigui assignat quan s'executi el finally
+    try {
+      for (const n of S.notes.filter(x => x.pending)) {
+        const chunk = n.pending;
+        setSync('busy');
+        try {
+          await g(DOCS_API + n.id + ':batchUpdate', { method: 'POST', body: JSON.stringify({ requests: [{ insertText: { endOfSegmentLocation: {}, text: chunk } }] }) });
+        } catch (e) {
+          if (e.status === 404) { n.pending = ''; persistPending(); toast('⚠️ El document «' + esc(n.title) + '» ja no existeix a Drive.'); continue; }
+          throw e;
+        }
+        n.pending = n.pending.slice(chunk.length);
+        persistPending();
+      }
+      setSync('ok');
+      if ($('warn').textContent.startsWith('🔑')) warn('');
+    } catch (e) {
+      setSync('err');
+      if (e instanceof NeedAuth) needAuth();
+      else scheduleFlush(15000);
+    } finally {
+      flushing = null;
+      if (S.notes.some(x => x.pending) && tokenOk()) scheduleFlush();
+    }
+  })();
+  return flushing;
+}
+function setSync(state) {
+  const el = $('sync');
+  if (mode !== 'drive') { el.textContent = ''; el.className = ''; return; }
+  const pend = S.notes.some(n => n.pending);
+  el.className = state === 'err' ? 'err' : '';
+  el.textContent = state === 'err' ? '⚠ Pendent de pujar' : state === 'busy' ? '☁ Pujant…' : pend ? '☁ …' : '☁ Desat a Drive';
+}
+
+async function enterDrive() {
+  if (mode === 'drive' || enteringDrive) return;
+  if (running) { toast('Atura la gravació per connectar amb Drive.'); return; }
+  enteringDrive = true;
+  warn('');
+  $('status').textContent = 'Carregant Drive…';
+  try {
+    await DriveStore.init();
+    mode = 'drive';
+  } catch (e) {
+    S = db; mode = 'local';
+    if (e instanceof NeedAuth) needAuth();
+    else { console.error(e); warn('⚠️ No s\'ha pogut obrir Google Drive: ' + esc(e.message) + '. Revisa que les APIs de Drive i Docs estiguin activades (SETUP.md).'); }
+  } finally { enteringDrive = false; }
+  $('status').textContent = 'Aturat';
+  renderAll();
+  if (mode === 'drive') {
+    flush();
+    const local = db.notes.filter(n => !n.migrated && n.text.trim());
+    if (local.length) warn(`💾 Tens ${local.length} classes guardades només en aquest navegador.`, 'Pujar-les a Drive', migrateLocal);
+  }
+}
+let enteringDrive = false;
+
+function leaveDrive() {
+  mode = 'local'; S = db; warn(''); setSync(); renderAccount(); renderAll();
+}
+
+async function migrateLocal() {
+  const list = db.notes.filter(n => !n.migrated && n.text.trim());
+  warn('');
+  let i = 0;
+  for (const ln of list) {
+    const ok = await guard(async () => {
+      const lf = db.folders.find(f => f.id === ln.folderId);
+      const name = lf ? lf.name : 'Altres';
+      let f = S.folders.find(x => x.name.toLowerCase() === name.toLowerCase());
+      if (!f) f = await DriveStore.createFolder(name, lf ? lf.math : false);
+      const n = await DriveStore.createNote(f.id, ln.title || 'Classe');
+      await g(DOCS_API + n.id + ':batchUpdate', { method: 'POST', body: JSON.stringify({ requests: [{ insertText: { endOfSegmentLocation: {}, text: ln.text } }] }) });
+      n.text = ln.text; n.created = ln.created;
+      ln.migrated = n.id; save();
+      return true;
+    });
+    if (!ok) return;
+    toast(`Pujant a Drive… ${++i}/${list.length}`);
+  }
+  toast(`✓ ${i} classes pujades a Drive`); renderAll();
+}
+
+/* ============================================================
+   EXPORTAR: Google Docs i Claude
+   ============================================================ */
+function claudePrompt(n) {
+  const f = folderOf(n);
+  const lang = LANG_FULL[n.lang || db.settings.lang] || 'catalán';
+  return `Esto es la transcripción automática (reconocimiento de voz, en ${lang}) de una clase de ${f ? f.name : 'clase'} del ${fecha(new Date(n.created))}. ` +
+    `Puede tener palabras mal entendidas, frases cortadas y fórmulas mal escritas.\n\n` +
+    `Crea unos apuntes definitivos, completos y bien organizados:\n` +
+    `1. Corrige las palabras mal transcritas usando el contexto de la clase. Busca en la web para comprobar conceptos, nombres, fechas, términos técnicos y fórmulas. Si algo no cuadra, sustitúyelo por lo que sí tenga sentido.\n` +
+    `2. Organiza el contenido con títulos y apartados, definiciones claras, ejemplos y fórmulas bien escritas (√, ², π, fracciones…).\n` +
+    `3. Completa con información fiable de la web lo que el profesor explique a medias, sin inventar.\n` +
+    `4. Al final añade un resumen corto y los puntos clave para el examen.\n` +
+    `5. Al final de todo, haz una lista con las correcciones importantes que has hecho a la transcripción.\n\n` +
+    `Escribe los apuntes en ${lang}.`;
+}
+
+function noteToHtml(n, withPrompt) {
+  const f = folderOf(n);
+  let h = '';
+  if (withPrompt) h += `<p style="color:#666666"><i>${esc(claudePrompt(n)).replace(/\n/g, '<br>')}</i></p><hr>`;
+  h += `<h1>${esc(n.title || 'Apunts')}</h1>`;
+  h += `<p style="color:#666666">${esc(f ? f.name : '')} · ${fecha(new Date(n.created))}</p>`;
+  for (const para of n.text.split(/\n{2,}/)) {
+    if (!para.trim()) continue;
+    let p = esc(para.trim()).replace(/\n/g, '<br>');
+    p = p.replace(/^\[(\d\d:\d\d)\]\s*/, '<span style="color:#999999">[$1]</span> ');
+    h += `<p>${p}</p>`;
+  }
+  return `<meta charset="utf-8"><div style="font-family:Arial,sans-serif">${h}</div>`;
+}
+function noteToText(n, withPrompt) {
+  const f = folderOf(n);
+  return (withPrompt ? claudePrompt(n) + '\n\n----------\n\n' : '') +
+    (n.title || 'Apunts') + '\n' + (f ? f.name + ' · ' : '') + fecha(new Date(n.created)) + '\n\n' + n.text;
+}
+
+function openDocsDialog() {
+  const n = curNote(); if (!n) return;
+  if (mode === 'drive') { window.open(docUrl(n), '_blank'); return; }
+  if (!n.text.trim()) { toast('Aquesta classe encara està buida.'); return; }
+  const f = folderOf(n);
+  $('dFolderName').textContent = f ? f.name : '';
+  $('dDrive').value = f && f.drive ? folderUrl(f.drive) : '';
+  $('dPrompt').checked = !!db.settings.docsPrompt;
+  updateDriveHint();
+  $('dlgDocs').showModal();
+}
+function updateDriveHint() {
+  const id = driveId($('dDrive').value);
+  $('dDriveHint').textContent = id === null ? '⚠️ Aquest enllaç no sembla una carpeta de Drive.'
+    : id ? '✓ El document es crearà dins d\'aquesta carpeta.' : 'Si no en poses cap, el document es crea a «La meva unitat».';
+}
+async function sendToDocs() {
+  const n = curNote(); if (!n) return;
+  const f = folderOf(n);
+  const id = driveId($('dDrive').value);
+  if (id === null) { toast('L\'enllaç de la carpeta no és vàlid.'); return; }
+  if (f) f.drive = id;
+  db.settings.docsPrompt = $('dPrompt').checked;
+  const ok = await copyRich(noteToHtml(n, db.settings.docsPrompt), noteToText(n, db.settings.docsPrompt));
+  if (!ok) { toast('No s\'ha pogut copiar. Prova el botó «Copiar».'); return; }
+  const url = id ? 'https://docs.google.com/document/create?usp=drive_web&folder=' + encodeURIComponent(id) : 'https://docs.new';
+  window.open(url, '_blank');
+  n.sentAt = Date.now(); save();
+  $('dlgDocs').close();
+  renderEditor(); renderNotes();
+  toast('✓ Copiat! Al Google Docs nou prem <b>Ctrl + V</b>', 7000);
+}
+
+async function toClaude() {
+  const n = curNote(); if (!n) return;
+  if (mode === 'drive' && !(running && n.id === recNoteId)) await guard(() => DriveStore.loadNote(n));
+  if (!n.text.trim()) { toast('Aquesta classe encara està buida.'); return; }
+  let text = noteToText(n, true);
+  if (mode === 'drive') text = text.replace('\n\n----------\n\n', `\n\n(Documento original en Google Drive: ${docUrl(n)})\n\n----------\n\n`);
+  const ok = await copyRich('', text);
+  if (!ok) { toast('No s\'ha pogut copiar.'); return; }
+  window.open('https://claude.ai/new', '_blank');
+  toast('✓ Copiat amb les instruccions. A Claude prem <b>Ctrl + V</b> i envia', 8000);
+}
+
+/* ============================================================
+   INTERFÍCIE
+   ============================================================ */
+let searchResults = null, searchT = null;
+
+function renderAccount() {
+  const a = $('account');
+  $('localTools').style.display = mode === 'local' ? 'flex' : 'none';
+  if (!FIREBASE_CONFIG) {
+    a.innerHTML = '<div class="hint">💻 Mode local: els apunts es guarden en aquest navegador. Per connectar Google Drive, mira <b>SETUP.md</b>.</div>';
+    return;
+  }
+  if (!gUser) {
+    a.innerHTML = '<button class="gbtn" id="gLogin"><svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Inicia sessió amb Google</button><div class="hint">Per guardar els apunts a Google Drive i obrir-los des de qualsevol lloc.</div>';
+    $('gLogin').onclick = signIn;
+    return;
+  }
+  a.innerHTML = `<div class="who" title="${esc(gUser.email || '')}">☁ ${esc(gUser.email || gUser.displayName || '')}</div>` +
+    `<div class="row">${mode === 'drive' && DriveStore.root ? `<a class="btn ghost sm" style="text-decoration:none" target="_blank" rel="noopener" href="${folderUrl(DriveStore.root)}">📁 Obrir Drive</a>` : '<button class="btn primary sm" id="gConnect">Connectar Drive</button>'}<button class="btn ghost sm" id="gOut">Sortir</button></div>`;
+  $('gOut').onclick = signOutGoogle;
+  if ($('gConnect')) $('gConnect').onclick = signIn;
+}
+
+function renderFolders() {
+  const box = $('folders'); box.innerHTML = '';
+  for (const f of S.folders) {
+    const el = document.createElement('div');
+    const count = notesOf(f.id).length;
+    el.className = 'folder' + (f.id === S.cur.folder && !searchResults ? ' sel' : '');
+    el.innerHTML = `<span class="dot" style="background:${folderColor(f)}"></span><span class="name">${esc(f.name)}</span>` +
+      (f.math ? '<span class="tag" title="Mode mates">√</span>' : '') + (mode === 'local' && f.drive ? '<span class="tag" title="Connectada a Drive">☁</span>' : '') +
+      `<span class="count">${mode === 'drive' && !S.loaded[f.id] ? '' : count}</span>`;
+    el.onclick = () => selectFolder(f);
+    el.ondblclick = () => openFolderDialog(f);
+    box.appendChild(el);
+  }
+}
+
+function renderNotes() {
+  const box = $('notes'); box.innerHTML = '';
+  const q = $('search').value.trim();
+  const f = curFolder();
+  $('notesHead').textContent = searchResults ? 'Resultats' : (f ? f.name : 'Classes');
+  $('folderSettings').style.visibility = searchResults ? 'hidden' : '';
+  $('addNote').parentElement.style.display = searchResults ? 'none' : '';
+  if (!searchResults && mode === 'drive' && !S.loaded[S.cur.folder]) { box.innerHTML = '<div class="empty">Carregant…</div>'; return; }
+  const list = searchResults ? [...searchResults].sort((a, b) => b.created - a.created) : notesOf(S.cur.folder);
+  if (!list.length) { box.innerHTML = `<div class="empty">${searchResults ? 'Cap resultat.' : 'Encara no hi ha classes. Prem «Gravar classe» i es crearà sola.'}</div>`; return; }
+  for (const n of list) {
+    const el = document.createElement('div');
+    el.className = 'note' + (n.id === S.cur.note ? ' sel' : '');
+    const nf = folderOf(n);
+    let snippet;
+    if (searchResults) {
+      const i = n.text.toLowerCase().indexOf(q.toLowerCase());
+      snippet = i >= 0 ? '…' + n.text.slice(Math.max(0, i - 20), i + 50).replace(/\s+/g, ' ') : (nf ? nf.name : '');
+    } else if (n.text) snippet = n.text.replace(/\[\d\d:\d\d\]/g, '').replace(/\s+/g, ' ').trim().slice(0, 80);
+    else snippet = mode === 'drive' && !n.loaded ? fecha(new Date(n.created)) : 'Buida';
+    const live = running && n.id === recNoteId ? '🔴 ' : '';
+    const cloud = (mode === 'local' && n.sentAt) ? ' <span title="Enviada a Google Docs">☁</span>' : (n.pending ? ' <span title="Pendent de pujar">⏳</span>' : '');
+    el.innerHTML = `<div class="t">${live}${esc(n.title || 'Sense títol')}${cloud}</div><div class="s">${esc(snippet)}</div>`;
+    el.onclick = () => selectNote(n);
+    box.appendChild(el);
+  }
+}
+
+function renderMeta() {
+  const n = curNote();
+  if (!n) { $('meta').textContent = ''; $('sentBadge').hidden = true; return; }
+  const words = (n.text.match(/\S+/g) || []).length;
+  $('meta').textContent = (mode === 'drive' && !n.loaded) ? 'Carregant…' : `${fecha(new Date(n.created))} · ${words} paraules`;
+  if (mode === 'drive') { $('sentBadge').hidden = false; $('sentBadge').textContent = '☁ Google Docs · per editar-lo, obre\'l a Docs'; }
+  else { $('sentBadge').hidden = !n.sentAt; if (n.sentAt) $('sentBadge').textContent = '☁ A Google Docs ' + fecha(new Date(n.sentAt)); }
+}
+
+function renderEditor() {
+  const n = curNote();
+  const dis = !n;
+  for (const id of ['title', 'text', 'moveTo', 'toDocs', 'toClaude', 'convertAll', 'copy', 'exportNote', 'delNote']) $(id).disabled = dis;
+  $('title').value = n ? n.title : '';
+  $('text').value = n ? n.text : '';
+  $('text').readOnly = mode === 'drive';
+  $('text').placeholder = mode === 'drive'
+    ? 'Prem «Gravar classe»: el que digui el professor s\'escriurà aquí i al Google Docs de la classe, en directe.'
+    : 'Prem «Gravar classe» i el que digui el professor apareixerà aquí.\nTambé pots escriure o corregir el text quan vulguis.';
+  $('toDocs').textContent = mode === 'drive' ? '📄 Obrir a Google Docs' : '📄 Enviar a Google Docs';
+  $('convertAll').style.display = mode === 'drive' ? 'none' : '';
+  $('delNote').textContent = mode === 'drive' ? 'A la paperera' : 'Esborrar';
+  const mv = $('moveTo'); mv.innerHTML = '';
+  for (const f of S.folders) { const o = document.createElement('option'); o.value = f.id; o.textContent = f.name; mv.appendChild(o); }
+  if (n) mv.value = n.folderId;
+  mv.style.display = n ? '' : 'none';
+  renderMeta();
+  autoGrow();
+}
+
+function renderLangs() {
+  for (const b of $('langs').children) b.classList.toggle('on', b.dataset.lang === db.settings.lang);
+}
+
+function renderAll() { renderFolders(); renderNotes(); renderEditor(); renderLangs(); renderAccount(); setSync(); }
+
+function saveCur() {
+  if (mode === 'local') save();
+  else try { localStorage.setItem(CUR_KEY, JSON.stringify(S.cur)); } catch (e) {}
+}
+
+async function selectFolder(f) {
+  $('search').value = ''; searchResults = null;
+  S.cur.folder = f.id; S.cur.note = null; saveCur();
+  closeMenu();
+  renderAll();
+  if (mode === 'drive' && !S.loaded[f.id]) { await guard(() => DriveStore.listNotes(f.id)); if (S.cur.folder !== f.id) return; }
+  const first = notesOf(f.id)[0];
+  if (first) await selectNote(first, true);
+  else renderAll();
+}
+
+async function selectNote(n, keepSearch) {
+  S.cur.note = n.id;
+  if (!searchResults) S.cur.folder = n.folderId;
+  saveCur();
+  closeMenu();
+  renderAll();
+  if (mode === 'drive' && !(running && n.id === recNoteId)) {
+    await guard(() => DriveStore.loadNote(n));
+    if (S.cur.note === n.id) { renderEditor(); renderNotes(); }
+  }
+}
+
+async function newNote(folderId = S.cur.folder) {
+  const d = new Date();
+  const n = await guard(() => store().createNote(folderId, 'Classe ' + fecha(d) + ' ' + hhmm(d)));
+  if (!n) return null;
+  $('search').value = ''; searchResults = null;
+  S.cur.note = n.id; S.cur.folder = folderId; saveCur(); renderAll();
+  return n;
+}
+
+function openMenu() { document.body.classList.add('menu'); }
+function closeMenu() { document.body.classList.remove('menu'); }
+
+let editingFolderId = null;
+function openFolderDialog(folder = curFolder()) {
+  if (!folder) return;
+  editingFolderId = folder.id;
+  $('fName').value = folder.name;
+  $('fMath').checked = !!folder.math;
+  $('fDriveRow').style.display = mode === 'local' ? '' : 'none';
+  $('fOpenDrive').style.display = mode === 'drive' ? '' : 'none';
+  $('fOpenDrive').href = folderUrl(folder.id);
+  $('fDrive').value = folder.drive ? folderUrl(folder.drive) : '';
+  $('testIn').value = ''; $('testOut').textContent = '';
+  $('dlgFolder').showModal();
+}
+async function saveFolderDialog() {
+  const f = S.folders.find(x => x.id === editingFolderId); if (!f) return;
+  const patch = { math: $('fMath').checked };
+  if ($('fName').value.trim()) patch.name = $('fName').value.trim();
+  if (mode === 'local') {
+    const id = driveId($('fDrive').value);
+    if (id === null) toast('L\'enllaç de Drive no és vàlid; no l\'he desat.'); else patch.drive = id;
+  }
+  await guard(() => store().updateFolder(f, patch));
+  renderAll();
+}
+
+/* ============================================================
+   TRANSCRIPCIÓ (Web Speech API)
+   ============================================================ */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, running = false, recNoteId = null, lastFinalAt = 0, interim = '';
+let startedAt = 0, timerInt = null, restartDelay = 250, wakeLock = null;
+
+function setStatus(s, live = false) { $('status').textContent = s; $('status').classList.toggle('rec', live); }
+
+function noteIsMath(note) { const f = folderOf(note); return !!(f && f.math); }
+
+function addFinal(raw) {
+  let t = (raw || '').trim();
+  if (!t) return;
+  const note = S.notes.find(n => n.id === recNoteId);
+  if (!note) return;
+  if (noteIsMath(note)) t = MathConv.convert(t);
+  if (/^\p{L}{2,}/u.test(t)) t = t.charAt(0).toUpperCase() + t.slice(1);   // no posar "X²" en majúscula
+  if (!/[.?!…:;,]$/.test(t)) t += '.';
+  const now = Date.now();
+  let sep = ' ';
+  if (!note.text.trim()) sep = '';
+  else if (now - lastFinalAt > 6000) sep = '\n\n';
+  else if (/\s$/.test(note.text)) sep = '';
+  const prefix = (sep !== ' ' && db.settings.ts && !(sep === '' && note.text.trim())) ? '[' + hhmm() + '] ' : '';
+  store().append(note, sep + prefix + t);
+  lastFinalAt = now;
+  if (S.cur.note === note.id) { syncTextarea(note); renderMeta(); }
+  if (!searchResults) renderNotes();
+}
+
+function syncTextarea(note) {
+  const ta = $('text'), stage = ta.closest('.stage');
+  const atBottom = stage.scrollHeight - stage.scrollTop - stage.clientHeight < 120;
+  const focused = document.activeElement === ta, s = ta.selectionStart, e = ta.selectionEnd;
+  ta.value = note.text;
+  autoGrow();
+  if (focused) ta.setSelectionRange(s, e);
+  if (atBottom) stage.scrollTop = stage.scrollHeight;
+}
+function autoGrow() { const ta = $('text'); ta.style.height = 'auto'; ta.style.height = Math.max(ta.scrollHeight, 200) + 'px'; }
+
+function showInterim() {
+  const note = S.notes.find(n => n.id === recNoteId);
+  let t = interim.trim();
+  if (t && note && noteIsMath(note)) t = MathConv.convert(t);
+  $('interim').textContent = (t && S.cur.note === recNoteId) ? t + ' …' : '';
+}
+
+function spawn() {
+  const r = new SR();
+  rec = r;
+  r.lang = db.settings.lang;
+  r.continuous = true;
+  r.interimResults = true;
+  r.maxAlternatives = 1;
+  r.onstart = () => { if (r !== rec) return; restartDelay = 250; setStatus('Escoltant · ' + LANG_NAMES[r.lang], true); };
+  r.onresult = e => {
+    if (r !== rec) return;
+    let it = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const res = e.results[i];
+      if (res.isFinal) addFinal(res[0].transcript);
+      else it += res[0].transcript;
+    }
+    interim = it; showInterim();
+  };
+  r.onerror = e => {
+    if (r !== rec) return;
+    switch (e.error) {
+      case 'not-allowed':
+      case 'service-not-allowed':
+        stopRec();
+        warn('🎤 El navegador no deixa fer servir el micròfon. Clica la icona de la barra d\'adreces → Micròfon → <b>Permetre</b>, i torna-ho a provar.');
+        break;
+      case 'audio-capture':
+        stopRec(); warn('🎤 No es detecta cap micròfon. Connecta\'n un o revisa la configuració de so.'); break;
+      case 'language-not-supported':
+        stopRec(); warn('Aquest navegador no suporta l\'idioma triat. Fes servir Google Chrome.'); break;
+      case 'network':
+        setStatus('⚠️ Sense connexió, reintentant…'); restartDelay = 2000; break;
+      default: /* no-speech, aborted: es reinicia sol */ break;
+    }
+  };
+  r.onend = () => {
+    if (r !== rec) return;
+    if (interim.trim()) { addFinal(interim); interim = ''; showInterim(); }
+    if (!running) return;
+    setStatus('Reconnectant…');
+    const d = restartDelay; restartDelay = Math.min(restartDelay * 2, 5000);
+    setTimeout(() => { if (running && rec === r) { try { spawn(); } catch (err) { setTimeout(() => running && spawn(), 1000); } } }, d);
+  };
+  r.start();
+}
+
+/* indicador de nivell del micròfon (només visual) */
+let audioCtx = null, micStream = null, levelRAF = 0;
+async function startMeter() {
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    if (!running) { stopMeter(); return; }
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const an = audioCtx.createAnalyser(); an.fftSize = 512;
+    audioCtx.createMediaStreamSource(micStream).connect(an);
+    const buf = new Uint8Array(an.fftSize);
+    const loop = () => {
+      an.getByteTimeDomainData(buf);
+      let s = 0; for (const v of buf) { const d = (v - 128) / 128; s += d * d; }
+      $('level').style.width = Math.min(100, Math.sqrt(s / buf.length) * 450) + '%';
+      levelRAF = requestAnimationFrame(loop);
+    };
+    loop();
+  } catch (e) { /* sense indicador, la transcripció segueix igual */ }
+}
+function stopMeter() {
+  cancelAnimationFrame(levelRAF);
+  try { micStream && micStream.getTracks().forEach(t => t.stop()); } catch (e) {}
+  try { audioCtx && audioCtx.close(); } catch (e) {}
+  micStream = audioCtx = null; $('level').style.width = '0';
+}
+
+let starting = false;
+async function startRec() {
+  if (starting) return;
+  if (!SR) { warn('Aquest navegador no pot transcriure. Obre la web amb <b>Google Chrome</b> (recomanat) o Microsoft Edge. Al iPad, Safari.'); return; }
+  starting = true;
+  try {
+    // Si l'accés a Drive caduca aviat, el renovem ara (així aguanta tota la classe).
+    if (mode === 'drive' && tokenExp - Date.now() < 20 * 60 * 1000) { if (!await signIn()) return; }
+    warn('');
+    let note = curNote();
+    if (!note) note = await newNote();
+    if (!note) return;
+    if (mode === 'drive' && !note.loaded) { await guard(() => DriveStore.loadNote(note)); if (!note.loaded) return; }
+    if (mode === 'local' && !note.text.trim()) note.lang = db.settings.lang;
+    recNoteId = note.id; running = true; lastFinalAt = 0; interim = '';
+    startedAt = Date.now();
+    $('recLabel').textContent = 'Aturar'; $('rec').classList.add('on');
+    setStatus('Iniciant…');
+    clearInterval(timerInt);
+    $('timer').textContent = '00:00';
+    timerInt = setInterval(() => {
+      const s = Math.floor((Date.now() - startedAt) / 1000);
+      $('timer').textContent = (s >= 3600 ? Math.floor(s / 3600) + ':' : '') + pad(Math.floor(s / 60) % 60) + ':' + pad(s % 60);
+    }, 1000);
+    try { spawn(); } catch (e) { stopRec(); warn('No s\'ha pogut iniciar el micròfon: ' + esc(e.message)); return; }
+    startMeter();
+    try { if (navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+    renderNotes();
+  } finally { starting = false; }
+}
+
+function stopRec() {
+  running = false;
+  try { rec && rec.stop(); } catch (e) {}
+  clearInterval(timerInt);
+  stopMeter();
+  $('recLabel').textContent = 'Gravar classe'; $('rec').classList.remove('on');
+  setStatus('Aturat'); $('timer').textContent = '';
+  try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null;
+  saveNow();
+  // l'última frase arriba just després d'aturar: pugem una mica més tard
+  if (mode === 'drive') setTimeout(flush, 1500);
+  renderNotes();
+}
+
+document.addEventListener('visibilitychange', async () => {
+  if (running && document.visibilityState === 'visible' && navigator.wakeLock) {
+    try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+  }
+});
+window.addEventListener('beforeunload', e => {
+  saveNow(); persistPending();
+  if (running || (mode === 'drive' && S.notes.some(n => n.pending))) { flush(); e.preventDefault(); e.returnValue = ''; }
+});
+window.addEventListener('online', () => { if (mode === 'drive') flush(); });
+
+/* ============================================================
+   ESDEVENIMENTS
+   ============================================================ */
+function bind() {
+  $('rec').onclick = () => running ? stopRec() : startRec();
+  document.addEventListener('keydown', e => { if (e.altKey && e.key.toLowerCase() === 'r') { e.preventDefault(); $('rec').click(); } });
+  $('menuBtn').onclick = openMenu;
+  $('scrim').onclick = closeMenu;
+
+  for (const b of $('langs').children) b.onclick = () => {
+    db.settings.lang = b.dataset.lang; save(); renderLangs();
+    const n = curNote(); if (n && mode === 'local' && !n.text.trim()) n.lang = db.settings.lang;
+    if (running && rec) { setStatus('Canviant idioma…'); try { rec.stop(); } catch (e) {} }
+  };
+  $('ts').checked = db.settings.ts;
+  $('ts').onchange = () => { db.settings.ts = $('ts').checked; save(); };
+
+  $('search').oninput = () => {
+    clearTimeout(searchT);
+    const q = $('search').value.trim();
+    if (!q) { searchResults = null; renderFolders(); renderNotes(); return; }
+    searchT = setTimeout(async () => {
+      const r = await guard(() => store().search(q), 'la cerca');
+      if ($('search').value.trim() !== q) return;
+      searchResults = r || [];
+      renderFolders(); renderNotes();
+    }, mode === 'drive' ? 450 : 0);
+  };
+
+  $('addFolder').onclick = async () => {
+    const f = await guard(() => store().createFolder('Nova assignatura', false));
+    if (!f) return;
+    S.cur.folder = f.id; S.cur.note = null; saveCur(); renderAll();
+    openFolderDialog(f); $('fName').select();
+  };
+  $('folderSettings').onclick = () => openFolderDialog();
+  $('fName').oninput = () => { if (/mat|f[íi]s|qu[íi]m|tecno|estad|c[àa]lcul|econom/i.test($('fName').value)) $('fMath').checked = true; };
+  $('dlgFolder').addEventListener('close', saveFolderDialog);
+  $('fDelete').onclick = async () => {
+    const f = S.folders.find(x => x.id === editingFolderId); if (!f) return;
+    if (S.folders.length === 1) { toast('Ha de quedar almenys una assignatura.'); return; }
+    const notes = notesOf(f.id);
+    if (running && notes.some(n => n.id === recNoteId)) { toast('Atura la gravació primer.'); return; }
+    const msg = mode === 'drive' ? `Moure «${f.name}» i les seves classes a la paperera de Google Drive?` : `Esborrar «${f.name}» i les seves ${notes.length} classes? No es pot desfer.`;
+    if (!confirm(msg)) return;
+    const ok = await guard(async () => { await store().deleteFolder(f); return true; });
+    if (!ok) return;
+    editingFolderId = null;
+    S.cur.folder = S.folders[0].id; S.cur.note = null; saveCur();
+    $('dlgFolder').close(); renderAll();
+  };
+  $('fExport').onclick = async () => {
+    const f = S.folders.find(x => x.id === editingFolderId); if (!f) return;
+    if (mode === 'drive' && !S.loaded[f.id]) await guard(() => DriveStore.listNotes(f.id));
+    const notes = notesOf(f.id).reverse();
+    if (!notes.length) { toast('Aquesta assignatura encara no té classes.'); return; }
+    if (mode === 'drive') { toast('Descarregant…'); for (const n of notes) if (!n.loaded) await guard(() => DriveStore.loadNote(n)); }
+    download(f.name + '.txt', notes.map(n => '==== ' + n.title + ' ====\n\n' + n.text).join('\n\n\n'));
+  };
+  $('testIn').oninput = () => { $('testOut').textContent = MathConv.convert($('testIn').value); };
+
+  $('addNote').onclick = async () => { const n = await newNote(); if (n) { closeMenu(); $('title').focus(); $('title').select(); } };
+
+  let titleT = null;
+  $('title').oninput = () => {
+    const n = curNote(); if (!n) return;
+    const val = $('title').value;
+    if (mode === 'local') { LocalStore.updateNote(n, { title: val }); renderNotes(); return; }
+    n.title = val; renderNotes();
+    clearTimeout(titleT); titleT = setTimeout(() => guard(() => DriveStore.updateNote(n, { title: val })), 700);
+  };
+  $('text').oninput = () => {
+    const n = curNote(); if (!n || mode !== 'local') return;
+    n.text = $('text').value; n.updated = Date.now(); save(); autoGrow(); renderMeta();
+  };
+  $('moveTo').onchange = async () => {
+    const n = curNote(); if (!n) return;
+    const to = $('moveTo').value;
+    const ok = await guard(async () => { await store().updateNote(n, { folderId: to }); return true; });
+    if (ok) { S.cur.folder = to; saveCur(); }
+    renderAll();
+  };
+
+  $('toDocs').onclick = openDocsDialog;
+  $('dDrive').oninput = updateDriveHint;
+  $('dGo').onclick = sendToDocs;
+  $('toClaude').onclick = toClaude;
+
+  $('copy').onclick = async () => {
+    const n = curNote(); if (!n) return;
+    const ok = await copyRich('', n.text);
+    toast(ok ? '✓ Text copiat' : 'No s\'ha pogut copiar.');
+  };
+  $('exportNote').onclick = () => { const n = curNote(); if (n) download((n.title || 'apunts') + '.txt', noteToText(n, false)); };
+  $('convertAll').onclick = () => {
+    const n = curNote(); if (!n || mode !== 'local') return;
+    const conv = n.text.split('\n').map(l => {
+      const m = l.match(/^(\[\d\d:\d\d\]\s*)(.*)$/);
+      return m ? m[1] + MathConv.convert(m[2]) : MathConv.convert(l);
+    }).join('\n');
+    if (conv === n.text) { toast('No hi he trobat res de mates per convertir.'); return; }
+    if (!confirm('Aplicar la conversió de mates a tot el text d\'aquesta classe?')) return;
+    n.text = conv; save(); renderEditor();
+  };
+  $('delNote').onclick = async () => {
+    const n = curNote(); if (!n) return;
+    if (running && n.id === recNoteId) { toast('Atura la gravació primer.'); return; }
+    const msg = mode === 'drive' ? `Moure «${n.title}» a la paperera de Google Drive?` : `Esborrar «${n.title}»? No es pot desfer.`;
+    if (!confirm(msg)) return;
+    const ok = await guard(async () => { await store().deleteNote(n); return true; });
+    if (!ok) return;
+    if (searchResults) searchResults = searchResults.filter(x => x !== n);
+    S.cur.note = null; saveCur(); renderAll();
+  };
+
+  $('backup').onclick = () => download('apunts-copia-' + fecha().replace(/\//g, '-') + '.json', JSON.stringify(db, null, 1), 'application/json');
+  $('restore').onchange = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      if (!Array.isArray(data.folders) || !Array.isArray(data.notes)) throw new Error('format');
+      if (!confirm(`Restaurar la còpia (${data.notes.length} classes)? Substituirà els apunts actuals d'aquest navegador.`)) return;
+      if (running) stopRec();
+      db = data; fixDb();
+      if (mode === 'local') S = db;
+      await saveNow(); renderAll();
+      toast('✓ Còpia restaurada');
+    } catch (err) { toast('Aquest fitxer no és una còpia vàlida.'); }
+    e.target.value = '';
+  };
+}
+
+(async () => {
+  await loadDb();
+  S = db;
+  if (!curNote()) { const first = notesOf(db.cur.folder)[0]; db.cur.note = first ? first.id : null; }
+  bind();
+  renderAll();
+  if (!SR) warn('Aquest navegador no pot transcriure. Obre la web amb <b>Google Chrome</b> (recomanat) o Microsoft Edge. Al iPad, Safari.');
+  fbInit();
+})();
+</script>
+</body>
+</html>
