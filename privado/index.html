@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>MCF Apuntes privados</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23123a6b'/%3E%3Crect x='7' y='10' width='10' height='8' rx='1.5' fill='white'/%3E%3Cpath d='M9 10V8a3 3 0 0 1 6 0v2' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#0e1626;--card:#16223a;--ink:#eef3fb;--mu:#9fb0cc;--ac:#f3c552;--ok:#3ad07a;--bad:#ff5a64;--line:rgba(220,235,255,.14)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+body{background:radial-gradient(120% 80% at 50% 0,#1b2c4f,var(--bg));color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(14,22,38,.92);backdrop-filter:blur(8px);z-index:5}
+header b{font-size:16px}header .sp{flex:1}
+a,button{font:inherit;color:inherit}
+.btn{border:1px solid var(--line);background:rgba(255,255,255,.06);border-radius:10px;padding:8px 13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:rgba(255,255,255,.12)}.btn.pri{background:var(--ac);color:#1d1606;border-color:transparent;font-weight:700}
+.btn.ok{border-color:rgba(58,208,122,.5)}.btn.bad{border-color:rgba(255,90,100,.5)}
+main{max-width:980px;margin:0 auto;padding:22px 14px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px}
+h1{margin:0 0 4px;font-size:26px}h2{margin:0 0 10px;font-size:18px}p{color:var(--mu);margin:6px 0}
+.lock{text-align:center;padding:40px 18px}.lock .ic{font-size:54px}
+.pages{display:grid;gap:14px;justify-items:center}
+.pg{position:relative;width:100%;max-width:900px;background:#fff;border-radius:6px;box-shadow:0 12px 30px rgba(0,0,0,.45);overflow:hidden}
+.pg canvas{display:block;width:100%;height:auto;pointer-events:none}
+.pg .ld{position:absolute;inset:0;display:grid;place-items:center;color:#7b8aa8;font-size:13px}
+#shield{position:fixed;inset:0;background:#0e1626;z-index:50;display:none;place-items:center;text-align:center;color:var(--mu);padding:20px}
+#shield.on{display:grid}
+input{background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:10px;padding:9px 12px;color:var(--ink);width:100%;-webkit-user-select:text;user-select:text}
+.ul{display:grid;gap:6px;max-height:420px;overflow:auto}
+.u{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,.2)}
+.u .nm{flex:1;min-width:0}.u small{color:var(--mu);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill{font-size:11px;font-weight:800;letter-spacing:.08em;border-radius:6px;padding:2px 7px}
+.pill.on{background:var(--ok);color:#06210f}.pill.off{background:rgba(255,255,255,.12);color:var(--mu)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.warn{border:1px solid rgba(255,90,100,.5);background:rgba(255,90,100,.1);border-radius:12px;padding:10px 12px;color:#ffc6ca;margin:10px 0}
+.good{border:1px solid rgba(58,208,122,.5);background:rgba(58,208,122,.1);border-radius:12px;padding:10px 12px;color:#bff3d4;margin:10px 0}
+code{background:rgba(0,0,0,.35);padding:1px 6px;border-radius:6px}
+@media print{body *{display:none!important}body::after{content:"Documento protegido. No se puede imprimir.";display:block!important;font:20px sans-serif;padding:40px}}
+</style>
+</head>
+<body oncontextmenu="return false">
+<header><a class="btn" href="../">← MCF</a><b>🔒 MCF Apuntes privados</b><span class="sp"></span><span id="who" style="font-size:13px;color:var(--mu)"></span></header>
+<main id="app"><div class="card lock"><div class="ic">⏳</div><p>Comprobando tu acceso…</p></div></main>
+<div id="shield"><div><div style="font-size:46px">🔒</div><p>Contenido oculto mientras la ventana no está activa.</p><p>Vuelve a hacer clic aquí para seguir leyendo.</p></div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+(function(){
+'use strict';
+var CFG={apiKey:"AIzaSyAS2sEiZ3vh3DpvG-Vx85w73zoAOdaFCNs",authDomain:"marela-8d4e5.firebaseapp.com",databaseURL:"https://marela-8d4e5-default-rtdb.europe-west1.firebasedatabase.app",projectId:"marela-8d4e5",storageBucket:"marela-8d4e5.firebasestorage.app"};
+var LOGIN='https://cfartaesmario-a11y.github.io/2batx/';
+var $=function(s){return document.querySelector(s)},app=$('#app');
+var esc=function(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var U=null,ADMIN=false,DOCS=[],DB=null,CUR=null,DIR_OK=false;
+var b64=function(s){var b=atob(s),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u};
+var name=function(u){return u.displayName||(u.email||'').split('@')[0]||'Usuario'};
+
+/* ---------- protección: sin copiar, sin imprimir, sin guardar, se oculta al perder el foco ---------- */
+['copy','cut','dragstart','selectstart','contextmenu'].forEach(function(ev){document.addEventListener(ev,function(e){if(!(e.target&&e.target.tagName==='INPUT'))e.preventDefault()},true)});
+document.addEventListener('keydown',function(e){var k=(e.key||'').toLowerCase();
+  if((e.ctrlKey||e.metaKey)&&['s','p','c','u','a','x'].indexOf(k)>=0&&!(e.target&&e.target.tagName==='INPUT')){e.preventDefault();e.stopPropagation()}
+  if(k==='printscreen'||k==='f12'||((e.ctrlKey||e.metaKey)&&e.shiftKey&&['i','j','c','s'].indexOf(k)>=0)){e.preventDefault();hide(true);try{navigator.clipboard.writeText('')}catch(x){}}},true);
+document.addEventListener('keyup',function(e){if((e.key||'').toLowerCase()==='printscreen'){try{navigator.clipboard.writeText('Contenido protegido · MCF')}catch(x){}}},true);
+function hide(on){$('#shield').classList.toggle('on',!!on)}
+window.addEventListener('blur',function(){if(CUR)hide(true)});
+document.addEventListener('visibilitychange',function(){if(document.hidden&&CUR)hide(true)});
+$('#shield').addEventListener('click',function(){hide(false)});
+window.addEventListener('focus',function(){setTimeout(function(){if(document.hasFocus())hide(false)},250)});
+window.addEventListener('beforeprint',function(){hide(true)});
+
+/* ---------- arranque ---------- */
+firebase.initializeApp(CFG);DB=firebase.database();
+fetch('d/index.json',{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){DOCS=j.docs||[]}).catch(function(){}).then(function(){
+  firebase.auth().onAuthStateChanged(async function(u){
+    U=u&&!u.isAnonymous?u:null;
+    if(!U){$('#who').textContent='';app.innerHTML='<div class="card lock"><div class="ic">🔒</div><h1>Contenido privado</h1><p>Para ver estos apuntes tienes que iniciar sesión con tu cuenta de MCF y que el administrador te dé permiso.</p><p style="margin-top:14px"><a class="btn pri" href="'+LOGIN+'">Iniciar sesión en MCF</a></p><p style="font-size:13px">Después de entrar, vuelve a abrir este enlace.</p></div>';return}
+    $('#who').textContent=name(U);
+    try{ADMIN=(await DB.ref('admins/'+U.uid).once('value')).val()===true}catch(e){ADMIN=false}
+    // queda registrado para que el admin pueda darle acceso
+    try{await DB.ref('mcfdocs/dir/'+U.uid).set({n:name(U),e:U.email||'',t:firebase.database.ServerValue.TIMESTAMP});DIR_OK=true}catch(e){DIR_OK=false}
+    home();
+  });
+});
+
+async function canSee(id){try{var s=await DB.ref('mcfdocs/keys/'+id).once('value');return s.val()}catch(e){return null}}
+
+async function home(){
+  CUR=null;hide(false);
+  var html='',mine=[];
+  for(var i=0;i<DOCS.length;i++){var k=await canSee(DOCS[i].id);if(k)mine.push({d:DOCS[i],k:k})}
+  if(mine.length){html+='<div class="card"><h2>Tus apuntes</h2>'+mine.map(function(x,i){return '<div class="u"><div class="nm"><b>'+esc(x.d.n)+'</b><small>'+esc(x.d.sub||'')+' · '+x.d.pages+' páginas</small></div><button class="btn pri" data-open="'+i+'">Abrir</button></div>'}).join('')+'</div>'}
+  else if(!ADMIN)html+='<div class="card lock"><div class="ic">🔒</div><h1>No tienes acceso</h1><p>Hola <b>'+esc(name(U))+'</b>. Todavía no te han dado permiso para ver estos apuntes.</p><p>Pídeselo al administrador: ya apareces en su lista. Cuando te lo dé, recarga la página.</p></div>';
+  if(ADMIN)html+=adminHTML();
+  app.innerHTML=html;
+  document.querySelectorAll('[data-open]').forEach(function(b){b.onclick=function(){openDoc(mine[+b.dataset.open])}});
+  if(ADMIN)adminBind();
+}
+
+/* ---------- visor: descifra cada página en memoria y la dibuja con marca de agua ---------- */
+async function openDoc(x){
+  CUR=x.d.id;var d=x.d;
+  var key=await crypto.subtle.importKey('raw',b64(x.k),{name:'AES-GCM'},false,['decrypt']);
+  var stamp=(U.email||name(U))+' · '+new Date().toLocaleString('es-ES');
+  try{DB.ref('mcfdocs/log/'+d.id+'/'+U.uid).set({n:name(U),t:firebase.database.ServerValue.TIMESTAMP})}catch(e){}
+  app.innerHTML='<div class="row" style="margin-bottom:12px"><button class="btn" id="back">← Volver</button><b style="font-size:18px">'+esc(d.n)+'</b></div><div class="pages" id="pgs">'+Array.from({length:d.pages},function(_,i){return '<div class="pg" style="aspect-ratio:1/1.414"><div class="ld">Página '+(i+1)+'…</div></div>'}).join('')+'</div><p style="text-align:center;font-size:12px;margin-top:16px">Documento protegido · se registra quién lo abre · marcado con tu nombre</p>';
+  $('#back').onclick=home;
+  var boxes=document.querySelectorAll('.pg');
+  for(var i=0;i<d.pages;i++){(function(i){
+    fetch('d/'+d.id+'/'+String(i+1).padStart(2,'0')+'.bin',{cache:'force-cache'}).then(function(r){return r.arrayBuffer()}).then(async function(buf){
+      var u=new Uint8Array(buf),plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:u.slice(0,12),additionalData:new TextEncoder().encode(d.aad)},key,u.slice(12));
+      var bmp=await createImageBitmap(new Blob([plain],{type:'image/jpeg'}));plain=null;
+      var c=document.createElement('canvas');c.width=bmp.width;c.height=bmp.height;var g=c.getContext('2d');g.drawImage(bmp,0,0);bmp.close&&bmp.close();
+      // marca de agua con el nombre de quien lo ve
+      g.save();g.globalAlpha=.11;g.fillStyle='#123a6b';g.font='bold '+Math.round(c.width/30)+'px system-ui,sans-serif';g.translate(c.width/2,c.height/2);g.rotate(-Math.PI/6);
+      for(var y=-c.height;y<c.height;y+=c.width/7)for(var xx=-c.width;xx<c.width;xx+=c.width/1.6)g.fillText(stamp,xx,y);g.restore();
+      g.save();g.globalAlpha=.5;g.fillStyle='#123a6b';g.font=Math.round(c.width/70)+'px system-ui,sans-serif';g.fillText('MCF · '+stamp+' · pág. '+(i+1),c.width*.04,c.height*.985);g.restore();
+      var box=boxes[i];box.innerHTML='';box.style.aspectRatio='';box.appendChild(c);
+    }).catch(function(){boxes[i].innerHTML='<div class="ld">No se pudo abrir esta página</div>'});
+  })(i)}
+}
+
+/* ---------- panel del admin ---------- */
+function adminHTML(){
+  return '<div class="card"><h2>★ Panel de admin</h2><p>Enlace para compartir: <code id="lnk">'+esc(location.href.split('#')[0])+'</code> <button class="btn" id="cp">Copiar</button></p><p>Aunque alguien tenga el enlace, solo verá los apuntes si tú le das acceso aquí. Primero tiene que abrir el enlace una vez con su cuenta de MCF para aparecer en la lista.</p><div id="sec"></div><div id="adm"><p>Cargando…</p></div></div>';
+}
+async function adminBind(){
+  $('#cp').onclick=function(){try{navigator.clipboard.writeText($('#lnk').textContent)}catch(e){}$('#cp').textContent='¡Copiado!'};
+  // comprobación de seguridad: con las reglas bien puestas, nadie puede escribir en la ficha de otro usuario
+  var sec=$('#sec');if(!DIR_OK){sec.innerHTML='<div class="warn">⚠️ Faltan las reglas de <b>mcfdocs</b> en Firebase: ahora mismo no se puede guardar nada. Publícalas (te las he pasado en el chat) y recarga.</div>'}else try{await DB.ref('mcfdocs/dir/__prueba__').set({t:1});await DB.ref('mcfdocs/dir/__prueba__').remove();sec.innerHTML='<div class="warn">⚠️ Las reglas de seguridad de Firebase no están puestas: ahora mismo cualquiera con conocimientos podría leer la clave. Publica las reglas de <b>mcfdocs</b> (te las he pasado en el chat) antes de dar acceso a nadie.</div>'}catch(e){sec.innerHTML='<div class="good">✅ Reglas de seguridad activas: solo las personas que elijas pueden abrir los apuntes.</div>'}
+  var dir={},acl={},keys={},logs={};
+  try{dir=(await DB.ref('mcfdocs/dir').once('value')).val()||{}}catch(e){}
+  for(var i=0;i<DOCS.length;i++){var id=DOCS[i].id;try{acl[id]=(await DB.ref('mcfdocs/acl/'+id).once('value')).val()||{}}catch(e){acl[id]={}}try{keys[id]=(await DB.ref('mcfdocs/keys/'+id).once('value')).val()}catch(e){}try{logs[id]=(await DB.ref('mcfdocs/log/'+id).once('value')).val()||{}}catch(e){logs[id]={}}}
+  var users=Object.entries(dir).filter(function(e){return e[0]!==U.uid&&e[0]!=='__prueba__'}).sort(function(a,b){return(b[1].t||0)-(a[1].t||0)});
+  $('#adm').innerHTML=DOCS.map(function(d){var k=keys[d.id];return '<div style="margin-top:14px"><b>'+esc(d.n)+'</b> <span style="color:var(--mu);font-size:13px">· '+d.pages+' págs.</span>'+
+    (k?'':'<div class="warn">Falta poner la clave de este documento (solo una vez). Pega la clave que te he dado en el chat:<div class="row" style="margin-top:8px"><input id="k_'+d.id+'" placeholder="Clave del documento"><button class="btn pri" data-key="'+d.id+'">Guardar clave</button></div></div>')+
+    '<div class="ul" style="margin-top:8px">'+(users.length?users.map(function(e){var on=!!(acl[d.id]||{})[e[0]],lg=(logs[d.id]||{})[e[0]];return '<div class="u"><div class="nm"><b>'+esc(e[1].n)+'</b><small>'+esc(e[1].e||'')+(lg?' · lo abrió el '+new Date(lg.t).toLocaleString('es-ES'):'')+'</small></div><span class="pill '+(on?'on':'off')+'">'+(on?'CON ACCESO':'SIN ACCESO')+'</span><button class="btn '+(on?'bad':'ok')+'" data-acl="'+d.id+'|'+e[0]+'|'+(on?0:1)+'">'+(on?'Quitar':'Dar acceso')+'</button></div>'}).join(''):'<p>Todavía no ha entrado nadie. Pásale el enlace a tu amigo: cuando lo abra con su cuenta de MCF aparecerá aquí.</p>')+'</div></div>'}).join('')+'<p style="margin-top:12px"><button class="btn" id="rf">↻ Actualizar lista</button></p>';
+  $('#rf').onclick=home;
+  document.querySelectorAll('[data-key]').forEach(function(b){b.onclick=async function(){var id=b.dataset.key,v=($('#k_'+id).value||'').trim(),d=DOCS.find(function(x){return x.id===id});
+    try{var key=await crypto.subtle.importKey('raw',b64(v),{name:'AES-GCM'},false,['decrypt']);var c=b64(d.chk);await crypto.subtle.decrypt({name:'AES-GCM',iv:c.slice(0,12),additionalData:new TextEncoder().encode('mcf-check')},key,c.slice(12))}catch(e){alert('Esa clave no es correcta.');return}
+    try{await DB.ref('mcfdocs/keys/'+id).set(v);home()}catch(e){alert('No se pudo guardar: '+e.message)}}});
+  document.querySelectorAll('[data-acl]').forEach(function(b){b.onclick=async function(){var p=b.dataset.acl.split('|');try{await DB.ref('mcfdocs/acl/'+p[0]+'/'+p[1]).set(p[2]==='1'?true:null);home()}catch(e){alert('No se pudo cambiar el acceso: '+e.message)}}});
+}
+})();
+</script>
+</body>
+</html>
