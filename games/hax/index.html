@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>HaxArena Pro</title>
+<title>MCF HaxArena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2345b85f'/%3E%3Crect x='6' y='10' width='52' height='44' rx='6' fill='none' stroke='white' stroke-width='3'/%3E%3Cline x1='32' y1='10' x2='32' y2='54' stroke='white' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='11' fill='white' stroke='%23123a6b' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%23123a6b'/%3E%3C/svg%3E">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -182,6 +183,10 @@ pre.code{margin:0;background:rgba(0,0,0,.4);border:1px solid var(--line);border-
   </div>
   <div class="hint" id="hint"></div>
 </div>
+<div id="liveTag" hidden style="position:fixed;left:max(14px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 14px);display:flex;gap:8px;align-items:center;pointer-events:auto;z-index:5">
+  <span style="background:#ff2d3d;color:#fff;font-family:var(--f-display);font-weight:800;letter-spacing:.12em;padding:4px 10px;border-radius:6px;animation:livep 1.4s infinite">● EN DIRECTO</span>
+  <button class="btn sm" id="btnCam" style="background:rgba(16,34,72,.78)">Cámara 2D/3D (V)</button><button class="btn sm" id="btnStopWatch" style="background:rgba(16,34,72,.78)">Salir</button></div>
+<style>@keyframes livep{50%{opacity:.55}}</style>
 <div id="banner"><div class="big" id="bannerBig">¡Gol!</div><div class="who" id="bannerWho"></div></div>
 <div id="toast" role="status"></div>
 
@@ -199,11 +204,12 @@ pre.code{margin:0;background:rgba(0,0,0,.4);border:1px solid var(--line);border-
   <div class="panel">
     <a class="btn ghost sm" href="../" style="justify-self:start;text-decoration:none">← MCF Games</a>
     <div class="brand">
-      <h1 class="logo">Hax<b>Arena</b><span class="tag">PRO</span></h1>
+      <h1 class="logo"><span style="font-size:.42em;align-self:center;background:#fff;color:#123a6b;border-radius:8px;padding:2px 8px 0">MCF</span>Hax<b>Arena</b><span class="tag">PRO</span></h1>
       <p class="sub">Física clásica de HaxBall, un modo Pro con sprint, disparo potente, efecto y órdenes tácticas, y salas online de 1 contra 1 hasta 5 contra 5.</p>
     </div>
     <div class="menu-list">
       <button class="btn big" data-go="sSetup"><span><strong>Partido rápido</strong><small>Contra bots o 2 jugadores en el mismo teclado</small></span><i>→</i></button>
+      <button class="btn big" data-go="sOnline" id="btnLive"><span><strong>📺 En directo</strong><small>Mira desde la grada en 3D los partidos que se están jugando</small></span><i>→</i></button>
       <button class="btn big" data-go="sOnline"><span><strong>Online</strong><small>Crea o únete a una sala multijugador</small></span><i>→</i></button>
       <div class="split">
         <button class="btn" data-go="sHelp">Controles</button>
@@ -245,6 +251,7 @@ pre.code{margin:0;background:rgba(0,0,0,.4);border:1px solid var(--line);border-
       <div class="field"><h3>Crear sala</h3>
         <div class="row"><input type="text" id="roomName" maxlength="32" placeholder="Nombre de la sala" style="flex:1"><button class="btn primary" id="btnCreate">Crear</button></div>
       </div>
+      <div class="field"><h3>🔴 Partidos en directo</h3><div class="rooms" id="liveList"><div class="empty">Buscando partidos…</div></div></div>
       <div class="field"><h3>Salas abiertas</h3><div class="rooms" id="roomList"><div class="empty">Buscando salas…</div></div></div>
     </div>
   </div>
@@ -632,6 +639,7 @@ addEventListener('keydown', e => {
   if (inMatch() && GAME_KEYS.has(e.code)) e.preventDefault();
   if (e.code === 'Escape' && inMatch()) togglePause();
   if (e.code === 'KeyM') toggleMute();
+  if (e.code === 'KeyV' && G.mode !== 'demo') { cam3.on = !cam3.on; toast(cam3.on ? 'Cámara de la grada (3D)' : 'Vista desde arriba (2D)'); }
   if (/^Digit[1-4]$/.test(e.code) && inMatch()) pendingCall = +e.code.slice(5);
 });
 addEventListener('keyup', e => KEYS.delete(e.code));
@@ -847,6 +855,82 @@ function render(view, meIds) {
   }
   c.globalAlpha = 1;
 }
+/* =====================================================================
+   6b. CÁMARA DE LA GRADA EN 3D (espectadores, tecla V)
+   ===================================================================== */
+const cam3 = { on: false, x: 0, lx: 0, t: 0, cheer: 0 };
+const SEATS = (() => { let sd = 5; const rn = () => (sd = (sd * 16807) % 2147483647) / 2147483647; const PAL = ['#ff4d5a', '#ffd23f', '#3ec1ff', '#ffffff', '#ff8a3d', '#8b5cff', '#3fe08a', '#ff6fb5', '#ff3b47', '#2f86ff'];
+  const out = [];
+  for (let r = 0; r < 14; r++) for (let i = 0; i < 120; i++) { if (rn() < 0.12) continue; const x = -C.PX - 120 + (i + rn() * 0.6) * (2 * C.PX + 240) / 120; out.push({ x, y: -C.PY - 70 - r * 16, z: 12 + r * 11, c: PAL[Math.floor(rn() * PAL.length)], ph: rn() * 6.3 }); }
+  for (const s of [-1, 1]) for (let r = 0; r < 10; r++) for (let i = 0; i < 46; i++) { if (rn() < 0.15) continue; const y = -C.PY - 40 + (i + rn() * 0.6) * (2 * C.PY + 160) / 46; out.push({ x: s * (C.PX + 70 + r * 16), y, z: 12 + r * 11, c: PAL[Math.floor(rn() * PAL.length)], ph: rn() * 6.3 }); }
+  return out; })();
+function render3D(v) {
+  const c = g, W = cv.width, H = cv.height, now = performance.now(); cam3.t = now / 1000;
+  c.setTransform(1, 0, 0, 1, 0, 0);
+  if (!v) return;
+  const b = v.ball;
+  cam3.lx += (clamp(b.x, -C.W, C.W) * 0.8 - cam3.lx) * 0.06; cam3.x += (clamp(b.x, -C.W, C.W) * 0.45 - cam3.x) * 0.035;
+  const cam = { x: cam3.x, y: C.PY + 400, z: 330 }, tg = { x: cam3.lx, y: -20, z: 0 };
+  let fx = tg.x - cam.x, fy = tg.y - cam.y, fz = tg.z - cam.z; const fl = Math.hypot(fx, fy, fz); fx /= fl; fy /= fl; fz /= fl;
+  let rx = -fy, ry = fx; const rl = Math.hypot(rx, ry); rx /= rl; ry /= rl; // derecha = Z × adelante
+  const ux = fy * 0 - fz * ry, uy = fz * rx - fx * 0, uz = fx * ry - fy * rx;
+  const F = Math.min(W * 0.9, H * 1.35), CX = W / 2, CY = H * 0.52;
+  const P = (x, y, z) => { const dx = x - cam.x, dy = y - cam.y, dz = z - cam.z; const zc = dx * fx + dy * fy + dz * fz; if (zc < 5) return null; return [CX + F * (dx * rx + dy * ry) / zc, CY - F * (dx * ux + dy * uy + dz * uz) / zc, F / zc]; };
+  const poly = (pts, fill, stroke, lw) => { const q = pts.map(a => P(a[0], a[1], a[2] || 0)); if (q.some(a => !a)) return; c.beginPath(); q.forEach((a, i) => i ? c.lineTo(a[0], a[1]) : c.moveTo(a[0], a[1])); c.closePath(); if (fill) { c.fillStyle = fill; c.fill(); } if (stroke) { c.strokeStyle = stroke; c.lineWidth = lw || 2; c.stroke(); } };
+  const line = (pts, col, lw) => { c.beginPath(); let st = false; for (const a of pts) { const q = P(a[0], a[1], a[2] || 0); if (!q) { st = false; continue; } st ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]); st = true; } c.strokeStyle = col; c.lineWidth = lw; c.stroke(); };
+  // cielo
+  const sky = c.createLinearGradient(0, 0, 0, H * 0.5); sky.addColorStop(0, '#2f8dff'); sky.addColorStop(1, '#bfe3ff'); c.fillStyle = sky; c.fillRect(0, 0, W, H);
+  // estructura de las gradas
+  poly([[-C.PX - 140, -C.PY - 50, 0], [C.PX + 140, -C.PY - 50, 0], [C.PX + 140, -C.PY - 300, 170], [-C.PX - 140, -C.PY - 300, 170]], '#1d3f78');
+  for (const s of [-1, 1]) poly([[s * (C.PX + 50), -C.PY - 60, 0], [s * (C.PX + 50), C.PY + 140, 0], [s * (C.PX + 230), C.PY + 140, 130], [s * (C.PX + 230), -C.PY - 60, 130]], '#234c8f');
+  poly([[-C.PX - 140, -C.PY - 300, 170], [C.PX + 140, -C.PY - 300, 170], [C.PX + 140, -C.PY - 310, 205], [-C.PX - 140, -C.PY - 310, 205]], '#12305e');
+  // focos
+  for (const s of [-1, 1]) { const a = P(s * (C.PX + 160), -C.PY - 320, 0), t = P(s * (C.PX + 160), -C.PY - 320, 330); if (a && t) { c.strokeStyle = '#8fa3c0'; c.lineWidth = Math.max(2, t[2] * 6); c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(t[0], t[1]); c.stroke();
+      const gl = c.createRadialGradient(t[0], t[1], 0, t[0], t[1], 90 * t[2] * 3); gl.addColorStop(0, 'rgba(255,255,230,.95)'); gl.addColorStop(1, 'rgba(255,255,230,0)'); c.fillStyle = gl; c.beginPath(); c.arc(t[0], t[1], 90 * t[2] * 3, 0, 7); c.fill(); } }
+  // público (ordenado de lejos a cerca)
+  const goalT = v.phase === 'goal'; if (goalT) cam3.cheer = 1; else cam3.cheer *= 0.97;
+  for (const st of SEATS) { const jump = cam3.cheer * Math.max(0, Math.sin(cam3.t * 9 + st.ph)) * 7 + Math.sin(cam3.t * 2 + st.ph) * 0.6; const q = P(st.x, st.y, st.z + jump); if (!q) continue; const r = Math.max(1.2, q[2] * 7);
+    c.fillStyle = st.c; c.beginPath(); c.arc(q[0], q[1] - r, r, 0, 7); c.fill(); c.fillStyle = 'rgba(255,224,189,.9)'; c.beginPath(); c.arc(q[0], q[1] - r * 2.3, r * 0.6, 0, 7); c.fill(); }
+  // césped
+  poly([[-C.PX - 50, -C.PY - 50], [C.PX + 50, -C.PY - 50], [C.PX + 50, C.PY + 160], [-C.PX - 50, C.PY + 160]], '#2f8f45');
+  const n = 18, sw = 2 * C.PX / n;
+  for (let i = 0; i < n; i++) poly([[-C.PX + i * sw, -C.PY], [-C.PX + (i + 1) * sw, -C.PY], [-C.PX + (i + 1) * sw, C.PY], [-C.PX + i * sw, C.PY]], i % 2 ? '#3aa653' : '#45b85f');
+  const WL = 'rgba(255,255,255,.95)', lw = q => Math.max(1, q * 2.6);
+  const mid = P(0, 0, 0), lwm = mid ? lw(mid[2]) : 2;
+  line([[-C.W, -C.H], [C.W, -C.H], [C.W, C.H], [-C.W, C.H], [-C.W, -C.H]], WL, lwm);
+  line([[0, -C.H], [0, C.H]], WL, lwm);
+  const circ = (cx, cy, r, a0 = 0, a1 = Math.PI * 2) => { const pts = []; for (let i = 0; i <= 48; i++) { const a = a0 + (a1 - a0) * i / 48; pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); } return pts; };
+  line(circ(0, 0, C.KR), WL, lwm);
+  for (const s of [-1, 1]) { line([[s * C.W, -125], [s * (C.W - 85), -125], [s * (C.W - 85), 125], [s * C.W, 125]], 'rgba(255,255,255,.7)', lwm * 0.8); }
+  // porterías en 3D (palos de 44 de alto)
+  const GZ = 44;
+  for (const s of [-1, 1]) { const x0 = s * C.W, x1 = s * (C.W + C.GD), col = TEAM[s < 0 ? 1 : 2].c;
+    poly([[x0, -C.GH, GZ], [x1, -C.GH, GZ * 0.7], [x1, C.GH, GZ * 0.7], [x0, C.GH, GZ]], 'rgba(255,255,255,.18)');
+    poly([[x1, -C.GH, 0], [x1, C.GH, 0], [x1, C.GH, GZ * 0.7], [x1, -C.GH, GZ * 0.7]], 'rgba(255,255,255,.14)', 'rgba(255,255,255,.5)', 1);
+    for (const yy of [-C.GH, C.GH]) poly([[x0, yy, 0], [x1, yy, 0], [x1, yy, GZ * 0.7], [x0, yy, GZ]], 'rgba(255,255,255,.12)', 'rgba(255,255,255,.45)', 1);
+    const mk = (y) => { const a = P(x0, y, 0), t = P(x0, y, GZ); if (a && t) { c.strokeStyle = '#fff'; c.lineWidth = Math.max(2, a[2] * 7); c.lineCap = 'round'; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(t[0], t[1]); c.stroke(); } };
+    mk(-C.GH); mk(C.GH); line([[x0, -C.GH, GZ], [x0, C.GH, GZ]], '#fff', Math.max(2, (P(x0, 0, GZ) || [0, 0, 0.3])[2] * 7));
+    line([[x0, -C.GH, 1], [x0, C.GH, 1]], col, 2); }
+  // jugadores y balón (de lejos a cerca)
+  const ents = [];
+  for (const p of v.players) if (p.team > 0) ents.push({ p, y: p.y });
+  ents.push({ ball: b, y: b.y }); ents.sort((a, b2) => a.y - b2.y);
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  for (const e of ents) {
+    const o = e.ball || e.p, r = e.ball ? C.BR : C.PR, sp = Math.hypot(o.vx || 0, o.vy || 0), hz = e.ball ? Math.min(14, sp * 1.6) : 0;
+    const sh = P(o.x, o.y, 0), q = P(o.x, o.y, r + hz); if (!sh || !q) continue; const R = F * r / Math.hypot(o.x - cam.x, o.y - cam.y, r - cam.z);
+    c.fillStyle = 'rgba(0,40,10,.32)'; c.beginPath(); c.ellipse(sh[0] + R * 0.15, sh[1], R * 1.05, R * 0.38, 0, 0, 7); c.fill();
+    if (e.ball) { const gr = c.createRadialGradient(q[0] - R * 0.35, q[1] - R * 0.4, R * 0.1, q[0], q[1], R); gr.addColorStop(0, '#fff'); gr.addColorStop(0.7, '#eef1f2'); gr.addColorStop(1, '#a9b4b8'); c.fillStyle = gr; c.beginPath(); c.arc(q[0], q[1], R, 0, 7); c.fill(); c.strokeStyle = 'rgba(0,0,0,.6)'; c.lineWidth = Math.max(1, R * 0.12); c.stroke(); continue; }
+    const p = e.p, t = TEAM[p.team];
+    const gr = c.createRadialGradient(q[0] - R * 0.35, q[1] - R * 0.45, R * 0.1, q[0], q[1], R); gr.addColorStop(0, t.hi); gr.addColorStop(0.55, t.c); gr.addColorStop(1, t.lo);
+    c.fillStyle = gr; c.beginPath(); c.arc(q[0], q[1], R, 0, 7); c.fill(); c.lineWidth = Math.max(1.5, R * (p.kick ? 0.2 : 0.1)); c.strokeStyle = p.kick ? '#fff' : 'rgba(0,0,0,.6)'; c.stroke();
+    c.fillStyle = '#fff'; c.font = `700 ${Math.max(9, R * 0.8)}px "Saira Condensed", sans-serif`; c.fillText(avatar(p.name), q[0], q[1] + 1);
+    c.font = `600 ${Math.max(10, R * 0.55)}px Barlow, sans-serif`; const nm = p.name || ''; const tw = c.measureText(nm).width + 10;
+    c.fillStyle = 'rgba(16,34,72,.75)'; rr(c, q[0] - tw / 2, q[1] - R - 24 * DPR, tw, 16 * DPR, 5 * DPR); c.fill(); c.fillStyle = G.me.includes(p.id) ? '#f3c552' : '#fff'; c.fillText(nm, q[0], q[1] - R - 16 * DPR);
+  }
+  // marco de retransmisión
+  const vg = c.createLinearGradient(0, H * 0.82, 0, H); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.25)'); c.fillStyle = vg; c.fillRect(0, H * 0.82, W, H * 0.18);
+}
 function avatar(n) { const m = (n || '?').match(/\d+/); if (m) return m[0].slice(0, 2); return (n || '?').slice(0, 2).toUpperCase(); }
 const CALLS = { 1: 'Presión alta', 2: 'Repliegue', 3: '¡Pásala!', 4: '¡Tira!' };
 
@@ -859,7 +943,8 @@ function show(id) {
   for (const s of $$('.screen')) s.hidden = s.id !== id;
   const inGame = !id || id === 'sPause' || id === 'sEnd';
   $('#hud').hidden = !(G.mode !== 'demo' && G.world || G.mode === 'client') || !inGame;
-  $('#touch').hidden = !(touch.enabled && !id && G.mode !== 'demo');
+  $('#touch').hidden = !(touch.enabled && !id && G.mode !== 'demo' && !G.spec);
+  $('#liveTag').hidden = !(G.mode === 'client' && G.spec && !id);
   if (document.activeElement && !id) document.activeElement.blur();
 }
 $$('[data-go]').forEach(b => b.addEventListener('click', () => { audioInit(); const id = b.dataset.go; show(id); if (id === 'sOnline') openOnline(); if (id === 'sSettings') fillSettings(); }));
@@ -961,7 +1046,7 @@ function frame(t) {
   if (G.mode === 'client') {
     Net.clientInput();
     Net.interp();
-    render(G.view, G.me); updateHud(G.view);
+    if (cam3.on) render3D(G.view); else render(G.view, G.me); updateHud(G.view);
   } else if (G.world) {
     if (!G.paused || G.mode === 'host') {
       G.acc += dt;
@@ -973,7 +1058,7 @@ function frame(t) {
         tick();
       }
     }
-    render(G.world, G.me);
+    if (cam3.on && G.mode !== 'demo') render3D(G.world); else render(G.world, G.me);
     if (G.mode !== 'demo') updateHud(G.world);
   } else render(null, []);
   requestAnimationFrame(frame);
@@ -998,7 +1083,7 @@ $('#btnRematch').onclick = () => {
   else if (G.mode === 'client') { startDemo(); show('sRoom'); }
 };
 $$('#callBar button').forEach(b => b.addEventListener('click', () => { pendingCall = +b.dataset.call; }));
-function quitToMenu() { if (Net.room) Net.leave(); startDemo(); show('sMenu'); }
+function quitToMenu() { cam3.on = false; G.spec = false; if (Net.room) Net.leave(); startDemo(); show('sMenu'); }
 function showEnd(w) {
   const win = w.winner;
   $('#endTitle').textContent = win ? 'Gana ' + (win === 1 ? 'Rojo' : 'Azul') : 'Empate';
@@ -1071,6 +1156,11 @@ const Net = {
     ref.on('value', s => {
       const rooms = []; s.forEach(c => { const v = c.val(); if (v && v.name) rooms.push({ id: c.key, ...v }); });
       rooms.sort((a, b) => (b.created || 0) - (a.created || 0));
+      const live = $('#liveList'), L = rooms.filter(r => r.st === 'play'); live.innerHTML = '';
+      if (!L.length) live.innerHTML = '<div class="empty">Ahora mismo no se está jugando ningún partido.</div>';
+      for (const r of L) { const el = document.createElement('div'); el.className = 'room-item'; el.innerHTML = `<div><b></b><small></small></div><button class="btn sm primary" style="font-size:14px">📺 Ver</button>`;
+        el.querySelector('b').textContent = '🔴 ' + r.name; el.querySelector('small').textContent = `${r.players || 1} en la sala · ${r.mode === 'classic' ? 'Clásico' : 'Pro'} · desde la grada en 3D`;
+        el.querySelector('button').onclick = () => this.join(r.id, r.name, true); live.appendChild(el); }
       list.innerHTML = '';
       if (!rooms.length) { list.innerHTML = '<div class="empty">No hay salas abiertas. Crea la primera.</div>'; return; }
       for (const r of rooms) {
@@ -1097,9 +1187,9 @@ const Net = {
     } catch (e) { toast('No pude crear la sala: ' + e.message, 3500); this.room = null; return; }
     this.enterRoom();
   },
-  async join(id, name) {
+  async join(id, name, watch) {
     if (!this.db) return;
-    this.isHost = false; this.roomId = id; this.roomName = name;
+    this.isHost = false; this.roomId = id; this.roomName = name; this.watching = !!watch;
     const room = this.room = this.ref('rooms/' + id);
     try {
       const snap = await room.child('host').get();
@@ -1229,7 +1319,7 @@ const Net = {
 
   /* --- invitado --- */
   startClient() {
-    G.mode = 'client'; G.world = null; G.me = [UID]; G.endShown = false; G.cfg = this.cfg;
+    G.mode = 'client'; G.world = null; G.me = [UID]; G.endShown = false; G.cfg = this.cfg; G.spec = !((this.pl[UID] || {}).t); cam3.on = G.spec;
     G.view = { ball: { x: 0, y: 0, vx: 0, vy: 0 }, players: [], score: [0, 0], ticks: 0, phase: 'kickoff', kickTeam: 1, ot: false, timeLimit: 0, pro: this.cfg.mode === 'pro' };
     this.snap = null; this.buf = []; this.off = null; this.lastGoalSeq = 0; this.lastIn = ''; this.callSeq = 0;
     setHint(); show(null); SFX.whistle();
@@ -1325,6 +1415,8 @@ async function openOnline() {
 }
 $('#roomName').value = store.get('roomName', '');
 $('#btnCreate').onclick = () => { const n = ($('#roomName').value.trim() || ('Sala de ' + myName)).slice(0, 32); store.set('roomName', $('#roomName').value.trim()); Net.create(n); };
+$('#btnCam').onclick = () => { cam3.on = !cam3.on; };
+$('#btnStopWatch').onclick = () => { Net.leave(); cam3.on = false; G.spec = false; startDemo(); show('sOnline'); openOnline(); };
 $('#btnLeaveRoom').onclick = () => { Net.leave(); startDemo(); show('sOnline'); openOnline(); };
 $$('[data-join]').forEach(b => b.onclick = () => Net.setTeam(+b.dataset.join));
 $$('[data-bot]').forEach(b => b.onclick = () => Net.addBot(+b.dataset.bot));
