@@ -1132,7 +1132,7 @@ function tick() {
   pendingCall = 0;
   step(w);
   if (G.mode !== 'demo') handleEvents(w.ev, w);
-  if (G.mode === 'host') { Net.evBuf.push(...w.ev.filter(e => e.t !== 'arm')); if (w.n % 2 === 0 || w.phase === 'end') Net.sendSnap(); }
+  if (G.mode === 'host') { Net.evBuf.push(...w.ev.filter(e => e.t !== 'arm')); Net.sendSnap(w.n % 2 === 0 || w.phase === 'end'); }
   w.ev.length = 0;
   if (w.phase === 'end' && !G.endShown) { if (G.mode === 'host' && G.cfg && G.cfg.tour) tourReport(w); G.endShown = true; setTimeout(() => showEnd(w), 900); }
 }
@@ -1222,6 +1222,41 @@ $('#btnPlayLocal').onclick = () => { audioInit(); startLocal({ ...setup }); };
       haxarena/rooms/{id}/chat     → mensajes
    ===================================================================== */
 const MAXT = 5; // máximo por equipo
+/* ---------- P2P: canal directo tipo UDP entre anfitrión e invitados (WebRTC). Firebase solo para la señalización ---------- */
+const ICE = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }, { urls: 'stun:stun.cloudflare.com:3478' }] };
+const P2P = {
+  peers: {}, dc: null, pc: null, offs: [],
+  hostListen(room) { // anfitrión: atiende a cada invitado que pide conexión directa
+    const sig = room.child('sig');
+    const onOffer = async snap => { const uid = snap.key, v = snap.val(); if (!v || !v.offer || uid === UID) return; if (this.peers[uid] && this.peers[uid].sdp === v.offer.sdp) return;
+      this.close(uid); const pc = new RTCPeerConnection(ICE), P = this.peers[uid] = { pc, dc: null, sdp: v.offer.sdp };
+      pc.onicecandidate = e => { if (e.candidate) sig.child(uid + '/hc').push(JSON.stringify(e.candidate)); };
+      pc.ondatachannel = e => { const dc = P.dc = e.channel; dc.onmessage = m => { try { const a = JSON.parse(m.data); if (Array.isArray(a)) Net.inputs[uid] = a; } catch (x) {} }; dc.onclose = () => { if (P.dc === dc) P.dc = null; }; };
+      pc.onconnectionstatechange = () => { if (['failed', 'closed'].includes(pc.connectionState)) { P.dc = null; } };
+      try { await pc.setRemoteDescription(v.offer); const ans = await pc.createAnswer(); await pc.setLocalDescription(ans); await sig.child(uid + '/answer').set({ type: ans.type, sdp: ans.sdp }); } catch (e) { console.warn('p2p host', e); }
+      const cc = sig.child(uid + '/cc'), fn = c => { try { pc.addIceCandidate(JSON.parse(c.val())); } catch (x) {} }; cc.on('child_added', fn); P.off = () => cc.off('child_added', fn); };
+    sig.on('child_added', onOffer); sig.on('child_changed', onOffer); this.offs.push(() => { sig.off('child_added', onOffer); sig.off('child_changed', onOffer); });
+  },
+  async connect(room) { // invitado: abre canal directo con el anfitrión
+    this.closeClient(); const sig = room.child('sig/' + UID); sig.onDisconnect().remove(); await sig.remove().catch(() => {});
+    const pc = this.pc = new RTCPeerConnection(ICE);
+    const dc = this.dc = pc.createDataChannel('g', { ordered: false, maxRetransmits: 0 });
+    dc.onopen = () => { Net.p2p = true; Net.lastIn = ''; toast('⚡ Conexión directa activada', 1800); };
+    dc.onclose = () => { Net.p2p = false; };
+    dc.onmessage = m => { try { Net.onSnap(JSON.parse(m.data), true); } catch (x) {} };
+    pc.onicecandidate = e => { if (e.candidate) sig.child('cc').push(JSON.stringify(e.candidate)); };
+    pc.onconnectionstatechange = () => { if (['failed', 'closed', 'disconnected'].includes(pc.connectionState)) Net.p2p = false; };
+    const off = await pc.createOffer(); await pc.setLocalDescription(off); await sig.child('offer').set({ type: off.type, sdp: off.sdp });
+    const ans = sig.child('answer'), fa = async a => { const v = a.val(); if (v && !pc.currentRemoteDescription) { try { await pc.setRemoteDescription(v); } catch (x) {} } };
+    const hc = sig.child('hc'), fh = c => { try { pc.addIceCandidate(JSON.parse(c.val())); } catch (x) {} };
+    ans.on('value', fa); hc.on('child_added', fh); this.offs.push(() => { ans.off('value', fa); hc.off('child_added', fh); });
+  },
+  send(msg) { let n = 0, need = 0; for (const [uid, P] of Object.entries(this.peers)) { if (P.dc && P.dc.readyState === 'open') { try { P.dc.send(msg); n++; } catch (x) {} } } return n; },
+  open(uid) { const P = this.peers[uid]; return !!(P && P.dc && P.dc.readyState === 'open'); },
+  close(uid) { const P = this.peers[uid]; if (!P) return; try { P.off && P.off(); P.pc.close(); } catch (x) {} delete this.peers[uid]; },
+  closeClient() { try { this.pc && this.pc.close(); } catch (x) {} this.pc = this.dc = null; Net.p2p = false; },
+  reset() { for (const f of this.offs) try { f(); } catch (x) {} this.offs = []; for (const u of Object.keys(this.peers)) this.close(u); this.closeClient(); }
+};
 const Net = {
   db: null, connected: false, room: null, roomId: null, isHost: false, pl: {}, cfg: { mode: 'pro', time: '3', score: '0' },
   inputs: {}, evBuf: [], offs: [], lastIn: '', lastInT: 0, callSeq: 0, pendingClientCall: 0, snap: null, snapT: 0, lastGoalSeq: 0, roomName: '',
@@ -1316,7 +1351,7 @@ const Net = {
     $('#chatLog').innerHTML = '';
     show('sRoom');
     this.on(room.child('pl'), 'value', s => {
-      this.pl = s.val() || {};
+      this.pl = s.val() || {}; if (this.isHost) for (const u of Object.keys(P2P.peers)) if (!this.pl[u]) P2P.close(u);
       if (!this.pl[UID] && this.room && !this.isHost) { toast('Has salido de la sala'); }
       this.renderRoom();
       if (this.isHost) {
@@ -1345,12 +1380,14 @@ const Net = {
       if (G.mode === 'client' || G.mode === 'host') toast(m.n ? m.n + ': ' + m.txt : m.txt, 2500);
     });
     if (this.isHost) {
+      try { P2P.hostListen(room); } catch (e) { console.warn(e); }
       const inRef = room.child('in');
-      const up = s => { this.inputs[s.key] = s.val(); };
+      const up = s => { if (!P2P.open(s.key)) this.inputs[s.key] = s.val(); };
       this.on(inRef, 'child_added', up); this.on(inRef, 'child_changed', up);
       this.on(inRef, 'child_removed', s => { delete this.inputs[s.key]; });
     } else {
-      this.on(room.child('s'), 'value', s => { const v = s.val(); if (v) this.onSnap(v); });
+      this.on(room.child('s'), 'value', s => { const v = s.val(); if (v && !(this.p2p && performance.now() - this.p2pT < 400)) this.onSnap(v); });
+      if (window.RTCPeerConnection) P2P.connect(room).catch(e => console.warn('p2p', e));
     }
     this.chat(myName + (this.isHost ? ' abrió la sala' : ' entró en la sala'), true);
   },
@@ -1413,13 +1450,17 @@ const Net = {
     }
     syncRoles(w);
   },
-  sendSnap() {
+  sendSnap(fbTick) {
     const w = G.world, r = v => Math.round(v * 10) / 10, p = {};
     for (const q of w.players) p[q.id] = [r(q.x), r(q.y), r(q.vx), r(q.vy), (q.kick ? 1 : 0) | (q.cd <= 0 ? 2 : 0) | (q.pow ? 4 : 0) | (q.spr ? 8 : 0), Math.round(q.stam * 100), q.callId * 1000 + (q.callSeq % 1000), q.team];
     const s = { b: [r(w.ball.x), r(w.ball.y), r(w.ball.vx), r(w.ball.vy)], p, sc: w.score, t: w.ticks, ph: w.phase, k: w.kickTeam, ot: w.ot ? 1 : 0, tl: w.timeLimit, pro: w.pro ? 1 : 0, n: w.n, wn: w.winner };
     if (w.lastGoal) s.lg = w.lastGoal;
-    if (this.evBuf.length) { s.e = this.evBuf.slice(-12); this.evBuf = []; }
-    this.room.child('s').set(s);
+    const remote = Object.entries(this.pl).filter(([id, q]) => id !== UID && !q.bot).map(([id]) => id);
+    const allP2P = remote.length > 0 && remote.every(id => P2P.open(id));
+    if (!fbTick && !Object.keys(P2P.peers).length) return;
+    if (this.evBuf.length && (fbTick || allP2P)) { s.e = this.evBuf.slice(-12); if (allP2P || fbTick) this.evBuf = []; }
+    if (Object.keys(P2P.peers).length) P2P.send(JSON.stringify(s));
+    if (fbTick && (!allP2P || w.n % 30 === 0 || w.phase === 'end')) this.room.child('s').set(s);
   },
   backToRoom() {
     if (this.isHost) { this.room.child('st').set('lobby'); this.ref('lobby/' + this.roomId + '/st').set('lobby'); }
@@ -1433,8 +1474,9 @@ const Net = {
     this.snap = null; this.buf = []; this.off = null; this.jit = []; this.dly = null; this.lastN = null; this.lastGoalSeq = 0; this.lastIn = ''; this.callSeq = 0;
     setHint(); show(null); SFX.whistle();
   },
-  onSnap(s) {
+  onSnap(s, viaP2P) {
     if (G.mode !== 'client') return;
+    if (viaP2P) this.p2pT = performance.now();
     const prevScore = this.snap ? this.snap.sc : null;
     this.snap = s; this.snapT = performance.now();
     { const STEP = 1000 / C.TPS, off = this.snapT - (s.n || 0) * STEP;
@@ -1442,8 +1484,8 @@ const Net = {
       const J = this.jit || (this.jit = []); J.push(Math.max(0, off - this.off)); if (J.length > 90) J.shift();
       const sorted = J.slice().sort((a, b) => a - b), p95 = sorted[Math.floor(sorted.length * 0.95)] || 0;
       const gap = this.lastN != null ? clamp((s.n || 0) - this.lastN, 1, 6) : 2; this.lastN = s.n || 0;
-      const target = clamp(p95 / STEP + gap + 1.5, 3.5, 15); this.dly = this.dly == null ? target : this.dly + (target - this.dly) * (target > this.dly ? 0.25 : 0.02);
-      const q = $('#netq'); if (q && J.length > 10) { const ms = Math.round(this.dly * STEP); q.textContent = (ms < 110 ? '🟢 ' : ms < 180 ? '🟡 ' : '🔴 ') + ms + ' ms'; }
+      const target = clamp(p95 / STEP + gap + (this.p2p ? 0.8 : 1.5), this.p2p ? 2 : 3.5, 15); this.dly = this.dly == null ? target : this.dly + (target - this.dly) * (target > this.dly ? 0.25 : 0.02);
+      const q = $('#netq'); if (q && J.length > 10) { const ms = Math.round(this.dly * STEP); q.textContent = (this.p2p ? '⚡ ' : '') + (ms < 110 ? '🟢 ' : ms < 180 ? '🟡 ' : '🔴 ') + ms + ' ms'; }
       const fr = { n: s.n || 0, b: s.b, p: s.p }; const B = this.buf || (this.buf = []);
       if (!B.length || fr.n > B[B.length - 1].n) B.push(fr); else if (fr.n < B[B.length - 1].n - 120) { B.length = 0; B.push(fr); }
       while (B.length > 40) B.shift(); }
@@ -1506,11 +1548,12 @@ const Net = {
     if (pendingCall) { this.callSeq++; this.lastCall = pendingCall * 1000 + (this.callSeq % 1000); pendingCall = 0; }
     c = this.lastCall || 0;
     const arr = [i.x, i.y, i.k, i.s, i.p, c], key = arr.join(','), now = performance.now();
+    if (this.p2p && P2P.dc && P2P.dc.readyState === 'open') { if (key !== this.lastIn || now - this.lastInT > 50) { this.lastIn = key; this.lastInT = now; try { P2P.dc.send(JSON.stringify(arr)); } catch (x) {} } if (now - (this.lastFbIn || 0) > 1500) { this.lastFbIn = now; this.room.child('in/' + UID).set(arr); } return; }
     if ((key !== this.lastIn && now - this.lastInT > 16) || now - this.lastInT > 1000) { this.lastIn = key; this.lastInT = now; this.room.child('in/' + UID).set(arr); }
   },
 
   leave() {
-    applyLook(null);
+    applyLook(null); P2P.reset();
     for (const off of this.offs) try { off(); } catch (e) {}
     this.offs = [];
     if (this.room) {
