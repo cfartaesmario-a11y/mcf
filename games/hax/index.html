@@ -304,7 +304,7 @@ pre.code{margin:0;background:rgba(0,0,0,.4);border:1px solid var(--line);border-
       <dt>J1</dt><dd><kbd>WASD</kbd> mover · <kbd>Espacio</kbd> chutar · <kbd>Shift izq.</kbd> sprint · <kbd>E</kbd> potente</dd>
       <dt>J2</dt><dd><kbd>Flechas</kbd> mover · <kbd>.</kbd> chutar · <kbd>Shift der.</kbd> sprint · <kbd>/</kbd> potente</dd>
     </dl>
-    <p class="note">Modo Clásico usa exactamente la física de HaxBall: jugador radio 15, aceleración 0,1, rozamiento 0,96, chut 5; balón radio 10, rozamiento 0,99, rebote 0,5.</p>
+    <p class="note">Modo Clásico usa exactamente la física de HaxBall: jugador radio 15, aceleración 0,13 (un 30 % más rápido que HaxBall), rozamiento 0,96, chut 5; balón radio 10, rozamiento 0,99, rebote 0,5.</p>
   </div>
 </section>
 
@@ -363,7 +363,7 @@ let myName = store.get('name', 'Jugador' + Math.floor(Math.random() * 90 + 10));
 const C = {
   W: 370, H: 170, GH: 64, GD: 30, PX: 420, PY: 200,
   PR: 15, BR: 10, PI: 0.5, BI: 1, PD: 0.96, BD: 0.99,
-  ACC: 0.1, KACC: 0.07, KS: 5, BB: 0.5, PB: 0.5,
+  ACC: 0.13, KACC: 0.09, KS: 5, BB: 0.5, PB: 0.5,
   POST: 8, KR: 75, REACH: 4, TPS: 60
 };
 const SEGS = [];
