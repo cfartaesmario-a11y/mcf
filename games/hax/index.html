@@ -43,6 +43,8 @@ button{cursor:pointer}
 .panel{width:min(560px,100%);background:var(--panel);backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);
   border:1px solid var(--line);border-radius:20px;padding:28px;display:grid;gap:20px;box-shadow:0 30px 80px rgba(0,0,0,.45)}
 .panel.wide{width:min(980px,100%)}
+.panel{min-width:0;grid-template-columns:minmax(0,1fr)}
+.bm .ft .row{flex-wrap:nowrap}
 .brand{display:grid;gap:6px;justify-items:start}
 .logo{font-family:var(--f-display);font-weight:800;font-size:clamp(46px,9vw,78px);line-height:.86;letter-spacing:.01em;text-transform:uppercase;margin:0;display:flex;align-items:flex-start;gap:10px}
 .logo b{color:var(--gold);font-weight:800}
@@ -113,6 +115,38 @@ pre.code{margin:0;background:rgba(0,0,0,.4);border:1px solid var(--line);border-
 .chat-log b{font-weight:700}
 .chat-log .sys{color:var(--mute);font-style:italic}
 
+/* ---------- torneos ---------- */
+.tcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.tcard{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--panel-2);display:grid;gap:6px;text-align:left}
+.tcard b{font-family:var(--f-display);font-size:22px;letter-spacing:.03em}
+.tst{display:inline-block;font-family:var(--f-display);font-weight:700;letter-spacing:.1em;font-size:12px;padding:2px 8px;border-radius:5px;background:var(--ok);color:#06210f}
+.tst.cl{background:var(--gold);color:var(--gold-ink)}.tst.dn{background:#c9d4e6;color:#13233f}
+.teamg{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.tteam{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:rgba(0,0,0,.18)}
+.tb{display:inline-block;width:30px;height:30px;border-radius:50%;flex:none;background-size:cover;border:2px solid rgba(0,0,0,.55);box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.bkw{position:relative;overflow-x:auto;max-width:100%;padding:14px 4px;background:linear-gradient(180deg,#e8352f,#c41e1e);border-radius:18px}
+.bkw h4{margin:0 0 6px;text-align:center;font-family:var(--f-display);font-size:34px;letter-spacing:.06em;color:#fff;text-transform:uppercase}
+.bk{position:relative;display:flex;gap:30px;min-height:360px;align-items:stretch;justify-content:center;min-width:min-content;padding:0 10px}
+.bcol{display:flex;flex-direction:column;justify-content:space-around;gap:10px;min-width:150px;max-width:170px;position:relative;z-index:1;padding-top:22px}
+.bcol .rn{position:absolute;top:-4px;left:0;right:0;text-align:center;font-family:var(--f-display);font-weight:700;font-size:12px;letter-spacing:.14em;color:rgba(255,255,255,.85);text-transform:uppercase}
+.bm{background:#fff;color:#13233f;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.25);overflow:hidden;font-size:13px;cursor:default}
+.bm .tr{display:flex;align-items:center;gap:7px;padding:5px 8px;min-height:30px}
+.bm .tr+.tr{border-top:1px solid #e3e8f0}
+.bm .tr .tb{width:20px;height:20px;border-width:1.5px}
+.bm .tr span.nm2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.bm .tr b{font-family:var(--f-display);font-size:17px;min-width:14px;text-align:right}
+.bm .tr.w span.nm2,.bm .tr.w b{color:#0b7a3b;font-weight:800}.bm .tr.l{opacity:.55}
+.bm .ft{display:flex;gap:6px;align-items:center;justify-content:space-between;padding:4px 8px;background:#f1f4f9;font-size:11.5px;color:#4a5a78}
+.bm .ft button{border:0;background:#13233f;color:#fff;border-radius:6px;padding:3px 8px;font-size:11.5px;font-weight:700}
+.bm.bfin{transform:scale(1.12);box-shadow:0 0 0 3px #f3c552,0 8px 26px rgba(0,0,0,.35)}
+.bcup{text-align:center;color:#fff;font-family:var(--f-display);font-weight:800;letter-spacing:.1em}
+.bcup .cup{font-size:54px;line-height:1;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
+#bksvg{position:absolute;left:0;top:0;pointer-events:none;z-index:0}
+.pad{display:grid;justify-items:center;gap:8px}
+.pad canvas{width:170px;height:170px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(0,0,0,.5),0 8px 20px rgba(0,0,0,.35);touch-action:none;cursor:crosshair}
+input[type=color]{width:46px;height:36px;border:1px solid var(--line);border-radius:8px;background:transparent;padding:2px}
+input[type=datetime-local],input[type=number]{background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+
 /* ---------- HUD ---------- */
 #hud{position:fixed;inset:0;pointer-events:none}
 .board{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);left:50%;transform:translateX(-50%);display:flex;align-items:stretch;
@@ -153,7 +187,7 @@ pre.code{margin:0;background:rgba(0,0,0,.4);border:1px solid var(--line);border-
 .tbtns{position:absolute;right:max(18px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 70px);display:grid;grid-template-columns:auto auto;gap:12px;align-items:end;pointer-events:auto}
 .tbtns button{border-radius:50%;border:2px solid rgba(255,255,255,.3);background:rgba(16,34,72,.55);font-family:var(--f-display);font-weight:700;letter-spacing:.06em;touch-action:none}
 #tKick{width:88px;height:88px;font-size:17px;grid-row:span 2}
-#tSprint,#tPow{width:58px;height:58px;font-size:12px}
+#tPow{width:58px;height:58px;font-size:12px}
 @media (prefers-reduced-motion:reduce){#banner.show{animation-duration:1.2s}.btn{transition:none}}
 @media (max-width:640px){.hint{display:none}.board .tm span.nm{display:none}}
 </style>
@@ -172,7 +206,6 @@ pre.code{margin:0;background:rgba(0,0,0,.4);border:1px solid var(--line);border-
     <button class="icon-btn" id="btnPause" title="Menú (Esc)" aria-label="Menú">II</button>
   </div>
   <div class="meters" id="meters">
-    <div class="meter"><span>SPRINT</span><div class="bar"><i id="mStam"></i></div></div>
     <div class="meter pow"><span>POTENTE</span><div class="bar"><i id="mPow"></i></div></div>
   </div>
   <div class="calls" id="callBar">
@@ -193,7 +226,6 @@ pre.code{margin:0;background:rgba(0,0,0,.4);border:1px solid var(--line);border-
 <div id="touch" hidden>
   <div id="joy"><div id="joyKnob"><i></i></div></div>
   <div class="tbtns">
-    <button id="tSprint">SPRINT</button>
     <button id="tKick">CHUTA</button>
     <button id="tPow">POTENTE</button>
   </div>
@@ -202,13 +234,14 @@ pre.code{margin:0;background:rgba(0,0,0,.4);border:1px solid var(--line);border-
 <!-- MENÚ -->
 <section class="screen" id="sMenu">
   <div class="panel">
-    <a class="btn ghost sm" href="../" style="justify-self:start;text-decoration:none">← MCF Games</a>
+    <div class="row between"><a class="btn ghost sm" href="../" style="text-decoration:none">← MCF Games</a><span id="userChip" class="note"></span></div>
     <div class="brand">
       <h1 class="logo"><span style="font-size:.42em;align-self:center;background:#fff;color:#123a6b;border-radius:8px;padding:2px 8px 0">MCF</span>Hax<b>Arena</b><span class="tag">PRO</span></h1>
-      <p class="sub">Física clásica de HaxBall, un modo Pro con sprint, disparo potente, efecto y órdenes tácticas, y salas online de 1 contra 1 hasta 5 contra 5.</p>
+      <p class="sub">Física clásica de HaxBall, un modo Pro con disparo potente, efecto y órdenes tácticas, y salas online de 1 contra 1 hasta 5 contra 5.</p>
     </div>
     <div class="menu-list">
       <button class="btn big" data-go="sSetup"><span><strong>Partido rápido</strong><small>Contra bots o 2 jugadores en el mismo teclado</small></span><i>→</i></button>
+      <button class="btn big" id="btnTour" style="border-color:rgba(243,197,82,.6);background:linear-gradient(90deg,rgba(243,197,82,.22),rgba(255,255,255,.05))"><span><strong>⭐ Torneos</strong><small>Eventos oficiales: inscribe tu equipo y sigue el cuadro hasta la final</small></span><i>→</i></button>
       <button class="btn big" data-go="sOnline" id="btnLive"><span><strong>📺 En directo</strong><small>Mira desde la grada en 3D los partidos que se están jugando</small></span><i>→</i></button>
       <button class="btn big" data-go="sOnline"><span><strong>Online</strong><small>Crea o únete a una sala multijugador</small></span><i>→</i></button>
       <div class="split">
@@ -218,6 +251,15 @@ pre.code{margin:0;background:rgba(0,0,0,.4);border:1px solid var(--line);border-
     </div>
   </div>
 </section>
+
+<!-- TORNEOS -->
+<section class="screen" id="sTour" hidden>
+  <div class="panel wide" style="width:min(1240px,100%)">
+    <div class="row between"><h2>⭐ Torneos</h2><div class="row"><span id="tourAdm"></span><button class="btn ghost sm" id="tourBack">Volver</button></div></div>
+    <div id="tourBody"></div>
+  </div>
+</section>
+<div id="tmodal" class="screen dim" hidden style="z-index:60"><div class="panel" id="tmodalIn" style="width:min(460px,100%)"></div></div>
 
 <!-- PARTIDO RÁPIDO -->
 <section class="screen" id="sSetup" hidden>
@@ -300,7 +342,6 @@ pre.code{margin:0;background:rgba(0,0,0,.4);border:1px solid var(--line);border-
     <dl class="keys">
       <dt><kbd>WASD</kbd> / <kbd>Flechas</kbd></dt><dd>Moverse</dd>
       <dt><kbd>Espacio</kbd> / <kbd>X</kbd></dt><dd>Chutar (mantén pulsado; el disco se pone blanco y frena un poco)</dd>
-      <dt><kbd>Shift</kbd></dt><dd>Sprint, gasta energía · Pro</dd>
       <dt><kbd>C</kbd></dt><dd>Carga un disparo potente ×1.7, recarga 6 s · Pro</dd>
       <dt>Efecto</dt><dd>Chuta mientras te mueves de lado y el balón hace rosca · Pro</dd>
       <dt><kbd>1</kbd>–<kbd>4</kbd></dt><dd>Órdenes al equipo: presión alta, repliegue, pásala, tira. Los bots obedecen.</dd>
@@ -308,10 +349,10 @@ pre.code{margin:0;background:rgba(0,0,0,.4);border:1px solid var(--line);border-
     </dl>
     <h3>Dos jugadores en un teclado</h3>
     <dl class="keys">
-      <dt>J1</dt><dd><kbd>WASD</kbd> mover · <kbd>Espacio</kbd> chutar · <kbd>Shift izq.</kbd> sprint · <kbd>E</kbd> potente</dd>
-      <dt>J2</dt><dd><kbd>Flechas</kbd> mover · <kbd>.</kbd> chutar · <kbd>Shift der.</kbd> sprint · <kbd>/</kbd> potente</dd>
+      <dt>J1</dt><dd><kbd>WASD</kbd> mover · <kbd>Espacio</kbd> chutar  · <kbd>E</kbd> potente</dd>
+      <dt>J2</dt><dd><kbd>Flechas</kbd> mover · <kbd>.</kbd> chutar  · <kbd>/</kbd> potente</dd>
     </dl>
-    <p class="note">Modo Clásico usa exactamente la física de HaxBall: jugador radio 15, aceleración 0,13 (un 30 % más rápido que HaxBall), rozamiento 0,96, chut 5; balón radio 10, rozamiento 0,99, rebote 0,5.</p>
+    <p class="note">Modo Clásico usa exactamente la física de HaxBall: jugador radio 15, aceleración 0,2 y rozamiento 0,94 (más ágil que HaxBall), chut 5; balón radio 10, rozamiento 0,99, rebote 0,5.</p>
   </div>
 </section>
 
@@ -343,6 +384,7 @@ pre.code{margin:0;background:rgba(0,0,0,.4);border:1px solid var(--line);border-
 
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-auth-compat.js"></script>
 <script>
 (() => {
 'use strict';
@@ -361,17 +403,18 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('hxa_' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem('hxa_' + k, JSON.stringify(v)); } catch (e) {} }
 };
-const UID = 'u' + Math.random().toString(36).slice(2, 10);
+let UID = store.get('guid', null) || 'u' + Math.random().toString(36).slice(2, 10); store.set('guid', UID);
+let IS_ADMIN = false, MCFU = null;
 let myName = store.get('name', 'Jugador' + Math.floor(Math.random() * 90 + 10));
 
 /* =====================================================================
    2. FÍSICA — valores del estadio Classic de HaxBall
    ===================================================================== */
 const C = {
-  W: 370, H: 170, GH: 64, GD: 30, PX: 420, PY: 200,
-  PR: 15, BR: 10, PI: 0.5, BI: 1, PD: 0.96, BD: 0.99,
-  ACC: 0.13, KACC: 0.09, KS: 5, BB: 0.5, PB: 0.5,
-  POST: 8, KR: 75, REACH: 4, TPS: 60
+  W: 440, H: 200, GH: 72, GD: 32, PX: 495, PY: 236,
+  PR: 15, BR: 10, PI: 0.5, BI: 1, PD: 0.94, BD: 0.99,
+  ACC: 0.2, KACC: 0.14, KS: 5, BB: 0.5, PB: 0.5,
+  POST: 8, KR: 85, REACH: 4, TPS: 60
 };
 const SEGS = [];
 function seg(x1, y1, x2, y2, b, nx, ny, net) { SEGS.push({ x1, y1, x2, y2, b, nx, ny, net }); }
@@ -407,11 +450,11 @@ function addPlayer(w, o) {
   return p;
 }
 const FORM = {
-  1: [[170, 0, 'atk']],
-  2: [[150, 0, 'atk'], [290, 0, 'def']],
-  3: [[140, 0, 'atk'], [230, -90, 'mid'], [330, 0, 'gk']],
-  4: [[140, 0, 'atk'], [225, -100, 'mid'], [225, 100, 'def'], [335, 0, 'gk']],
-  5: [[140, 0, 'atk'], [210, -110, 'mid'], [210, 110, 'mid'], [290, 0, 'def'], [345, 0, 'gk']]
+  1: [[200, 0, 'atk']],
+  2: [[175, 0, 'atk'], [340, 0, 'def']],
+  3: [[165, 0, 'atk'], [270, -105, 'mid'], [390, 0, 'gk']],
+  4: [[165, 0, 'atk'], [265, -118, 'mid'], [265, 118, 'mid'], [395, 0, 'gk']],
+  5: [[165, 0, 'atk'], [250, -130, 'mid'], [250, 130, 'mid'], [340, 0, 'def'], [405, 0, 'gk']]
 };
 function resetPositions(w) {
   const b = w.ball; b.x = b.y = b.vx = b.vy = b.sp = 0;
@@ -420,7 +463,7 @@ function resetPositions(w) {
     const f = FORM[Math.min(ps.length, 5)] || [];
     const side = t === 1 ? -1 : 1;
     ps.forEach((p, i) => {
-      const s = f[i] || [260, (i % 2 ? 1 : -1) * 140, 'mid'];
+      const s = f[i] || [300, (i % 2 ? 1 : -1) * 160, 'mid'];
       let x = s[0];
       if (i === 0 && w.kickTeam === t) x = C.KR - 10 + C.PR;
       p.x = side * x; p.y = s[1] * side * -1 || 0; p.vx = p.vy = 0; p.role = s[2];
@@ -476,8 +519,7 @@ function step(w) {
     if (!inp.k) p.kArmed = true;
     p.kick = inp.k ? 1 : 0;
     let acc = inp.k ? C.KACC : C.ACC;
-    if (pro && inp.s && p.stam > 0.02 && m > 0) { acc *= 1.45; p.stam -= 0.0055; p.spr = 1; }
-    else { p.spr = 0; p.stam = Math.min(1, p.stam + 0.0025); }
+    p.spr = 0; p.stam = 1; // sin sprint
     if (p.cd > 0) p.cd--;
     if (pro && inp.p && p.cd <= 0 && !p.pow) { p.pow = 1; w.ev.push({ t: 'arm' }); }
     p.vx += mx * acc; p.vy += my * acc;
@@ -493,15 +535,17 @@ function step(w) {
     }
   }
   for (const d of ps) { d.x += d.vx; d.y += d.vy; d.vx *= C.PD; d.vy *= C.PD; }
-  b.x += b.vx; b.y += b.vy; b.vx *= C.BD; b.vy *= C.BD;
-  if (b.sp) { const vx = b.vx; b.vx -= b.vy * b.sp; b.vy += vx * b.sp; b.sp *= 0.975; if (Math.abs(b.sp) < 1e-4) b.sp = 0; }
-
-  for (let i = 0; i < ps.length; i++) {
-    for (let j = i + 1; j < ps.length; j++) discCol(ps[i], ps[j], C.PB * C.PB);
-    if (discCol(ps[i], b, C.PB * C.BB) !== false) w.lastTouch = ps[i].id;
+  for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) discCol(ps[i], ps[j], C.PB * C.PB);
+  const SUB = 4; let postHit = false;
+  for (let k = 0; k < SUB; k++) {
+    b.x += b.vx / SUB; b.y += b.vy / SUB;
+    for (const q of ps) if (discCol(q, b, C.PB * C.BB) !== false) w.lastTouch = q.id;
+    for (const s of SEGS) segBall(b, s);
+    for (const post of POSTS) { const v = discCol(b, post, C.BB * post.b); if (v > 2.5) postHit = true; }
   }
-  for (const s of SEGS) segBall(b, s);
-  for (const post of POSTS) { const v = discCol(b, post, C.BB * post.b); if (v > 2.5) w.ev.push({ t: 'post' }); }
+  if (postHit) w.ev.push({ t: 'post' });
+  b.vx *= C.BD; b.vy *= C.BD;
+  if (b.sp) { const vx = b.vx; b.vx -= b.vy * b.sp; b.vy += vx * b.sp; b.sp *= 0.975; if (Math.abs(b.sp) < 1e-4) b.sp = 0; }
   for (const p of ps) {
     for (const post of POSTS) discCol(p, post, C.PB * post.b);
     for (const s of SEGS) if (s.net) segPlayer(p, s);
@@ -597,7 +641,6 @@ function botThink(w, p) {
     const al = (tbx * ux + tby * uy) / tl;
     if (db < C.REACH + 1 && (al > D.align || (mode === 4 && al > 0.4) || (role === 'gk' && al > 0.15))) inp.k = 1;
     if (w.pro) {
-      if (dist(p, b) > 140 && p.stam > 0.3) inp.s = 1;
       if (Math.abs(gx - b.x) < 240 && db < 40 && p.cd <= 0 && p.diff > 0) inp.p = 1;
     }
   }
@@ -660,7 +703,7 @@ addEventListener('blur', () => KEYS.clear());
   });
   const end = e => { if (e.pointerId !== id) return; id = null; touch.mx = touch.my = 0; knob.style.display = 'none'; dot.style.transform = ''; };
   joy.addEventListener('pointerup', end); joy.addEventListener('pointercancel', end);
-  for (const [sel, key] of [['#tKick', 'k'], ['#tSprint', 's'], ['#tPow', 'p']]) {
+  for (const [sel, key] of [['#tKick', 'k'], ['#tPow', 'p']]) {
     const el = $(sel);
     el.addEventListener('pointerdown', e => { e.preventDefault(); audioInit(); touch.active = true; touch[key] = 1; });
     for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) el.addEventListener(ev, () => { touch[key] = 0; });
@@ -759,7 +802,7 @@ function buildPitch() {
   c.fillStyle = vg; c.fillRect(-C.PX, -C.PY, 2 * C.PX, 2 * C.PY);
   // rótulo en el talud
   c.font = '700 12px "Saira Condensed", sans-serif'; c.fillStyle = 'rgba(255,255,255,.28)'; c.textAlign = 'center'; c.textBaseline = 'middle';
-  for (const x of [-250, 0, 250]) { c.fillText('H A X A R E N A   P R O', x, -C.PY + 15); c.fillText('H A X A R E N A   P R O', x, C.PY - 15); }
+  for (const x of [-300, 0, 300]) { c.fillText('H A X A R E N A   P R O', x, -C.PY + 15); c.fillText('H A X A R E N A   P R O', x, C.PY - 15); }
   c.restore();
   // líneas
   c.strokeStyle = 'rgba(255,255,255,.95)'; c.lineWidth = 2.6; c.lineJoin = 'round';
@@ -769,8 +812,8 @@ function buildPitch() {
   c.fillStyle = 'rgba(244,250,245,.9)'; c.beginPath(); c.arc(0, 0, 3.2, 0, Math.PI * 2); c.fill();
   c.strokeStyle = 'rgba(255,255,255,.6)'; c.lineWidth = 2;
   for (const s of [-1, 1]) {
-    c.strokeRect(s > 0 ? C.W - 85 : -C.W, -125, 85, 250);
-    c.beginPath(); c.arc(s * (C.W - 62), 0, 52, s > 0 ? Math.PI * 0.62 : -Math.PI * 0.38, s > 0 ? Math.PI * 1.38 : Math.PI * 0.38); c.stroke();
+    c.strokeRect(s > 0 ? C.W - 100 : -C.W, -148, 100, 296);
+    c.beginPath(); c.arc(s * (C.W - 73), 0, 61, s > 0 ? Math.PI * 0.62 : -Math.PI * 0.38, s > 0 ? Math.PI * 1.38 : Math.PI * 0.38); c.stroke();
     for (const cy of [-1, 1]) { c.beginPath(); c.arc(s * C.W, cy * C.H, 12, s > 0 ? (cy > 0 ? Math.PI : Math.PI / 2) : (cy > 0 ? -Math.PI / 2 : 0), s > 0 ? (cy > 0 ? Math.PI * 1.5 : Math.PI) : (cy > 0 ? 0 : Math.PI / 2)); c.stroke(); }
   }
   // porterías con red
@@ -828,10 +871,11 @@ function render(view, meIds) {
     const gr = c.createRadialGradient(p.x - 5, p.y - 6, 1, p.x, p.y, C.PR);
     gr.addColorStop(0, t.hi); gr.addColorStop(0.55, t.c); gr.addColorStop(1, t.lo);
     c.fillStyle = gr; c.beginPath(); c.arc(p.x, p.y, C.PR, 0, 7); c.fill();
+    if (t.img && t.img.complete) { c.save(); c.beginPath(); c.arc(p.x, p.y, C.PR, 0, 7); c.clip(); c.drawImage(t.img, p.x - C.PR, p.y - C.PR, 2 * C.PR, 2 * C.PR); c.restore(); c.beginPath(); c.arc(p.x, p.y, C.PR, 0, 7); }
     c.lineWidth = p.kick ? 3 : 2; c.strokeStyle = p.kick ? '#ffffff' : 'rgba(0,0,0,.7)'; c.stroke();
     c.fillStyle = '#fff'; c.font = '700 12px "Saira Condensed", sans-serif';
     c.fillText(avatar(p.name), p.x, p.y + 0.5);
-    if (view.pro && p.stam < 0.99) { c.strokeStyle = p.stam < 0.25 ? 'rgba(239,74,79,.9)' : 'rgba(67,209,122,.85)'; c.lineWidth = 2; c.beginPath(); c.arc(p.x, p.y, C.PR + 3.5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * p.stam); c.stroke(); }
+    if (false) { c.strokeStyle = p.stam < 0.25 ? 'rgba(239,74,79,.9)' : 'rgba(67,209,122,.85)'; c.lineWidth = 2; c.beginPath(); c.arc(p.x, p.y, C.PR + 3.5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * p.stam); c.stroke(); }
     c.font = '600 9px Barlow, sans-serif'; c.fillStyle = me ? '#f3c552' : 'rgba(255,255,255,.82)';
     c.fillText(p.name, p.x, p.y + C.PR + 11);
     if (me && meIds.length) { c.fillStyle = '#f3c552'; c.beginPath(); c.moveTo(p.x - 5, p.y - C.PR - 11); c.lineTo(p.x + 5, p.y - C.PR - 11); c.lineTo(p.x, p.y - C.PR - 5); c.closePath(); c.fill(); }
@@ -901,7 +945,7 @@ function render3D(v) {
   line([[0, -C.H], [0, C.H]], WL, lwm);
   const circ = (cx, cy, r, a0 = 0, a1 = Math.PI * 2) => { const pts = []; for (let i = 0; i <= 48; i++) { const a = a0 + (a1 - a0) * i / 48; pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); } return pts; };
   line(circ(0, 0, C.KR), WL, lwm);
-  for (const s of [-1, 1]) { line([[s * C.W, -125], [s * (C.W - 85), -125], [s * (C.W - 85), 125], [s * C.W, 125]], 'rgba(255,255,255,.7)', lwm * 0.8); }
+  for (const s of [-1, 1]) { line([[s * C.W, -148], [s * (C.W - 100), -148], [s * (C.W - 100), 148], [s * C.W, 148]], 'rgba(255,255,255,.7)', lwm * 0.8); }
   // porterías en 3D (palos de 44 de alto)
   const GZ = 44;
   for (const s of [-1, 1]) { const x0 = s * C.W, x1 = s * (C.W + C.GD), col = TEAM[s < 0 ? 1 : 2].c;
@@ -923,7 +967,8 @@ function render3D(v) {
     if (e.ball) { const gr = c.createRadialGradient(q[0] - R * 0.35, q[1] - R * 0.4, R * 0.1, q[0], q[1], R); gr.addColorStop(0, '#fff'); gr.addColorStop(0.7, '#eef1f2'); gr.addColorStop(1, '#a9b4b8'); c.fillStyle = gr; c.beginPath(); c.arc(q[0], q[1], R, 0, 7); c.fill(); c.strokeStyle = 'rgba(0,0,0,.6)'; c.lineWidth = Math.max(1, R * 0.12); c.stroke(); continue; }
     const p = e.p, t = TEAM[p.team];
     const gr = c.createRadialGradient(q[0] - R * 0.35, q[1] - R * 0.45, R * 0.1, q[0], q[1], R); gr.addColorStop(0, t.hi); gr.addColorStop(0.55, t.c); gr.addColorStop(1, t.lo);
-    c.fillStyle = gr; c.beginPath(); c.arc(q[0], q[1], R, 0, 7); c.fill(); c.lineWidth = Math.max(1.5, R * (p.kick ? 0.2 : 0.1)); c.strokeStyle = p.kick ? '#fff' : 'rgba(0,0,0,.6)'; c.stroke();
+    c.fillStyle = gr; c.beginPath(); c.arc(q[0], q[1], R, 0, 7); c.fill();
+    if (t.img && t.img.complete) { c.save(); c.beginPath(); c.arc(q[0], q[1], R, 0, 7); c.clip(); c.drawImage(t.img, q[0] - R, q[1] - R, 2 * R, 2 * R); c.restore(); c.beginPath(); c.arc(q[0], q[1], R, 0, 7); } c.lineWidth = Math.max(1.5, R * (p.kick ? 0.2 : 0.1)); c.strokeStyle = p.kick ? '#fff' : 'rgba(0,0,0,.6)'; c.stroke();
     c.fillStyle = '#fff'; c.font = `700 ${Math.max(9, R * 0.8)}px "Saira Condensed", sans-serif`; c.fillText(avatar(p.name), q[0], q[1] + 1);
     c.font = `600 ${Math.max(10, R * 0.55)}px Barlow, sans-serif`; const nm = p.name || ''; const tw = c.measureText(nm).width + 10;
     c.fillStyle = 'rgba(16,34,72,.75)'; rr(c, q[0] - tw / 2, q[1] - R - 24 * DPR, tw, 16 * DPR, 5 * DPR); c.fill(); c.fillStyle = G.me.includes(p.id) ? '#f3c552' : '#fff'; c.fillText(nm, q[0], q[1] - R - 16 * DPR);
@@ -960,7 +1005,6 @@ function updateHud(v) {
   const showMeters = v.pro && !!me;
   $('#meters').hidden = !showMeters; $('#callBar').hidden = !me;
   if (showMeters) {
-    $('#mStam').style.transform = `scaleX(${me.stam.toFixed(3)})`;
     $('#mPow').style.transform = `scaleX(${me.pow ? 1 : (1 - Math.max(0, me.cd) / 360).toFixed(3)})`;
   }
 }
@@ -968,8 +1012,8 @@ function setHint() {
   const pro = G.cfg && G.cfg.mode === 'pro';
   const two = G.mode === 'local' && G.me.length > 1;
   $('#hint').innerHTML = two
-    ? '<span><b>J1</b> <kbd>WASD</kbd> <kbd>Espacio</kbd>' + (pro ? ' <kbd>Shift</kbd> <kbd>E</kbd>' : '') + '</span><span><b>J2</b> <kbd>Flechas</kbd> <kbd>.</kbd>' + (pro ? ' <kbd>Shift der.</kbd> <kbd>/</kbd>' : '') + '</span>'
-    : '<span><kbd>WASD</kbd> mover</span><span><kbd>Espacio</kbd> chutar</span>' + (pro ? '<span><kbd>Shift</kbd> sprint</span><span><kbd>C</kbd> potente</span>' : '');
+    ? '<span><b>J1</b> <kbd>WASD</kbd> <kbd>Espacio</kbd>' + (pro ? ' <kbd>E</kbd>' : '') + '</span><span><b>J2</b> <kbd>Flechas</kbd> <kbd>.</kbd>' + (pro ? ' <kbd>/</kbd>' : '') + '</span>'
+    : '<span><kbd>WASD</kbd> mover</span><span><kbd>Espacio</kbd> chutar</span>' + (pro ? '<span><kbd>C</kbd> potente</span>' : '');
 }
 function goalBanner(lg, scoreTxt) {
   const bn = $('#banner'), t = TEAM[lg.team];
@@ -1039,7 +1083,7 @@ function tick() {
   if (G.mode !== 'demo') handleEvents(w.ev, w);
   if (G.mode === 'host') { Net.evBuf.push(...w.ev.filter(e => e.t !== 'arm')); if (w.n % 2 === 0 || w.phase === 'end') Net.sendSnap(); }
   w.ev.length = 0;
-  if (w.phase === 'end' && !G.endShown) { G.endShown = true; setTimeout(() => showEnd(w), 900); }
+  if (w.phase === 'end' && !G.endShown) { if (G.mode === 'host' && G.cfg && G.cfg.tour) tourReport(w); G.endShown = true; setTimeout(() => showEnd(w), 900); }
 }
 function frame(t) {
   const dt = Math.min(250, t - (G.last || t)); G.last = t; if (G.acc > 250) G.acc = 250;
@@ -1083,7 +1127,7 @@ $('#btnRematch').onclick = () => {
   else if (G.mode === 'client') { startDemo(); show('sRoom'); }
 };
 $$('#callBar button').forEach(b => b.addEventListener('click', () => { pendingCall = +b.dataset.call; }));
-function quitToMenu() { cam3.on = false; G.spec = false; if (Net.room) Net.leave(); startDemo(); show('sMenu'); }
+function quitToMenu() { cam3.on = false; G.spec = false; applyLook(null); if (Net.room) Net.leave(); startDemo(); show('sMenu'); }
 function showEnd(w) {
   const win = w.winner;
   $('#endTitle').textContent = win ? 'Gana ' + (win === 1 ? 'Rojo' : 'Azul') : 'Empate';
@@ -1141,6 +1185,11 @@ const Net = {
       for (const a of firebase.apps) { if (a.options.databaseURL !== cfg.databaseURL) await a.delete(); }
       if (!firebase.apps.length) firebase.initializeApp(cfg);
       this.db = firebase.database();
+      try { firebase.auth().onAuthStateChanged(async u => {
+        if (u && !u.isAnonymous) { MCFU = u; UID = u.uid; myName = (u.displayName || (u.email || '').split('@')[0] || myName).slice(0, 16);
+          let a = false; try { a = (await this.db.ref('admins/' + u.uid).once('value')).val() === true; } catch (e) {}
+          IS_ADMIN = a || /^fartaes@/i.test(u.email || ''); } else { MCFU = null; IS_ADMIN = false; }
+        renderUser(); }); } catch (e) { console.warn('auth', e); }
       this.db.ref('.info/connected').on('value', s => { this.connected = !!s.val(); this.setStatus(this.connected ? 'Conectado a los servidores de MCF' : 'Conectando…', this.connected ? 'on' : ''); });
       return true;
     } catch (e) { this.setStatus('Error: ' + e.message, 'off'); return false; }
@@ -1173,7 +1222,8 @@ const Net = {
       }
     }, err => { list.innerHTML = `<div class="empty">No puedo leer las salas: ${err.message}. Revisa las reglas de la base de datos.</div>`; });
   },
-  async create(name) {
+  async create(name, tour, side) {
+    this.cfg = { ...this.cfg }; if (tour) { this.cfg.tour = tour; this.cfg.time = '5'; this.cfg.score = '0'; } else delete this.cfg.tour;
     if (!this.db) return toast('Conecta tu Firebase primero');
     const id = this.ref('lobby').push().key;
     this.isHost = true; this.roomId = id; this.roomName = name;
@@ -1183,11 +1233,11 @@ const Net = {
       await lobby.set({ name, host: UID, hostName: myName, players: 1, mode: this.cfg.mode, st: 'lobby', created: firebase.database.ServerValue.TIMESTAMP });
       lobby.onDisconnect().remove(); room.onDisconnect().remove();
       await room.update({ cfg: this.cfg, st: 'lobby', name, host: UID });
-      await room.child('pl/' + UID).set({ n: myName, t: 1 });
+      await room.child('pl/' + UID).set({ n: myName, t: tour ? (side || 0) : 1 });
     } catch (e) { toast('No pude crear la sala: ' + e.message, 3500); this.room = null; return; }
     this.enterRoom();
   },
-  async join(id, name, watch) {
+  async join(id, name, watch, side) {
     if (!this.db) return;
     this.isHost = false; this.roomId = id; this.roomName = name; this.watching = !!watch;
     const room = this.room = this.ref('rooms/' + id);
@@ -1195,7 +1245,7 @@ const Net = {
       const snap = await room.child('host').get();
       if (!snap.exists()) { toast('Esa sala ya no existe'); this.room = null; return; }
       room.child('pl/' + UID).onDisconnect().remove(); room.child('in/' + UID).onDisconnect().remove();
-      await room.child('pl/' + UID).set({ n: myName, t: 0 });
+      await room.child('pl/' + UID).set({ n: myName, t: side || 0 });
     } catch (e) { toast('No pude entrar: ' + e.message, 3500); this.room = null; return; }
     this.enterRoom();
   },
@@ -1219,7 +1269,8 @@ const Net = {
     this.on(room.child('cfg'), 'value', s => {
       const v = s.val();
       if (!v) { if (!this.isHost) { toast('El anfitrión cerró la sala', 2600); this.leave(); startDemo(); show('sOnline'); } return; }
-      this.cfg = v; $$('#hostBar [data-ropt]').forEach(gp => gp._sync && gp._sync());
+      this.cfg = v; $$('#hostBar [data-ropt]').forEach(gp => gp._sync && gp._sync()); applyLook(v);
+      $('#roomHost').textContent = v.tour ? '⭐ Torneo · ' + v.tour.rn : (this.isHost ? 'Tu sala · eres el anfitrión' : 'Sala online');
     });
     this.on(room.child('st'), 'value', s => {
       const st = s.val();
@@ -1262,7 +1313,7 @@ const Net = {
     for (const t of [1, 2]) { const n = this.teamCount(t), h = $(`.col[data-t="${t}"] h3`); if (h) h.textContent = (t === 1 ? 'Rojo' : 'Azul') + ' · ' + n + '/' + MAXT; const jb = $(`[data-join="${t}"]`); if (jb) jb.disabled = n >= MAXT && (this.pl[UID] || {}).t !== t; const bb = $(`[data-bot="${t}"]`); if (bb) bb.disabled = n >= MAXT; }
   },
   teamCount(t) { return Object.values(this.pl).filter(p => p.t === t).length; },
-  setTeam(t) { if (!this.room) return; if ((t === 1 || t === 2) && (this.pl[UID] || {}).t !== t && this.teamCount(t) >= MAXT) return toast('Ese equipo ya está lleno (5 máx.)'); this.room.child('pl/' + UID + '/t').set(t); },
+  setTeam(t) { if (!this.room) return; const tr = this.cfg && this.cfg.tour; if (tr && t) { const ev = T.list[tr.eid]; const tm = ev && (ev.teams || {})[t === 1 ? tr.a : tr.b]; if (ev && !IS_ADMIN && !(tm && tm.m && tm.m[UID])) return toast('Solo pueden jugar los miembros de ' + (tm ? tm.n : 'ese equipo')); } if ((t === 1 || t === 2) && (this.pl[UID] || {}).t !== t && this.teamCount(t) >= MAXT) return toast('Ese equipo ya está lleno (5 máx.)'); this.room.child('pl/' + UID + '/t').set(t); },
   addBot(t) {
     if (!this.isHost) return;
     if (this.teamCount(t) >= MAXT) return toast('Ese equipo ya tiene 5');
@@ -1370,13 +1421,14 @@ const Net = {
         const i = readInput('all'); let mx = i.x, my = i.y; const m = Math.hypot(mx, my); if (m > 1) { mx /= m; my /= m; }
         if (p.lx == null || Math.hypot(p.lx - q[0], p.ly - q[1]) > 60) { p.lx = q[0]; p.ly = q[1]; p.lvx = p.vx || 0; p.lvy = p.vy || 0; }
         const dtk = Math.min(4, (now - (p.lt || now)) / STEP); p.lt = now;
-        let acc = i.k ? C.KACC : C.ACC; if (v.pro && i.s && p.stam > 0.02 && m > 0) acc *= 1.45;
+        let acc = i.k ? C.KACC : C.ACC;
         for (let k = 0; k < dtk; k += 1) { const s1 = Math.min(1, dtk - k); p.lvx += mx * acc * s1; p.lvy += my * acc * s1; p.lx += p.lvx * s1; p.ly += p.lvy * s1; p.lvx *= Math.pow(C.PD, s1); p.lvy *= Math.pow(C.PD, s1); }
         const lat = clamp(((now - this.snapT) / STEP) + 5.5, 0, 12), last = B[B.length - 1].p[p.id] || q;
         const sx = last[0] + (last[2] || 0) * lat, sy = last[1] + (last[3] || 0) * lat;
-        p.lx += (sx - p.lx) * 0.12; p.ly += (sy - p.ly) * 0.12; p.lvx += ((last[2] || 0) - p.lvx) * 0.08; p.lvy += ((last[3] || 0) - p.lvy) * 0.08;
+        p.lx += (sx - p.lx) * 0.22; p.ly += (sy - p.ly) * 0.22; p.lvx += ((last[2] || 0) - p.lvx) * 0.08; p.lvy += ((last[3] || 0) - p.lvy) * 0.08;
         p.lx = clamp(p.lx, -C.PX + C.PR, C.PX - C.PR); p.ly = clamp(p.ly, -C.PY + C.PR, C.PY - C.PR);
         p.x = p.lx; p.y = p.ly;
+        { const bb = v.ball, dx = bb.x - p.x, dy = bb.y - p.y, d = Math.hypot(dx, dy), rs = C.PR + C.BR; if (d < rs && d > 0) { bb.x = p.x + dx / d * rs; bb.y = p.y + dy / d * rs; } }
       } else { p.lx = null; p.x = q[0]; p.y = q[1]; }
     }
     return;
@@ -1395,6 +1447,7 @@ const Net = {
   },
 
   leave() {
+    applyLook(null);
     for (const off of this.offs) try { off(); } catch (e) {}
     this.offs = [];
     if (this.room) {
@@ -1404,6 +1457,167 @@ const Net = {
     this.room = null; this.roomId = null; this.isHost = false; this.pl = {};
   }
 };
+
+/* =====================================================================
+   10. USUARIO MCF Y TORNEOS (los crea el admin)
+       haxarena/events/{eid} → { n, d, st:'open'|'closed'|'done', t, max, teams:{tid:{n,c,img,cap,m:{uid:nombre}}}, br:'JSON', rooms:{r_m:roomId} }
+   ===================================================================== */
+function renderUser() {
+  const el = $('#userChip'); if (!el) return;
+  el.innerHTML = MCFU ? `👤 <b style="color:var(--chalk)">${esc(myName)}</b>${IS_ADMIN ? ' <span title="Administrador" style="color:var(--gold);font-weight:800">★ ADMIN</span>' : ''}` : '<a href="https://cfartaesmario-a11y.github.io/2batx/" style="color:var(--gold)">Inicia sesión en MCF</a> para tu nombre';
+  const nm = $('#nameIn'); if (nm && MCFU) { nm.value = myName; nm.disabled = true; }
+  if (!$('#sTour').hidden) tourRender();
+}
+const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+const T = { list: {}, cur: null, off: null };
+const RNAME = (R, r) => { const k = R - 1 - r; return ['Final', 'Semifinales', 'Cuartos', 'Octavos', 'Dieciseisavos'][k] || 'Ronda ' + (r + 1); };
+const shade = (hex, f) => { const n = parseInt(hex.slice(1), 16); let r = n >> 16, g2 = n >> 8 & 255, b = n & 255; const m = v => Math.max(0, Math.min(255, Math.round(f < 0 ? v * (1 + f) : v + (255 - v) * f))); return '#' + [m(r), m(g2), m(b)].map(v => v.toString(16).padStart(2, '0')).join(''); };
+const badge = (tm, sz) => tm ? `<i class="tb" style="background-color:${esc(tm.c)};${tm.img ? `background-image:url(${tm.img})` : ''}${sz ? `;width:${sz}px;height:${sz}px` : ''}"></i>` : '<i class="tb" style="background:#d5dbe6"></i>';
+function tmodal(html) { $('#tmodalIn').innerHTML = html; $('#tmodal').hidden = !html; }
+function brParse(e) { try { return e && e.br ? JSON.parse(e.br) : null; } catch (x) { return null; } }
+function brMake(tids) {
+  const t = tids.slice().sort(() => Math.random() - 0.5); let size = 2; while (size < t.length) size *= 2;
+  const R = Math.log2(size), rounds = []; for (let r = 0; r < R; r++) rounds.push([...Array(size >> (r + 1))].map(() => ({ a: null, b: null, w: null, sa: null, sb: null, d: '' })));
+  const P = size / 2; for (let i = 0; i < P; i++) rounds[0][i].a = t[i] || null; for (let i = P; i < t.length; i++) rounds[0][i - P].b = t[i];
+  const B = { rounds, champ: null };
+  rounds[0].forEach((M, m) => { if (M.a && !M.b) { M.b = '_bye'; brWin(B, 0, m, M.a, null, null); } });
+  return B;
+}
+function brWin(B, r, m, w, sa, sb) {
+  const M = B.rounds[r][m]; M.w = w; M.sa = sa; M.sb = sb;
+  if (r + 1 >= B.rounds.length) { B.champ = w; return; }
+  const N = B.rounds[r + 1][m >> 1], sl = m & 1 ? 'b' : 'a';
+  if (N[sl] !== w) { N[sl] = w; brClear(B, r + 1, m >> 1); }
+}
+function brClear(B, r, m) { const M = B.rounds[r][m]; if (!M.w) return; M.w = null; M.sa = M.sb = null; if (r + 1 >= B.rounds.length) { B.champ = null; return; } const N = B.rounds[r + 1][m >> 1], sl = m & 1 ? 'b' : 'a'; N[sl] = null; brClear(B, r + 1, m >> 1); }
+async function brUpdate(eid, fn) { await Net.ref('events/' + eid + '/br').transaction(j => { if (j === null) return null; let B; try { B = JSON.parse(j); } catch (e) { return; } if (!B) return; fn(B); return JSON.stringify(B); }); const ev = (await Net.ref('events/' + eid).once('value')).val() || {}; const B = brParse(ev); if (B && B.champ && ev.st !== 'done') await Net.ref('events/' + eid + '/st').set('done'); else if (B && !B.champ && ev.st === 'done') await Net.ref('events/' + eid + '/st').set('closed'); }
+const myTeamIn = ev => Object.entries((ev && ev.teams) || {}).find(([, t]) => t.m && t.m[UID]);
+
+async function tourOpen(eid) {
+  show('sTour'); if (!Net.db) await Net.init(); if (!Net.db) { $('#tourBody').innerHTML = '<div class="empty">No hay conexión con los servidores de MCF.</div>'; return; }
+  if (T.off) T.off(); const ref = Net.ref('events'); const fn = s => { T.list = s.val() || {}; tourRender(); }; ref.on('value', fn); T.off = () => ref.off('value', fn);
+  T.cur = eid || null; tourRender();
+}
+function tourRender() {
+  const body = $('#tourBody'); $('#tourAdm').innerHTML = IS_ADMIN ? '<span style="color:var(--gold);font-weight:800;font-family:var(--f-display);letter-spacing:.1em">★ ADMIN</span>' : '';
+  const ev = T.cur && T.list[T.cur];
+  if (!ev) {
+    const L = Object.entries(T.list).sort((a, b) => (b[1].t || 0) - (a[1].t || 0));
+    body.innerHTML = `${IS_ADMIN ? `<div class="field" style="border:1px dashed rgba(243,197,82,.6);border-radius:14px;padding:14px"><h3>★ Crear evento (admin)</h3>
+      <div class="row"><input type="text" id="evN" maxlength="40" placeholder="Nombre del torneo (ej. Mundialito MCF)" style="flex:2;min-width:200px"><input type="text" id="evD" maxlength="120" placeholder="Descripción / premio" style="flex:3;min-width:200px"></div>
+      <div class="row"><span class="note">Jugadores por equipo</span><div class="seg" id="evMax">${[1, 2, 3, 4, 5].map(k => `<button data-v="${k}" aria-pressed="${k === 3}">${k}</button>`).join('')}</div><button class="btn primary" id="evGo">Abrir convocatoria</button></div></div>` : ''}
+      <div class="tcards">${L.map(([id, e]) => { const n = Object.keys(e.teams || {}).length, B = brParse(e), ch = B && B.champ && e.teams && e.teams[B.champ];
+        return `<button class="tcard" data-ev="${id}"><span>${e.st === 'open' ? '<span class="tst">CONVOCATORIA ABIERTA</span>' : e.st === 'done' ? '<span class="tst dn">FINALIZADO</span>' : '<span class="tst cl">EN JUEGO</span>'}</span><b>${esc(e.n)}</b><span class="note">${esc(e.d || '')}</span><span class="note">${n} equipos · ${e.max || 3} por equipo</span>${ch ? `<span class="row" style="gap:6px">🏆 ${badge(ch, 22)} <b style="font-size:16px">${esc(ch.n)}</b></span>` : ''}</button>`; }).join('') || '<div class="empty">Todavía no hay torneos. Cuando el admin abra una convocatoria aparecerá aquí.</div>'}</div>`;
+    $$('[data-ev]').forEach(b => b.onclick = () => { T.cur = b.dataset.ev; tourRender(); });
+    if ($('#evGo')) { let mx = 3; $$('#evMax button').forEach(b => b.onclick = () => { mx = +b.dataset.v; $$('#evMax button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
+      $('#evGo').onclick = async () => { const n = $('#evN').value.trim(); if (!n) return toast('Ponle nombre al torneo'); const id = Net.ref('events').push().key; await Net.ref('events/' + id).set({ n, d: $('#evD').value.trim(), st: 'open', t: Date.now(), max: mx, by: UID }); toast('Convocatoria abierta'); T.cur = id; tourRender(); }; }
+    return;
+  }
+  const teams = ev.teams || {}, B = brParse(ev), mine = myTeamIn(ev), nT = Object.keys(teams).length;
+  body.innerHTML = `<div class="row between"><div><button class="btn ghost sm" id="evList">← Todos los torneos</button></div>${IS_ADMIN ? `<div class="row">${ev.st === 'open' ? `<button class="btn primary" id="evClose" ${nT < 2 ? 'disabled' : ''}>Cerrar convocatoria y crear el cuadro</button>` : `<button class="btn sm" id="evReopen">Reabrir convocatoria</button>`}<button class="btn sm red" id="evDel">Borrar evento</button></div>` : ''}</div>
+    <div><h2 style="font-size:40px">${esc(ev.n)}</h2><p class="note">${esc(ev.d || '')}</p></div>
+    ${ev.st === 'open' ? `<div class="field"><h3>Convocatoria abierta · ${nT} equipos · ${ev.max || 3} jugadores por equipo</h3>
+      ${mine ? `<p class="note">Estás en <b style="color:var(--chalk)">${esc(mine[1].n)}</b>. <button class="btn sm" id="evLeave">Salir del equipo</button></p>` : `<div class="row"><button class="btn primary" id="evNew">Inscribir mi equipo</button><span class="note">o únete a uno de abajo</span></div>`}
+      <div class="teamg">${Object.entries(teams).map(([tid, t]) => { const m = Object.values(t.m || {}); return `<div class="tteam">${badge(t, 38)}<div style="flex:1;min-width:0"><b>${esc(t.n)}</b><div class="note">${m.map(esc).join(', ')} · ${m.length}/${ev.max || 3}</div></div>${!mine && m.length < (ev.max || 3) ? `<button class="btn sm" data-jt="${tid}">Unirme</button>` : ''}${IS_ADMIN ? `<button class="btn sm ghost" data-dt="${tid}" title="Quitar equipo">✕</button>` : ''}</div>`; }).join('') || '<div class="empty">Aún no se ha inscrito ningún equipo.</div>'}</div></div>` : ''}
+    ${B ? `<div class="bkw"><h4>${esc(ev.n)}</h4><div class="bk" id="bk"></div></div>` : ''}`;
+  $('#evList').onclick = () => { T.cur = null; tourRender(); };
+  const eref = Net.db ? Net.ref('events/' + T.cur) : null, eid = T.cur;
+  if ($('#evClose')) $('#evClose').onclick = async () => { if (!confirm('¿Cerrar la convocatoria y sortear el cuadro? Los equipos ya no podrán cambiar.')) return; await eref.update({ st: 'closed', br: JSON.stringify(brMake(Object.keys(teams))) }); toast('¡Cuadro creado!'); };
+  if ($('#evReopen')) $('#evReopen').onclick = async () => { if (!confirm('Se borrará el cuadro y todos los resultados. ¿Seguro?')) return; await eref.update({ st: 'open', br: null, rooms: null }); };
+  if ($('#evDel')) $('#evDel').onclick = async () => { if (!confirm('¿Borrar el evento entero?')) return; await eref.remove(); T.cur = null; };
+  if ($('#evLeave')) $('#evLeave').onclick = async () => { const [tid, t] = mine; await eref.child('teams/' + tid + '/m/' + UID).remove(); if (Object.keys(t.m || {}).length <= 1) await eref.child('teams/' + tid).remove(); };
+  $$('[data-jt]').forEach(b => b.onclick = async () => { const tr = await eref.child('teams/' + b.dataset.jt + '/m').transaction(m => { m = m || {}; if (Object.keys(m).length >= (ev.max || 3)) return; m[UID] = myName; return m; }); toast(tr.committed ? '¡Estás en el equipo!' : 'Ese equipo ya está lleno'); });
+  $$('[data-dt]').forEach(b => b.onclick = () => confirm('¿Quitar este equipo?') && eref.child('teams/' + b.dataset.dt).remove());
+  if ($('#evNew')) $('#evNew').onclick = () => teamEditor(eid);
+  if (B) bracketRender(eid, ev, B);
+}
+/* inscripción: nombre + círculo blanco que se dibuja con el color del equipo */
+function teamEditor(eid) {
+  tmodal(`<h2>Inscribir equipo</h2><div class="field"><h3>Nombre del equipo</h3><input type="text" id="teN" maxlength="22" placeholder="Ej. Los Halcones"></div>
+    <div class="field"><h3>Color y escudo de tus jugadores</h3><div class="row"><span class="note">Color del equipo</span><input type="color" id="teC" value="#ff3b47"><span class="note">Pincel</span><div class="seg" id="teB"><button data-v="team" aria-pressed="true">Color</button><button data-v="#ffffff" aria-pressed="false">Blanco</button><button data-v="#111111" aria-pressed="false">Negro</button></div></div>
+    <div class="pad"><canvas id="teP" width="160" height="160"></canvas><div class="row"><button class="btn sm" id="teFill">Rellenar con el color</button><button class="btn sm" id="teClr">Volver a blanco</button></div><p class="note" style="text-align:center">Dibuja sobre el círculo blanco: así se verán tus jugadores en el campo.</p></div></div>
+    <div class="row end"><button class="btn ghost" id="teX">Cancelar</button><button class="btn primary" id="teOk">Inscribir</button></div>`);
+  const cvp = $('#teP'), x = cvp.getContext('2d'); let brush = 'team', dn = false, last = null;
+  const clip = () => { x.save(); x.beginPath(); x.arc(80, 80, 80, 0, 7); x.clip(); };
+  const reset = () => { x.clearRect(0, 0, 160, 160); clip(); x.fillStyle = '#fff'; x.fillRect(0, 0, 160, 160); x.restore(); }; reset();
+  const col = () => brush === 'team' ? $('#teC').value : brush;
+  const pos = e => { const r = cvp.getBoundingClientRect(); return [(e.clientX - r.left) * 160 / r.width, (e.clientY - r.top) * 160 / r.height]; };
+  cvp.onpointerdown = e => { dn = true; last = pos(e); cvp.setPointerCapture(e.pointerId); };
+  cvp.onpointermove = e => { if (!dn) return; const p2 = pos(e); clip(); x.strokeStyle = col(); x.lineWidth = 12; x.lineCap = 'round'; x.beginPath(); x.moveTo(last[0], last[1]); x.lineTo(p2[0], p2[1]); x.stroke(); x.restore(); last = p2; };
+  cvp.onpointerup = () => { dn = false; };
+  $$('#teB button').forEach(b => b.onclick = () => { brush = b.dataset.v; $$('#teB button').forEach(y => y.setAttribute('aria-pressed', String(y === b))); });
+  $('#teFill').onclick = () => { clip(); x.fillStyle = $('#teC').value; x.fillRect(0, 0, 160, 160); x.restore(); };
+  $('#teClr').onclick = reset; $('#teX').onclick = () => tmodal('');
+  $('#teOk').onclick = async () => { const n = $('#teN').value.trim(); if (!n) return toast('Ponle nombre al equipo');
+    const ev = T.list[eid]; if (!ev || ev.st !== 'open') return toast('La convocatoria ya está cerrada'); if (myTeamIn(ev)) return toast('Ya estás en un equipo');
+    if (Object.values(ev.teams || {}).some(t => t.n.toLowerCase() === n.toLowerCase())) return toast('Ya hay un equipo con ese nombre');
+    const sm = document.createElement('canvas'); sm.width = sm.height = 64; sm.getContext('2d').drawImage(cvp, 0, 0, 64, 64);
+    await Net.ref('events/' + eid + '/teams').push({ n, c: $('#teC').value, img: sm.toDataURL('image/png'), cap: UID, m: { [UID]: myName }, t: Date.now() });
+    tmodal(''); toast('¡Equipo inscrito!'); };
+}
+/* cuadro estilo Mundial: dos mitades que se juntan en la final */
+function bracketRender(eid, ev, B) {
+  const bk = $('#bk'), Rn = B.rounds.length, teams = ev.teams || {}, rooms = ev.rooms || {};
+  const tname = id => id === '_bye' ? 'Pasa directo' : id && teams[id] ? teams[id].n : 'Por decidir';
+  const card = (r, m, fin) => { const M = B.rounds[r][m]; const row = (id, sc, sl) => `<div class="tr ${M.w ? (M.w === id ? 'w' : 'l') : ''}">${id === '_bye' ? '<i class="tb" style="background:#eef1f6"></i>' : badge(teams[id])}<span class="nm2">${esc(tname(id))}</span><b>${sc == null ? '' : sc}</b></div>`;
+    const ready = M.a && M.b && M.a !== '_bye' && M.b !== '_bye' && teams[M.a] && teams[M.b] && !M.w, mineIn = ready && [M.a, M.b].some(id => teams[id].m && teams[id].m[UID]);
+    const date = M.d ? new Date(M.d).toLocaleString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Fecha por fijar';
+    return `<div class="bm ${fin ? 'bfin' : ''}" data-k="${r}-${m}">${row(M.a, M.sa)}${row(M.b, M.sb)}<div class="ft"><span>📅 ${esc(date)}</span><span class="row" style="gap:4px">${ready && (mineIn || IS_ADMIN) ? `<button data-play="${r}-${m}">${rooms[r + '_' + m] ? 'Entrar' : 'Jugar'}</button>` : ''}${IS_ADMIN && M.a && M.b && M.b !== '_bye' ? `<button data-edit="${r}-${m}" title="Fecha y resultado">✎</button>` : ''}</span></div></div>`; };
+  let html = '';
+  if (Rn === 1) html = `<div class="bcol"><div class="bcup"><div class="cup">🏆</div>FINAL</div>${card(0, 0, true)}${B.champ ? `<div class="bcup">CAMPEÓN<br>${esc(tname(B.champ))}</div>` : ''}</div>`;
+  else {
+    for (let r = 0; r < Rn - 1; r++) { const L = B.rounds[r].length / 2; html += `<div class="bcol"><span class="rn">${RNAME(Rn, r)}</span>${[...Array(L)].map((_, m) => card(r, m)).join('')}</div>`; }
+    html += `<div class="bcol" style="min-width:180px"><div class="bcup"><div class="cup">🏆</div>FINAL</div>${card(Rn - 1, 0, true)}<div class="bcup" style="min-height:60px">${B.champ ? `CAMPEÓN<br><span style="font-size:22px">${badge(teams[B.champ], 26)} ${esc(tname(B.champ))}</span>` : ''}</div></div>`;
+    for (let r = Rn - 2; r >= 0; r--) { const L = B.rounds[r].length / 2; html += `<div class="bcol"><span class="rn">${RNAME(Rn, r)}</span>${[...Array(L)].map((_, m) => card(r, m + L)).join('')}</div>`; }
+  }
+  bk.innerHTML = html + '<svg id="bksvg"></svg>';
+  const lines = () => { const svg = $('#bksvg'); if (!svg) return; const o = bk.getBoundingClientRect(); svg.setAttribute('width', bk.scrollWidth); svg.setAttribute('height', bk.scrollHeight); let d = '';
+    for (let r = 1; r < Rn; r++) for (let m = 0; m < B.rounds[r].length; m++) { const P = bk.querySelector(`[data-k="${r}-${m}"]`); if (!P) continue; const pr = P.getBoundingClientRect();
+      for (const cm of [2 * m, 2 * m + 1]) { const Ch = bk.querySelector(`[data-k="${r - 1}-${cm}"]`); if (!Ch) continue; const cr = Ch.getBoundingClientRect(); const left = cr.left < pr.left;
+        const x1 = (left ? cr.right : cr.left) - o.left, y1 = cr.top + cr.height / 2 - o.top, x2 = (left ? pr.left : pr.right) - o.left, y2 = pr.top + pr.height / 2 - o.top, mx = (x1 + x2) / 2;
+        d += `M${x1} ${y1}H${mx}V${y2}H${x2}`; } }
+    svg.innerHTML = `<path d="${d}" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2.5"/>`; };
+  requestAnimationFrame(lines); setTimeout(lines, 300); window.onresize = lines;
+  $$('[data-play]').forEach(b => b.onclick = () => { const [r, m] = b.dataset.play.split('-').map(Number); tourPlay(eid, r, m); });
+  $$('[data-edit]').forEach(b => b.onclick = () => { const [r, m] = b.dataset.edit.split('-').map(Number); const M = B.rounds[r][m];
+    const dv = M.d ? new Date(M.d - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '';
+    tmodal(`<h2>${RNAME(Rn, r)}</h2><p class="note">${esc(tname(M.a))} contra ${esc(tname(M.b))}</p>
+      <div class="field"><h3>Fecha prevista</h3><input type="datetime-local" id="edD" value="${dv}"></div>
+      <div class="field"><h3>Resultado (si ya se jugó)</h3><div class="row">${badge(teams[M.a])}<span style="flex:1">${esc(tname(M.a))}</span><input type="number" id="edA" min="0" value="${M.sa ?? ''}" style="width:70px"></div><div class="row">${badge(teams[M.b])}<span style="flex:1">${esc(tname(M.b))}</span><input type="number" id="edB" min="0" value="${M.sb ?? ''}" style="width:70px"></div></div>
+      <div class="row between"><button class="btn sm red" id="edClr" ${M.w ? '' : 'disabled'}>Borrar resultado</button><div class="row"><button class="btn ghost" id="edX">Cerrar</button><button class="btn primary" id="edOk">Guardar</button></div></div>`);
+    $('#edX').onclick = () => tmodal('');
+    $('#edClr').onclick = async () => { await brUpdate(eid, B2 => brClear(B2, r, m)); tmodal(''); };
+    $('#edOk').onclick = async () => { const d = $('#edD').value ? new Date($('#edD').value).getTime() : ''; const a = $('#edA').value, bb = $('#edB').value;
+      if (a !== '' && bb !== '' && +a === +bb) return toast('En eliminatoria no puede haber empate');
+      await brUpdate(eid, B2 => { B2.rounds[r][m].d = d; if (a !== '' && bb !== '') brWin(B2, r, m, +a > +bb ? M.a : M.b, +a, +bb); }); tmodal(''); toast('Guardado'); }; });
+}
+/* jugar un partido del cuadro: sala online con los colores y escudos de cada equipo */
+async function tourPlay(eid, r, m) {
+  const ev = T.list[eid], B = brParse(ev); if (!B) return; const M = B.rounds[r][m], ta = ev.teams[M.a], tb = ev.teams[M.b];
+  const side = ta.m && ta.m[UID] ? 1 : tb.m && tb.m[UID] ? 2 : 0;
+  const key = r + '_' + m, rid = (ev.rooms || {})[key];
+  if (rid) { const ok = (await Net.ref('rooms/' + rid + '/host').once('value')).exists(); if (ok) { await Net.join(rid, '⭐ ' + ta.n + ' vs ' + tb.n, side === 0, side); return; } }
+  const tour = { eid, r, m, a: M.a, b: M.b, A: { n: ta.n, c: ta.c, img: ta.img || '' }, B: { n: tb.n, c: tb.c, img: tb.img || '' }, rn: RNAME(B.rounds.length, r) };
+  await Net.create('⭐ ' + ev.n + ' · ' + ta.n + ' vs ' + tb.n, tour, side);
+  if (Net.roomId) Net.ref('events/' + eid + '/rooms/' + key).set(Net.roomId);
+}
+const TEAM_DEF = JSON.parse(JSON.stringify(TEAM));
+function applyLook(cfg) {
+  const tr = cfg && cfg.tour;
+  for (const k of [1, 2]) { const src = tr && (k === 1 ? tr.A : tr.B);
+    if (src) { TEAM[k] = { c: src.c, hi: shade(src.c, 0.45), lo: shade(src.c, -0.4), n: src.n, img: null }; if (src.img) { const im = new Image(); im.src = src.img; TEAM[k].img = im; } }
+    else TEAM[k] = { ...TEAM_DEF[k] }; }
+  const nm = $$('.board .nm'); if (nm[0]) nm[0].textContent = tr ? tr.A.n : 'Rojo'; if (nm[1]) nm[1].textContent = tr ? tr.B.n : 'Azul';
+  $$('.col[data-t="1"] h3, .col[data-t="2"] h3').forEach(()=>{});
+  buildPitch();
+}
+async function tourReport(w) {
+  const tr = G.cfg && G.cfg.tour; if (!tr || !w.winner) return;
+  const win = w.winner === 1 ? tr.a : tr.b;
+  try { await brUpdate(tr.eid, B => { const M = B.rounds[tr.r][tr.m]; if (M.a === tr.a && M.b === tr.b) brWin(B, tr.r, tr.m, win, w.score[0], w.score[1]); }); await Net.ref('events/' + tr.eid + '/rooms/' + tr.r + '_' + tr.m).remove(); toast('Resultado guardado en el cuadro del torneo', 3000); } catch (e) { toast('No se pudo guardar el resultado: ' + e.message, 3500); }
+}
+$('#btnTour').onclick = () => { audioInit(); tourOpen(); };
+$('#tourBack').onclick = () => { if (T.off) { T.off(); T.off = null; } show('sMenu'); };
 
 /* enlaces UI online */
 async function openOnline() {
@@ -1449,6 +1663,7 @@ resize();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(buildPitch);
 startDemo();
 show('sMenu');
+renderUser();
 if (Net.config()) Net.init();
 requestAnimationFrame(frame);
 addEventListener('beforeunload', () => { if (Net.room) Net.leave(); });
