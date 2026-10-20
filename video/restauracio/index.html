@@ -35,6 +35,7 @@ video{display:block;width:100%;aspect-ratio:16/9;background:#000}
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
 <script>
 (function(){
+  if(Date.now()>=Date.UTC(2026,9,21,12,30)){document.querySelector('main').innerHTML='<span class="tag">Història · Tema 1</span><h1>La Restauració</h1><p>Este vídeo ya no está disponible.</p>';return}
   var v=document.getElementById('v'),src='hls/index.m3u8',K='mcf.video.restauracio.t';
   function err(m){var e=document.getElementById('err');e.textContent=m;e.hidden=false}
   if(v.canPlayType('application/vnd.apple.mpegurl')){v.src=src}
