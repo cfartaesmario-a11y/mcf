@@ -166,7 +166,7 @@ label.lb{display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight
 <script>
 /* ===================== MCF Core: cuenta, datos y menú de apps ===================== */
 const MCF_BASE='https://cfartaesmario-a11y.github.io';
-const MCF_URLS={home:MCF_BASE+'/mcf/',calendar:MCF_BASE+'/2batx/',games:MCF_BASE+'/mcf/games/',focus:MCF_BASE+'/mcf/focus/',flashcards:MCF_BASE+'/mcf/flashcards/',pau:MCF_BASE+'/mcf/pau/',apuntes:MCF_BASE+'/mcf/apuntes/',restauracio:MCF_BASE+'/mcf/video/restauracio/'};
+const MCF_URLS={home:MCF_BASE+'/mcf/',calendar:MCF_BASE+'/2batx/',games:MCF_BASE+'/mcf/games/',focus:MCF_BASE+'/mcf/focus/',flashcards:MCF_BASE+'/mcf/flashcards/',pau:MCF_BASE+'/mcf/pau/',apuntes:MCF_BASE+'/mcf/apuntes/'};
 const MCF_LOGIN=MCF_URLS.calendar;
 const PLANE_D='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z';
 const MCF_APPS=[
@@ -175,7 +175,6 @@ const MCF_APPS=[
   {id:'flashcards',name:'MCF Flashcards',desc:'Tarjetas de repaso para tus exámenes',g:'linear-gradient(145deg,#ffc21a,#f97316)',ico:'<rect x="3.5" y="7" width="13" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(-8 10 12)"/><rect x="7.5" y="6" width="13" height="10" rx="2" fill="currentColor"/>'},
   {id:'pau',name:'MCF Nota PAU',desc:'Calcula tu nota de acceso y admisión',g:'linear-gradient(145deg,#35d07f,#0f766e)',ico:'<path d="M12 4 2.5 8.5 12 13l9.5-4.5z" fill="currentColor"/><path d="M6 10.6v4.2c0 1.5 2.7 2.7 6 2.7s6-1.2 6-2.7v-4.2M21 9v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
   {id:'apuntes',name:'MCF Apuntes',desc:'Apuntes en directo mientras el profe explica',g:'linear-gradient(145deg,#5b7fff,#2448c9)',ico:'<path d="M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z" fill="currentColor"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4M8.5 21h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
-  {id:'restauracio',name:'Vídeo · La Restauració',desc:'Vídeo de Història: tema 1, la Restauració',g:'linear-gradient(145deg,#d7a04a,#7a2f1c)',ico:'<path d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 9l5 3-5 3z" fill="currentColor"/>'},
   {id:'games',name:'MCF Games',desc:'Juegos rápidos para los descansos',g:'linear-gradient(145deg,#ff5c63,#b36bff)',ico:'<path d="M7 9h10a4 4 0 0 1 3.9 4.9l-.6 2.6a2.3 2.3 0 0 1-3.9 1L14.6 15H9.4l-1.8 2.5a2.3 2.3 0 0 1-3.9-1l-.6-2.6A4 4 0 0 1 7 9z" fill="currentColor"/>'},
   {id:'home',name:'Inicio',desc:'Tu resumen de MCF Workspace',g:'linear-gradient(145deg,#ffffff,#9a9a9a)',ico:'<g transform="rotate(45 12 12)"><path fill="#000" d="'+PLANE_D+'"/></g>'}
 ];
