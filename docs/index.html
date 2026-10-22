@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-JsF8KL5dfoZ2LLXqHDhLFHcLNeDbejAU/HuroibQWrU=' https://www.gstatic.com https://apis.google.com https://www.google.com https://*.firebasedatabase.app https://*.firebaseio.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.googleusercontent.com; media-src 'self' blob:; connect-src 'self' https://*.googleapis.com https://*.firebasedatabase.app wss://*.firebasedatabase.app https://*.firebaseio.com wss://*.firebaseio.com https://www.google.com; frame-src blob: https://*.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-TvF5pKD4ve2ZQ0FyuSMExYXVIoESDn6pd7cdRvEmuVI=' https://www.gstatic.com https://apis.google.com https://www.google.com https://*.firebasedatabase.app https://*.firebaseio.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.googleusercontent.com; media-src 'self' blob:; connect-src 'self' https://*.googleapis.com https://*.firebasedatabase.app wss://*.firebasedatabase.app https://*.firebaseio.com wss://*.firebaseio.com https://www.google.com; frame-src blob: https://*.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'">
 <meta name="theme-color" content="#000000">
 <meta name="description" content="MCF Docs: documentos y apuntes con grabación de clase ilimitada, transcripción en directo y audio sincronizado.">
 <title>MCF Docs</title>
@@ -152,6 +152,10 @@ body.nav .scrimnav{display:block}
 .tb.on{background:var(--pen-soft);color:var(--pen-ink)}
 .tsep{width:1px;height:20px;background:var(--line-2);margin:0 5px;flex:none}
 .tsel{height:28px;border-radius:4px;border:0;background:none;padding:0 4px;color:var(--ink);outline:0;flex:none;cursor:pointer}
+.fsz{display:flex;align-items:center;flex:none}
+.fsz .tb{min-width:24px;font-size:17px}
+#fsize{width:34px;height:26px;text-align:center;border:1px solid var(--line-2);border-radius:4px;background:var(--surface);color:var(--ink);font-size:13.5px;outline:0;padding:0}
+#fsize:focus{border-color:var(--pen)}
 .tsel:hover{background:var(--hover)}
 .tsel option{background:var(--surface)}
 .mathchip{display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:14px;color:var(--ink-2);font-size:13px;font-weight:600;flex:none}
@@ -416,6 +420,8 @@ body.pageless .page::before{display:none}
     <button class="tb" data-cmd="redo" title="Rehacer (Ctrl+Y)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
     <i class="tsep"></i>
     <select class="tsel" id="block" aria-label="Estilo de párrafo"><option value="p">Texto normal</option><option value="h1">Título 1</option><option value="h2">Título 2</option><option value="h3">Título 3</option><option value="blockquote">Cita</option><option value="pre">Código</option></select>
+    <i class="tsep"></i>
+    <span class="fsz"><button class="tb" data-fs="-1" title="Reducir tamaño (Ctrl+Shift+,)">−</button><input id="fsize" inputmode="numeric" aria-label="Tamaño de letra" value="11" autocomplete="off"><button class="tb" data-fs="1" title="Aumentar tamaño (Ctrl+Shift+.)">+</button></span>
     <i class="tsep"></i>
     <button class="tb" data-cmd="bold" title="Negrita (Ctrl+B)"><b>B</b></button>
     <button class="tb" data-cmd="italic" title="Cursiva (Ctrl+I)"><i style="font-family:var(--serif);font-size:18px">I</i></button>
@@ -895,11 +901,66 @@ const CMDS = {
 $('tools').addEventListener('mousedown', e => { if (e.target.closest('.tb')) e.preventDefault(); });
 $('tools').addEventListener('click', e => { const b = e.target.closest('.tb'); if (!b || !b.dataset.cmd) return; if (!inEditor()) ed.focus(); CMDS[b.dataset.cmd](); save(); updateTools(); });
 $('block').onchange = () => { setBlock($('block').value); };
+/* tamaño de letra (pt) */
+const FS_STEPS = [6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 60, 72, 96];
+let fsRange = null;
+function curPt() {
+  const s = getSelection(); if (!s.rangeCount) return 11;
+  let n = s.anchorNode; if (!n) return 11; if (n.nodeType === 3) n = n.parentNode;
+  if (!ed.contains(n)) return 11;
+  return Math.round(parseFloat(getComputedStyle(n).fontSize) * 0.75 * 2) / 2;
+}
+function applyPt(pt) {
+  pt = Math.max(1, Math.min(400, Math.round(pt * 2) / 2));
+  const s = getSelection();
+  if (fsRange) { s.removeAllRanges(); s.addRange(fsRange); }
+  if (!s.rangeCount || !ed.contains(s.anchorNode)) { ed.focus(); return; }
+  const r = s.getRangeAt(0);
+  if (r.collapsed) { // sin selección: se aplica al párrafo entero
+    let n = r.startContainer; if (n.nodeType === 3) n = n.parentNode;
+    const blk = n.closest('p,li,h1,h2,h3,blockquote,td,th') || n;
+    if (!ed.contains(blk) || blk === ed) return;
+    blk.querySelectorAll('span[style*="font-size"]').forEach(x => x.style.fontSize = '');
+    blk.style.fontSize = pt + 'pt';
+  } else {
+    document.execCommand('styleWithCSS', false, false);
+    document.execCommand('fontSize', false, '7');
+    const made = [];
+    ed.querySelectorAll('font[size="7"]').forEach(f => {
+      f.querySelectorAll('[style*="font-size"]').forEach(x => x.style.fontSize = '');
+      const sp = document.createElement('span'); sp.style.fontSize = pt + 'pt';
+      sp.append(...f.childNodes); f.replaceWith(sp); made.push(sp);
+    });
+    if (made.length) { const nr = document.createRange(); nr.setStartBefore(made[0].firstChild || made[0]); nr.setEndAfter(made[made.length - 1].lastChild || made[made.length - 1]); s.removeAllRanges(); s.addRange(nr); }
+  }
+  ed.querySelectorAll('span[style=""]').forEach(x => x.replaceWith(...x.childNodes));
+  $('fsize').value = pt; save();
+}
+function stepPt(d) {
+  const c = curPt();
+  const nx = d > 0 ? (FS_STEPS.find(v => v > c) || c + 10) : ([...FS_STEPS].reverse().find(v => v < c) || Math.max(1, c - 1));
+  applyPt(nx);
+}
+document.querySelectorAll('[data-fs]').forEach(b => {
+  b.addEventListener('mousedown', e => e.preventDefault());
+  b.addEventListener('click', e => { e.stopPropagation(); if (!inEditor() && !fsRange) ed.focus(); stepPt(+b.dataset.fs); fsRange = null; });
+});
+$('fsize').addEventListener('mousedown', () => { const s = getSelection(); fsRange = s.rangeCount && inEditor() ? s.getRangeAt(0).cloneRange() : null; });
+$('fsize').addEventListener('focus', e => setTimeout(() => e.target.select(), 0));
+$('fsize').addEventListener('mouseup', e => { e.preventDefault(); e.target.select(); });
+$('fsize').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); const v = parseFloat(e.target.value.replace(',', '.')); if (v > 0) applyPt(v); fsRange = null; ed.focus(); }
+  else if (e.key === 'Escape') { fsRange = null; ed.focus(); }
+});
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === '>' || e.key === '.' || e.key === '<' || e.key === ',') && inEditor()) { e.preventDefault(); stepPt(e.key === '>' || e.key === '.' ? 1 : -1); }
+});
 function updateTools() {
   if (!inEditor()) return;
   for (const c of ['bold', 'italic', 'underline', 'strikeThrough', 'insertUnorderedList', 'insertOrderedList']) { const b = document.querySelector(`.tb[data-cmd="${c}"]`); try { b.classList.toggle('on', document.queryCommandState(c)); } catch (e) {} }
   let v = (document.queryCommandValue('formatBlock') || 'p').toLowerCase().replace(/[<>]/g, '');
   $('block').value = ['h1', 'h2', 'h3', 'blockquote', 'pre'].includes(v) ? v : 'p';
+  if (document.activeElement !== $('fsize')) $('fsize').value = curPt();
 }
 document.addEventListener('selectionchange', () => { if (inEditor()) updateTools(); });
 
@@ -1207,6 +1268,7 @@ const Rec = {
       const p = document.createElement('p');
       p.innerHTML = `<span class="ts" contenteditable="false" data-s="${this.sess.id}" data-t="${Math.floor(at)}">${fmtT(at)}</span>`;
       p.appendChild(document.createTextNode(t));
+      const prev = [...b.querySelectorAll('p')].pop(); if (prev && prev.style.fontSize) p.style.fontSize = prev.style.fontSize;
       b.appendChild(p);
     } else { const sp = last.querySelector('.interim'); last.insertBefore(document.createTextNode(' ' + t), sp && sp.parentNode === last ? sp : null); }
   },
