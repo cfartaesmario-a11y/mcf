@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-nkjcRBNFInpFVPwLBx6zZqunWFG5Yg8YHoFW/BoCw/8=' https://www.gstatic.com https://apis.google.com https://www.google.com https://*.firebasedatabase.app https://*.firebaseio.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.googleusercontent.com; media-src 'self' blob:; connect-src 'self' https://*.googleapis.com https://*.firebasedatabase.app wss://*.firebasedatabase.app https://*.firebaseio.com wss://*.firebaseio.com https://www.google.com; frame-src blob: https://*.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-JsF8KL5dfoZ2LLXqHDhLFHcLNeDbejAU/HuroibQWrU=' https://www.gstatic.com https://apis.google.com https://www.google.com https://*.firebasedatabase.app https://*.firebaseio.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.googleusercontent.com; media-src 'self' blob:; connect-src 'self' https://*.googleapis.com https://*.firebasedatabase.app wss://*.firebasedatabase.app https://*.firebaseio.com wss://*.firebaseio.com https://www.google.com; frame-src blob: https://*.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'">
 <meta name="theme-color" content="#000000">
 <meta name="description" content="MCF Docs: documentos y apuntes con grabación de clase ilimitada, transcripción en directo y audio sincronizado.">
 <title>MCF Docs</title>
@@ -246,6 +246,7 @@ body.focus .tools,body.focus .menubar,body.focus .panel{display:none}
 .rstat{font-size:12.5px;color:var(--ink-3);flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .meter{width:60px;height:5px;border-radius:3px;background:var(--s3);overflow:hidden;flex:none}
 .meter i{display:block;height:100%;width:0;background:var(--ok);transition:width .08s}
+.clase .interim{color:var(--ink-2);font-style:italic;opacity:.75}
 .rinterim{font-size:13px;color:var(--ink-2);font-style:italic;max-height:2.6em;overflow:hidden;padding-right:10px}
 .rinterim:empty{display:none}
 .langsel{height:32px;border-radius:16px;background:var(--s2);border:0;padding:0 8px;font-size:13px;outline:0}
@@ -1113,8 +1114,9 @@ const Rec = {
     if (!this.running) return;
     this.running = false;
     try { this.rec && this.rec.stop(); } catch (e) {}
-    if (this.interim.trim()) this.addFinal(this.interim);
-    this.interim = ''; this.showInterim();
+    clearTimeout(this.cT);
+    if (this.interim.trim()) this.addFinal(this.rest(this.interim));
+    this.interim = ''; this.done = 0; this.showInterim();
     try { this.mr && this.mr.state !== 'inactive' && this.mr.stop(); } catch (e) {}
     try { this.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
     cancelAnimationFrame(this.raf); try { this.actx && this.actx.close(); } catch (e) {}
@@ -1133,9 +1135,12 @@ const Rec = {
     r.onresult = e => {
       if (r !== this.rec) return;
       let it = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) { const res = e.results[i]; if (res.isFinal) this.addFinal(res[0].transcript); else it += res[0].transcript; }
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const res = e.results[i], tx = res[0].transcript;
+        if (res.isFinal) { this.addFinal(this.rest(tx)); this.done = 0; } else it += tx;
+      }
       if (it && this.segStart === null) this.segStart = (Date.now() - this.startedAt) / 1000;
-      this.interim = it; this.showInterim();
+      this.interim = it; this.showInterim(); this.armCommit();
     };
     r.onerror = e => {
       if (r !== this.rec) return;
@@ -1145,7 +1150,9 @@ const Rec = {
     };
     r.onend = () => {
       if (r !== this.rec) return;
-      if (this.interim.trim()) { this.addFinal(this.interim); this.interim = ''; this.showInterim(); }
+      clearTimeout(this.cT);
+      if (this.interim.trim()) this.addFinal(this.rest(this.interim));
+      this.interim = ''; this.done = 0; this.showInterim();
       if (!this.running) return;
       const d = this.restartDelay; this.restartDelay = Math.min(this.restartDelay * 2, 5000);
       setTimeout(() => { if (this.running && this.rec === r) { try { this.spawn(); } catch (err) { setTimeout(() => this.running && this.spawn(), 1000); } } }, d);
@@ -1161,16 +1168,19 @@ const Rec = {
     return b;
   },
 
-  addFinal(raw) {
-    let t = (raw || '').trim(); if (!t) return;
+  addFinal(raw, partial) {
+    let t = (raw || '').trim();
     const d = DOCS.find(x => x.id === this.docId); if (!d) return;
+    if (!t) { if (!partial && this.openSent) { this.openSent = false; this.closeSent(d); } return; }
     if (d.math && typeof MathConv !== 'undefined') t = MathConv.convert(t);
-    if (/^\p{L}{2,}/u.test(t)) t = t.charAt(0).toUpperCase() + t.slice(1);
-    if (!/[.?!…:;,]$/.test(t)) t += '.';
+    if (!this.openSent && /^\p{L}{2,}/u.test(t)) t = t.charAt(0).toUpperCase() + t.slice(1);
+    if (partial) this.openSent = true;
+    else { this.openSent = false; if (!/[.?!…:;,]$/.test(t)) t += '.'; }
     const now = Date.now();
     const at = this.segStart !== null ? this.segStart : Math.max(0, (now - this.startedAt) / 1000 - 3);
     this.segStart = null;
-    const newPara = !this.lastFinalAt || now - this.lastFinalAt > 6000;
+    const newPara = !this.contSent && (!this.lastFinalAt || now - this.lastFinalAt > 6000);
+    this.contSent = !!partial;
     this.lastFinalAt = now;
     const b = this.block();
     if (!b) { // el documento no está abierto: se añade al HTML guardado
@@ -1184,6 +1194,12 @@ const Rec = {
     if (atBottom) scroller.scrollTop = scroller.scrollHeight;
     save();
   },
+  closeSent(d) { // pone el punto final a una frase escrita por partes
+    const b = this.block(); const p = b && [...b.querySelectorAll('p')].pop();
+    this.contSent = false;
+    if (!p) return; const tn = [...p.childNodes].filter(n => n.nodeType === 3).pop();
+    if (tn && !/[.?!…:;,]\s*$/.test(tn.textContent)) { tn.textContent = tn.textContent.replace(/\s*$/, '.'); save(); }
+  },
   appendTo(b, t, at, newPara) {
     let last = b.lastElementChild;
     if (last && last.tagName === 'P' && !last.textContent.trim() && !last.querySelector('img')) { last.remove(); last = b.lastElementChild; }
@@ -1192,13 +1208,39 @@ const Rec = {
       p.innerHTML = `<span class="ts" contenteditable="false" data-s="${this.sess.id}" data-t="${Math.floor(at)}">${fmtT(at)}</span>`;
       p.appendChild(document.createTextNode(t));
       b.appendChild(p);
-    } else last.appendChild(document.createTextNode(' ' + t));
+    } else { const sp = last.querySelector('.interim'); last.insertBefore(document.createTextNode(' ' + t), sp && sp.parentNode === last ? sp : null); }
+  },
+  // palabras ya escritas en el documento del resultado provisional actual
+  rest(tx) { const w = (tx || '').trim().split(/\s+/).filter(Boolean); const r = w.slice(this.done || 0).join(' '); return r; },
+  // escribe en el documento lo que se va diciendo sin esperar a que el navegador lo cierre
+  armCommit() {
+    clearTimeout(this.cT);
+    const w = this.interim.trim().split(/\s+/).filter(Boolean);
+    const pend = w.length - (this.done || 0);
+    if (pend >= 14) return this.commitNow(w.length - 3); // frase larga: deja 3 palabras por si se corrigen
+    if (pend > 0) this.cT = setTimeout(() => this.running && this.commitNow(w.length), 1200);
+  },
+  commitNow(n) {
+    const w = this.interim.trim().split(/\s+/).filter(Boolean);
+    n = Math.min(n, w.length); const from = this.done || 0; if (n <= from) return;
+    const t = w.slice(from, n).join(' ');
+    this.done = n; this.addFinal(t, true); this.showInterim();
   },
   showInterim() {
-    let t = this.interim.trim();
+    let t = this.rest(this.interim);
     const d = DOCS.find(x => x.id === this.docId);
     if (t && d && d.math && typeof MathConv !== 'undefined') t = MathConv.convert(t);
     $('rinterim').textContent = t ? t + ' …' : '';
+    const b = this.running || t ? this.block() : (d === cur ? ed.querySelector('.clase[data-sess="' + (this.sess && this.sess.id) + '"]') : null);
+    if (!b) return;
+    let sp = b.querySelector('.interim');
+    if (!t) { if (sp) sp.remove(); return; }
+    if (!sp) { sp = document.createElement('span'); sp.className = 'interim'; sp.contentEditable = 'false'; }
+    let last = b.lastElementChild;
+    if (!last || last.tagName !== 'P' || last.classList.contains('clase-h')) { last = document.createElement('p'); b.appendChild(last); }
+    if (sp.parentNode !== last || last.lastChild !== sp) last.appendChild(sp);
+    sp.textContent = ' ' + t;
+    const scroller = $('scroller'); if (scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 200) scroller.scrollTop = scroller.scrollHeight;
   },
   star() {
     if (!this.running) return;
