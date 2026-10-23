@@ -1224,12 +1224,27 @@ $('#btnPlayLocal').onclick = () => { audioInit(); startLocal({ ...setup }); };
 const MAXT = 5; // máximo por equipo
 /* ---------- P2P: canal directo tipo UDP entre anfitrión e invitados (WebRTC). Firebase solo para la señalización ---------- */
 const ICE = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }, { urls: 'stun:stun.cloudflare.com:3478' }] };
+/* relevo TURN (Open Relay, gratuito): si la conexión directa no pasa el router, el tráfico va por el relevo en vez de por Firebase */
+let ICE_C = null, ICE_T = 0;
+async function iceCfg() {
+  if (ICE_C && Date.now() - ICE_T < 6 * 3600e3) return ICE_C;
+  const servers = ICE.iceServers.slice();
+  try {
+    const user = Math.floor(Date.now() / 1000 + 24 * 3600) + ':mcf';
+    const k = await crypto.subtle.importKey('raw', new TextEncoder().encode('openrelayprojectsecret'), { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+    const sig = new Uint8Array(await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(user)));
+    const cred = btoa(String.fromCharCode(...sig));
+    servers.push({ urls: ['turn:staticauth.openrelay.metered.ca:80', 'turn:staticauth.openrelay.metered.ca:443', 'turn:staticauth.openrelay.metered.ca:443?transport=tcp', 'turns:staticauth.openrelay.metered.ca:443?transport=tcp'], username: user, credential: cred });
+  } catch (e) {}
+  ICE_C = { iceServers: servers, iceCandidatePoolSize: 2 }; ICE_T = Date.now(); return ICE_C;
+}
 const P2P = {
   peers: {}, dc: null, pc: null, offs: [],
   hostListen(room) { // anfitrión: atiende a cada invitado que pide conexión directa
     const sig = room.child('sig');
     const onOffer = async snap => { const uid = snap.key, v = snap.val(); if (!v || !v.offer || uid === UID) return; if (this.peers[uid] && this.peers[uid].sdp === v.offer.sdp) return;
-      this.close(uid); const pc = new RTCPeerConnection(ICE), P = this.peers[uid] = { pc, dc: null, sdp: v.offer.sdp };
+      const cfg = await iceCfg(); if (this.peers[uid] && this.peers[uid].sdp === v.offer.sdp) return;
+      this.close(uid); const pc = new RTCPeerConnection(cfg), P = this.peers[uid] = { pc, dc: null, sdp: v.offer.sdp };
       pc.onicecandidate = e => { if (e.candidate) sig.child(uid + '/hc').push(JSON.stringify(e.candidate)); };
       pc.ondatachannel = e => { const dc = P.dc = e.channel; dc.onmessage = m => { try { const a = JSON.parse(m.data); if (Array.isArray(a)) Net.inputs[uid] = a; } catch (x) {} }; dc.onclose = () => { if (P.dc === dc) P.dc = null; }; };
       pc.onconnectionstatechange = () => { if (['failed', 'closed'].includes(pc.connectionState)) { P.dc = null; } };
@@ -1237,15 +1252,19 @@ const P2P = {
       const cc = sig.child(uid + '/cc'), fn = c => { try { pc.addIceCandidate(JSON.parse(c.val())); } catch (x) {} }; cc.on('child_added', fn); P.off = () => cc.off('child_added', fn); };
     sig.on('child_added', onOffer); sig.on('child_changed', onOffer); this.offs.push(() => { sig.off('child_added', onOffer); sig.off('child_changed', onOffer); });
   },
-  async connect(room) { // invitado: abre canal directo con el anfitrión
-    this.closeClient(); const sig = room.child('sig/' + UID); sig.onDisconnect().remove(); await sig.remove().catch(() => {});
-    const pc = this.pc = new RTCPeerConnection(ICE);
+  tries: 0, retryT: 0,
+  async connect(room) { // invitado: abre canal directo con el anfitrión (o por relevo TURN si el router no deja)
+    clearTimeout(this.retryT); this.closeClient(); const sig = room.child('sig/' + UID); sig.onDisconnect().remove(); await sig.remove().catch(() => {});
+    const cfg = await iceCfg(); if (Net.room !== room) return;
+    const pc = this.pc = new RTCPeerConnection(cfg);
+    const retry = () => { if (this.pc !== pc || Net.room !== room || this.tries >= 5) return; this.tries++; this.retryT = setTimeout(() => { if (this.pc === pc && Net.room === room && !Net.p2p) this.connect(room).catch(() => {}); }, 1200 * this.tries); };
+    setTimeout(() => { if (this.pc === pc && !(this.dc && this.dc.readyState === 'open')) retry(); }, 9000);
     const dc = this.dc = pc.createDataChannel('g', { ordered: false, maxRetransmits: 0 });
-    dc.onopen = () => { Net.p2p = true; Net.lastIn = ''; toast('⚡ Conexión directa activada', 1800); };
-    dc.onclose = () => { Net.p2p = false; };
+    dc.onopen = () => { Net.p2p = true; Net.lastIn = ''; this.tries = 0; Net.jit = []; Net.dly = null; toast('⚡ Conexión rápida activada', 1800); };
+    dc.onclose = () => { Net.p2p = false; retry(); };
     dc.onmessage = m => { try { Net.onSnap(JSON.parse(m.data), true); } catch (x) {} };
     pc.onicecandidate = e => { if (e.candidate) sig.child('cc').push(JSON.stringify(e.candidate)); };
-    pc.onconnectionstatechange = () => { if (['failed', 'closed', 'disconnected'].includes(pc.connectionState)) Net.p2p = false; };
+    pc.onconnectionstatechange = () => { if (['failed', 'closed', 'disconnected'].includes(pc.connectionState)) Net.p2p = false; if (pc.connectionState === 'failed') retry(); };
     const off = await pc.createOffer(); await pc.setLocalDescription(off); await sig.child('offer').set({ type: off.type, sdp: off.sdp });
     const ans = sig.child('answer'), fa = async a => { const v = a.val(); if (v && !pc.currentRemoteDescription) { try { await pc.setRemoteDescription(v); } catch (x) {} } };
     const hc = sig.child('hc'), fh = c => { try { pc.addIceCandidate(JSON.parse(c.val())); } catch (x) {} };
@@ -1254,8 +1273,8 @@ const P2P = {
   send(msg) { let n = 0, need = 0; for (const [uid, P] of Object.entries(this.peers)) { if (P.dc && P.dc.readyState === 'open') { try { P.dc.send(msg); n++; } catch (x) {} } } return n; },
   open(uid) { const P = this.peers[uid]; return !!(P && P.dc && P.dc.readyState === 'open'); },
   close(uid) { const P = this.peers[uid]; if (!P) return; try { P.off && P.off(); P.pc.close(); } catch (x) {} delete this.peers[uid]; },
-  closeClient() { try { this.pc && this.pc.close(); } catch (x) {} this.pc = this.dc = null; Net.p2p = false; },
-  reset() { for (const f of this.offs) try { f(); } catch (x) {} this.offs = []; for (const u of Object.keys(this.peers)) this.close(u); this.closeClient(); }
+  closeClient() { const old = this.pc; this.pc = null; try { old && old.close(); } catch (x) {} this.pc = this.dc = null; Net.p2p = false; },
+  reset() { clearTimeout(this.retryT); this.tries = 0; for (const f of this.offs) try { f(); } catch (x) {} this.offs = []; for (const u of Object.keys(this.peers)) this.close(u); this.closeClient(); }
 };
 const Net = {
   db: null, connected: false, room: null, roomId: null, isHost: false, pl: {}, cfg: { mode: 'pro', time: '3', score: '0' },
