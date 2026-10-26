@@ -113,6 +113,9 @@ header .brand{font-size:22px;cursor:pointer;margin:0 8px 0 4px}
 
 #side{grid-area:side;background:var(--sheet);border-left:1px solid var(--line);overflow-y:auto;padding:6px 0 18px}
 .sec{padding:14px 16px;border-bottom:1px solid var(--line)}
+.sidehint{margin:10px 0 0;font-size:12.5px;line-height:1.45;color:var(--ink-3)}
+.sidehint b{color:var(--ink-2)}
+.tb.inst[aria-pressed=true]{background:color-mix(in srgb,#E5484D 18%,transparent);color:#E5484D}
 .sec h4{margin:0 0 10px;font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.015em}
 .sw{display:flex;gap:8px;flex-wrap:wrap}
 .sw button{width:26px;height:26px;border-radius:8px;border:2px solid var(--sheet);outline:1px solid var(--line)}
@@ -256,39 +259,21 @@ footer{grid-area:status;display:flex;align-items:center;gap:14px;padding:0 14px;
       <div class="sw" id="colors"></div>
       <div class="row"><label>Grosor</label><div class="seg" id="widths" style="flex:1"></div></div>
       <div class="row"><label>Tipo</label><div class="seg" id="dashes" style="flex:1"></div></div>
-      <div class="row"><label>Dureza</label><div class="seg" id="hards" style="flex:1"></div></div>
     </div>
     <div class="sec">
-      <h4>Instrumentos</h4>
+      <h4>Escuadra y cartabón</h4>
       <div class="row" style="margin-top:0">
-        <button class="btn2" id="i-esc" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M4 20V4l16 16zM8 16v-4l4 4z"/></svg>Escuadra</button>
-        <button class="btn2" id="i-car" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M4 20V9l17 11zM7.5 17v-3l4.5 3z"/></svg>Cartabón</button>
-      </div>
-      <div class="row">
         <button class="btn2" id="i-rl" title="Girar −15° ([)">↺ 15°</button>
         <button class="btn2" id="i-flip" title="Voltear (F)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3v18M9 7L4 17h5zM15 7l5 10h-5z"/></svg>Voltear</button>
         <button class="btn2" id="i-rr" title="Girar +15° (])">↻ 15°</button>
       </div>
       <div class="row"><label>Ángulo</label><span class="readout" id="i-ang">—</span></div>
+      <p class="sidehint">Mantén el <b>clic derecho</b> encima para moverlos. Sobre el pomo rojo, para girarlos.</p>
     </div>
     <div class="sec">
-      <h4>Compás</h4>
-      <div class="row" style="margin-top:0"><label>Medida</label><span class="readout" id="memv">sin medida</span></div>
-      <div class="row">
-        <button class="btn2" id="m-take" title="Tomar medida (T)">Tomar medida</button>
-        <button class="btn2" id="m-forget" title="Olvidar medida (Mayús+T)">Olvidar</button>
-      </div>
-    </div>
-    <div class="sec">
-      <h4>Precisión</h4>
-      <button class="toggle" id="t-snap" role="switch" aria-checked="true">Enganche a la geometría <kbd>S</kbd><span class="sw2"></span></button>
-      <button class="toggle" id="t-loupe" role="switch" aria-checked="false">Lupa de precisión <kbd>U</kbd><span class="sw2"></span></button>
-      <button class="toggle" id="t-aux" role="switch" aria-checked="true">Construcciones en Auxiliares<span class="sw2"></span></button>
-    </div>
-    <div class="sec">
-      <h4>Capas</h4>
-      <div class="layer" data-l="draw"><i class="dot"></i><span>Dibujo</span><button class="eye" data-eye="draw" title="Mostrar u ocultar"></button></div>
-      <div class="layer" data-l="aux"><i class="dot"></i><span>Auxiliares</span><button class="eye" data-eye="aux" title="Mostrar u ocultar"></button></div>
+      <h4>Ayuda</h4>
+      <button class="toggle" id="t-snap" role="switch" aria-checked="true">Imán a puntos y cruces <kbd>S</kbd><span class="sw2"></span></button>
+      <p class="sidehint"><b>Clic derecho</b> sobre un trazo lo borra · arrastrando borra varios.<br>Dos dedos en el panel táctil mueven la hoja · pellizca para zoom.</p>
     </div>
   </aside>
 
@@ -327,15 +312,16 @@ const T = {};
 function readTheme() {
   const cs = getComputedStyle(document.documentElement), v = n => cs.getPropertyValue(n).trim();
   Object.assign(T, { desk: v('--desk'), dot: v('--desk-dot'), ink: v('--ink'), sheet: v('--sheet'), red: v('--red'), redSoft: v('--red-soft') });
-  requestRender();
+  invalidate();
 }
 const ACCENT = '#E5484D';
 
-const COLORS = [['Grafito','#2b2b2b'],['Azul','#1f5fbf'],['Rojo','#c8322b'],['Verde','#2e8b57'],['Naranja','#e07b1a'],['Morado','#7b4bb3']];
-const WIDTHS = [0.18, 0.25, 0.35, 0.5, 0.7];
+const COLORS = [['Grafito','#2b2b2b'],['Azul','#1f5fbf'],['Rojo','#c8322b'],['Verde','#2e8b57']];
+const WIDTHS = [0.25, 0.5, 0.8];
+const WIDTH_NAMES = ['Fina', 'Media', 'Gruesa'];
 const HARDS = [['2H', .45], ['H', .65], ['HB', .85], ['2B', 1]];
 const DASHES = { solid: null, dash: [3, 1.5], dashdot: [6, 1.2, .6, 1.2] };
-const DASH_NAMES = [['solid','Continua'],['dash','Discont.'],['dashdot','Eje']];
+const DASH_NAMES = [['solid','Continua'],['dash','Oculta'],['dashdot','Eje']];
 const FORMATS = { A4: [210, 297], A3: [297, 420] };
 
 const ICONS = {
@@ -354,18 +340,21 @@ const ICONS = {
   dim: '<path d="M4 7v11M20 7v11M4 12.5h16M4 12.5l3-2M4 12.5l3 2M20 12.5l-3-2M20 12.5l-3 2"/>',
   text: '<path d="M5 6V4h14v2M12 4v16M9 20h6"/>',
   eraser: '<path d="M8 20h12M4.5 15.5l9-9 6 6-7.5 7.5H8.5zM9 11l6 6"/>',
+  esc: '<path d="M4 20V4l16 16zM8 16v-4l4 4z"/>',
+  car: '<path d="M4 20V9l17 11zM7.5 17v-3l4.5 3z"/>',
 };
 const TOOLS = [
-  ['select','Seleccionar','V'], ['hand','Desplazar la lámina','H'], '|',
-  ['pencil','Lápiz','P'], ['line','Segmento','L'], ['circle','Compás · circunferencia','C'], ['arc','Compás · arco','A'], '|',
-  ['parallel','Paralela','G'], ['perp','Perpendicular','J'], ['bisector','Mediatriz','B'], ['midpoint','Punto medio','I'], ['point','Punto con nombre','N'], '|',
-  ['measure','Medir distancia y ángulo','M'], ['dim','Cota','D'], ['text','Texto','K'], ['eraser','Borrar','X'],
+  ['select','Seleccionar y mover','V'], '|',
+  ['pencil','Lápiz','P'], ['line','Segmento','L'], ['circle','Compás','C'], '|',
+  ['perp','Perpendicular','J'], ['parallel','Paralela','G'], ['bisector','Mediatriz','B'], '|',
+  ['eraser','Borrar','X'],
 ];
 
 /* ---------------- estado ---------------- */
 const S = {
   doc: null, pi: 0, tool: 'pencil',
-  style: { color: '#2b2b2b', w: 0.35, dash: 'solid', alpha: .85 },
+  style: { color: '#2b2b2b', w: 0.5, dash: 'solid', alpha: .9 },
+  comp: { c: null, r: 30, ang: -0.6 }, guide: null, bis: null,
   layer: 'draw', auxConstr: true, snap: true, loupe: false,
   view: { s: 3, x: 40, y: 40 },
   sel: new Set(), op: null, ref: null, mem: null, measure: null,
@@ -520,6 +509,7 @@ function findSnap(w, excludeOp) {
   const near = [];
   for (const sh of shapes) for (const pr of prims(sh)) if (V.dist(nearOnPrim(pr, w), w) < tol * 2) near.push(pr);
   for (const pr of instPrims()) if (V.dist(nearOnPrim(pr, w), w) < tol * 2) near.push(pr);
+  { const g = liveGuide(w, true); if (g) { const [a, b] = clipInfinite(g.p, g.d, pg.w, pg.h); const pr = { k: 's', a, b }; if (V.dist(nearOnPrim(pr, w), w) < tol * 2) near.push(pr); } }
   for (let i = 0; i < near.length; i++) for (let j = i + 1; j < near.length; j++)
     for (const p of interPrims(near[i], near[j])) consider(p, 'Intersección');
   if (best) return best;
@@ -555,7 +545,7 @@ function updateZoom() { $('#zoomv').textContent = Math.round(S.view.s * mmPerPx9
 const imgCache = new Map();
 function getImg(src) {
   let im = imgCache.get(src);
-  if (!im) { im = new Image(); im.onload = requestRender; im.src = src; imgCache.set(src, im); }
+  if (!im) { im = new Image(); im.onload = invalidate; im.src = src; imgCache.set(src, im); }
   return im;
 }
 
@@ -725,10 +715,14 @@ function drawPreview(ctx, s, pg, T) {
     tag(T, V.mid(a, b), `${fmtMM(V.dist(a, b))} mm · ${fmtDeg(angleOf(a, b))}`);
   }
   if (S.ref && (S.tool === 'parallel' || S.tool === 'perp')) {
-    ctx.save(); ctx.strokeStyle = ACCENT; ctx.globalAlpha = .55; ctx.lineWidth = 5 / s; ctx.lineCap = 'round';
+    ctx.save(); ctx.strokeStyle = ACCENT; ctx.globalAlpha = .35; ctx.lineWidth = 5 * DPR / s; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(S.ref.a.x, S.ref.a.y); ctx.lineTo(S.ref.b.x, S.ref.b.y); ctx.stroke(); ctx.restore();
-    if (c) { const sh = constructLine(S.tool, c); if (sh) drawShape(ctx, sh, s); }
   }
+  if (['perp', 'parallel', 'bisector'].includes(S.tool)) { if (S.bis) crossMark(ctx, s, S.bis.a); const g = liveGuide(c); if (g) drawGuide(ctx, s, g); }
+  drawCompass(ctx, s);
+  if (op && op.t === 'compPaint' && Math.abs(op.sw) > 1e-3) { const C = S.comp; drawShape(ctx, { t: 'arc', c: C.c, r: C.r, a0: op.a0, sw: op.sw, st: curStyle() }, s); tag(T, compGeo().p, fmtDeg(Math.abs(op.sw) * DEG)); }
+  if (op && (op.t === 'compAp' || op.t === 'compRot')) { const g = compGeo(); tag(T, g.p, op.t === 'compAp' ? `r ${fmtMM(S.comp.r)} mm` : fmtDeg(((-S.comp.ang * DEG) % 360 + 360) % 360)); }
+  if (op && op.t === 'gline' && op.b) { drawShape(ctx, { t: 'line', a: op.a, b: op.b, st: curStyle() }, s); tag(T, op.b, `${fmtMM(V.dist(op.a, op.b))} mm`); }
   if (!op) {
     if (c && S.mem && S.tool === 'circle') { drawShape(ctx, { t: 'circle', c, r: S.mem, st: curStyle() }, s); crossMark(ctx, s, c); }
     return;
@@ -764,17 +758,25 @@ function drawPreview(ctx, s, pg, T) {
     case 'rotate': { const I = S.inst[op.k]; tag(T, op.cen, fmtDeg(((-I.rot * DEG) % 360 + 360) % 360)); break; }
   }
 }
+let DOCV = 0, PCK = '', DOTPAT = null, DOTK = '';
+const PC = document.createElement('canvas'), pcx = PC.getContext('2d');
+function invalidate() { DOCV++; requestRender(); }
 function render() {
   rq = false;
+  if (!cv.width || !cv.height) return;
   const ctx = cx; ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.fillStyle = T.desk; ctx.fillRect(0, 0, cv.width, cv.height);
-  // cuadrícula de puntos del escritorio, como el fondo del workspace
-  ctx.fillStyle = T.dot; const g = 20 * DPR, rr = 1.1 * DPR;
-  for (let y = g / 2; y < cv.height; y += g) for (let x = g / 2; x < cv.width; x += g) { ctx.beginPath(); ctx.arc(x, y, rr, 0, TAU); ctx.fill(); }
-  if (!S.doc) return;
   const { s, x, y } = S.view;
+  const key = [DOCV, S.doc ? S.pi : -1, s, x, y, cv.width, cv.height, T.desk, T.dot].join('|');
+  if (key !== PCK) { // la lámina solo se vuelve a pintar cuando cambia algo de verdad
+    PCK = key; if (PC.width !== cv.width || PC.height !== cv.height) { PC.width = cv.width; PC.height = cv.height; }
+    pcx.setTransform(1, 0, 0, 1, 0, 0); pcx.fillStyle = T.desk; pcx.fillRect(0, 0, PC.width, PC.height);
+    const dk = T.dot + DPR; if (dk !== DOTK) { DOTK = dk; const t = document.createElement('canvas'), g = Math.round(20 * DPR); t.width = t.height = g; const c2 = t.getContext('2d'); c2.fillStyle = T.dot; c2.beginPath(); c2.arc(g / 2, g / 2, 1.1 * DPR, 0, TAU); c2.fill(); DOTPAT = pcx.createPattern(t, 'repeat'); }
+    pcx.fillStyle = DOTPAT; pcx.fillRect(0, 0, PC.width, PC.height);
+    if (S.doc) drawPage(pcx, page(), s * DPR, x * DPR, y * DPR, true);
+  }
+  ctx.drawImage(PC, 0, 0);
+  if (!S.doc) return;
   S.tags = [];
-  drawPage(ctx, page(), s * DPR, x * DPR, y * DPR, true);
   drawWorldLive(ctx, s * DPR, x * DPR, y * DPR, true);
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   for (const t of S.tags) { const p = toScreen(t.p); drawTag(ctx, p.x + 14, p.y - 14, t.text); }
@@ -812,6 +814,61 @@ function drawLoupe(ctx) {
   ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.beginPath(); ctx.arc(lx, ly, R, 0, TAU); ctx.strokeStyle = T.ink; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
 }
 
+/* ---------------- compás de 4 puntos ---------------- */
+function compGeo() {
+  const C = S.comp; if (!C.c) return null;
+  const p = { x: C.c.x + C.r * Math.cos(C.ang), y: C.c.y + C.r * Math.sin(C.ang) };
+  const k = 1 / S.view.s, d = { x: Math.cos(C.ang), y: Math.sin(C.ang) }, n = { x: d.y, y: -d.x };
+  const H = V.add(V.mid(C.c, p), V.mul(n, Math.max(C.r * .7, 70 * k)));
+  const q = V.add(p, V.mul(V.sub(H, p), Math.min(.42, 30 * k / Math.max(1e-6, V.dist(H, p)) + .12)));
+  return { c: C.c, p, H, q, k };
+}
+function compHit(raw) {
+  if (S.tool !== 'circle') return null; const g = compGeo(); if (!g) return null;
+  const tol = 15 / S.view.s;
+  for (const [h, pt] of [['paint', g.q], ['ap', g.p], ['needle', g.c], ['rot', g.H]]) if (V.dist(raw, pt) < tol) return h;
+  return null;
+}
+function drawCompass(ctx, s) {
+  const g = compGeo(); if (!g || S.tool !== 'circle') return;
+  const k = DPR / s, op = S.op;
+  ctx.save(); ctx.setLineDash([]); ctx.lineCap = 'round';
+  if (op && (op.t === 'compAp' || op.t === 'compRot')) { ctx.save(); ctx.strokeStyle = ACCENT; ctx.globalAlpha = .3; ctx.lineWidth = 1 * k; ctx.setLineDash([4 * k, 5 * k]); ctx.beginPath(); ctx.arc(g.c.x, g.c.y, S.comp.r, 0, TAU); ctx.stroke(); ctx.restore(); }
+  // patas
+  ctx.strokeStyle = 'rgba(40,40,40,.85)'; ctx.lineWidth = 3.2 * k;
+  ctx.beginPath(); ctx.moveTo(g.c.x, g.c.y); ctx.lineTo(g.H.x, g.H.y); ctx.lineTo(g.p.x, g.p.y); ctx.stroke();
+  ctx.strokeStyle = 'rgba(200,200,200,.9)'; ctx.lineWidth = 1.2 * k;
+  ctx.beginPath(); ctx.moveTo(g.c.x, g.c.y); ctx.lineTo(g.H.x, g.H.y); ctx.lineTo(g.p.x, g.p.y); ctx.stroke();
+  const knob = (pt, r, fill, stroke) => { ctx.beginPath(); ctx.arc(pt.x, pt.y, r * k, 0, TAU); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 2 * k; ctx.stroke(); } };
+  // girar (cabeza)
+  knob(g.H, 10, 'rgba(30,30,30,.9)'); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.6 * k; ctx.beginPath(); ctx.arc(g.H.x, g.H.y, 5 * k, -Math.PI * .9, Math.PI * .55); ctx.stroke();
+  // aguja
+  knob(g.c, 9, 'rgba(255,255,255,.75)', 'rgba(30,30,30,.9)'); ctx.fillStyle = 'rgba(30,30,30,.95)'; ctx.beginPath(); ctx.arc(g.c.x, g.c.y, 1.8 * k, 0, TAU); ctx.fill();
+  // apertura (punta del lápiz)
+  knob(g.p, 9, 'rgba(255,255,255,.75)', '#1f5fbf'); ctx.fillStyle = '#1f5fbf'; ctx.beginPath(); ctx.arc(g.p.x, g.p.y, 1.8 * k, 0, TAU); ctx.fill();
+  // pintar
+  knob(g.q, 11, ACCENT); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.8 * k; ctx.beginPath(); ctx.moveTo(g.q.x - 4 * k, g.q.y + 4 * k); ctx.lineTo(g.q.x + 4 * k, g.q.y - 4 * k); ctx.moveTo(g.q.x - 4 * k, g.q.y + 4 * k); ctx.lineTo(g.q.x - 5 * k, g.q.y + 5 * k); ctx.stroke();
+  ctx.restore();
+}
+/* ---------------- guías: perpendicular, paralela y mediatriz ---------------- */
+function refDir() { const d0 = V.norm(V.sub(S.ref.b, S.ref.a)); return S.tool === 'perp' ? { x: -d0.y, y: d0.x } : d0; }
+function liveGuide(w, forSnap) {
+  if (S.guide) return S.guide;
+  if (forSnap) return null;
+  if ((S.tool === 'perp' || S.tool === 'parallel') && S.ref && w) return { p: P(w), d: refDir(), live: true };
+  if (S.tool === 'bisector' && S.bis && w && V.dist(S.bis.a, w) > 1e-3) { const d = V.norm(V.sub(w, S.bis.a)); return { p: V.mid(S.bis.a, w), d: { x: -d.y, y: d.x }, live: true, a: S.bis.a, b: P(w) }; }
+  return null;
+}
+const projG = (g, w) => { const t = V.dot(V.sub(w, g.p), g.d); return { x: g.p.x + g.d.x * t, y: g.p.y + g.d.y * t }; };
+const distG = (g, w) => V.dist(w, projG(g, w));
+function drawGuide(ctx, s, g) {
+  const k = DPR / s, [a, b] = clipInfinite(g.p, g.d, page().w, page().h);
+  ctx.save(); ctx.strokeStyle = ACCENT; ctx.globalAlpha = g.live ? .55 : .85; ctx.lineWidth = 1.3 * k; ctx.setLineDash([7 * k, 5 * k]);
+  ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); ctx.restore();
+  crossMark(ctx, s, g.p);
+  if (g.a) { crossMark(ctx, s, g.a); crossMark(ctx, s, g.b); helperLine(ctx, s, g.a, g.b, true); }
+}
+
 /* ---------------- historial y guardado ---------------- */
 function snapshot() {
   S.undo.push({ pi: S.pi, pages: S.doc.pages.map(p => ({ ...p, shapes: JSON.stringify(p.shapes) })) });
@@ -826,7 +883,7 @@ function restore(from, to) {
 }
 function updateUndo() { $('#b-undo').disabled = !S.undo.length; $('#b-redo').disabled = !S.redo.length; }
 let saveT = 0;
-function changed() { requestRender(); clearTimeout(saveT); saveT = setTimeout(autosave, 700); }
+function changed() { DOCV++; requestRender(); clearTimeout(saveT); saveT = setTimeout(autosave, 700); }
 const IDB = {
   db: null,
   open() { return this.db || (this.db = new Promise((res, rej) => { const r = indexedDB.open('mcfdt', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); })); },
@@ -913,7 +970,7 @@ async function openFiles(list) {
 /* ---------------- exportar ---------------- */
 function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
 const safeName = () => (S.doc.name || 'lamina').replace(/[\\/:*?"<>|]+/g, '_').trim() || 'lamina';
-async function waitImages(pages) { await Promise.all(pages.filter(p => p.bg).map(p => { const im = getImg(p.bg.src); return im.complete ? 0 : new Promise(r => { im.onload = () => { r(); requestRender(); }; im.onerror = r; }); })); }
+async function waitImages(pages) { await Promise.all(pages.filter(p => p.bg).map(p => { const im = getImg(p.bg.src); return im.complete ? 0 : new Promise(r => { im.onload = () => { r(); invalidate(); }; im.onerror = r; }); })); }
 async function renderPageCanvas(pg, pxmm) {
   await waitImages([pg]);
   const c = document.createElement('canvas'); c.width = Math.round(pg.w * pxmm); c.height = Math.round(pg.h * pxmm);
@@ -1011,7 +1068,7 @@ function constrain(a, p, e) {
 }
 function updateCursor(e) {
   const { sx, sy } = evPos(e), w = toWorld(sx, sy);
-  const noSnap = ['hand', 'select', 'eraser', 'text'].includes(S.tool) || (S.op && (S.op.t === 'pencil' && !S.op.ruler || ['move', 'box', 'rotate', 'minst', 'label', 'erase'].includes(S.op.t)));
+  const noSnap = ['hand', 'select', 'eraser', 'text'].includes(S.tool) || (S.op && (S.op.t === 'pencil' && !S.op.ruler || ['move', 'box', 'rotate', 'minst', 'label', 'erase', 'compRot', 'compPaint'].includes(S.op.t)));
   const snap = noSnap ? null : findSnap(w);
   S.cursor = { sx, sy, snap, in: true };
   S.cur = snap ? P(snap) : w;
@@ -1034,14 +1091,31 @@ cv.addEventListener('pointerdown', e => {
     pinch = { d: Math.hypot(p1.sx - p2.sx, p1.sy - p2.sy), m: { x: (p1.sx + p2.sx) / 2, y: (p1.sy + p2.sy) / 2 }, view: { ...S.view } }; return;
   }
   const raw = updateCursor(e), { sx, sy } = evPos(e);
-  if (e.button === 1 || e.button === 2 && !S.op || S.tool === 'hand' || S.spaceDown) {
-    if (e.button === 2) return;
+  if (e.button === 1 || S.tool === 'hand' || S.spaceDown) {
     S.drag = { t: 'pan', sx, sy, vx: S.view.x, vy: S.view.y }; cv.style.cursor = 'grabbing'; return;
   }
-  if (e.button === 2) { cancelOp(); return; }
+  if (e.button === 2) { // clic derecho: mover/girar instrumentos, o borrar trazos
+    for (const k of [S.activeInst, ...activeInsts().filter(x => x !== S.activeInst)]) {
+      if (!S.inst[k].on) continue; const I = S.inst[k];
+      if (V.dist(raw, instKnob(k)) < 13 / S.view.s) { S.activeInst = k; const cen = instCentroid(k); S.op = { t: 'rotate', k, cen, a0: Math.atan2(raw.y - cen.y, raw.x - cen.x), rot0: I.rot, o0: { x: I.x, y: I.y } }; S.drag = true; updateInstUI(); requestRender(); return; }
+      if (inTri(raw, instPoly(k))) { S.activeInst = k; S.op = { t: 'minst', k, start: raw, o0: { x: I.x, y: I.y } }; S.drag = true; cv.style.cursor = 'grabbing'; updateInstUI(); requestRender(); return; }
+    }
+    if (S.op && !S.drag) { cancelOp(); return; }
+    S.op = { t: 'erase', did: false, right: true, down: { sx, sy } }; S.drag = true; eraseAt(raw); requestRender(); return;
+  }
   S.measure = S.tool === 'measure' && !S.op ? null : S.measure;
   const p = S.cur;
 
+  // compás: aguja, apertura, girar y pintar
+  if (S.tool === 'circle') {
+    const h = compHit(raw), C = S.comp;
+    if (h === 'needle') { S.op = { t: 'compMove', off: V.sub(C.c, raw) }; S.drag = true; return; }
+    if (h === 'ap') { S.op = { t: 'compAp' }; S.drag = true; requestRender(); return; }
+    if (h === 'rot' || h === 'paint') { const a = Math.atan2(raw.y - C.c.y, raw.x - C.c.x); S.op = { t: h === 'rot' ? 'compRot' : 'compPaint', grab: C.ang - a, last: a, a0: C.ang, sw: 0 }; S.drag = true; requestRender(); return; }
+    // clic en la lámina: clava la aguja ahí; arrastrando, además abres el compás
+    if (!C.c) C.c = P(p); else C.c = P(p);
+    S.op = { t: 'compSet', down: { sx, sy } }; S.drag = true; setHint(); requestRender(); return;
+  }
   // instrumentos: pomo de giro, borde para trazar, interior para mover
   for (const k of [S.activeInst, ...activeInsts().filter(x => x !== S.activeInst)]) {
     if (!S.inst[k].on) continue;
@@ -1085,10 +1159,19 @@ cv.addEventListener('pointerdown', e => {
       if (S.op.phase === 2) { if (Math.abs(S.op.sw) > 1e-3) addShape({ t: 'arc', c: S.op.c, r: S.op.r, a0: S.op.a0, sw: S.op.sw, st: curStyle() }); S.op = null; }
       break;
     case 'parallel': case 'perp': {
-      if (!S.ref) { S.ref = pickRef(raw); if (!S.ref) flash('Selecciona una recta, un segmento o un borde de la escuadra o el cartabón'); break; }
-      const sh = constructLine(S.tool, p); if (sh) addShape(sh); break;
+      if (!S.ref) { S.ref = pickRef(raw); if (!S.ref) flash('Toca primero una recta o un borde de la escuadra o el cartabón'); break; }
+      let g = S.guide;
+      if (!g || distG(g, raw) * S.view.s > 18) g = S.guide = { p: P(p), d: refDir() };
+      S.op = { t: 'gline', g, a: projG(g, p), b: null, down: { sx, sy } }; S.drag = true; break;
     }
-    case 'bisector': case 'midpoint': case 'measure': case 'take':
+    case 'bisector': {
+      if (S.guide && distG(S.guide, raw) * S.view.s <= 18) { S.op = { t: 'gline', g: S.guide, a: projG(S.guide, p), b: null, down: { sx, sy } }; S.drag = true; break; }
+      if (S.guide) S.guide = null;
+      if (!S.bis) { S.bis = { a: P(p) }; S.op = { t: 'bisAB', down: { sx, sy } }; S.drag = true; break; }
+      if (V.dist(S.bis.a, p) > .3) { const g = liveGuide(p); S.guide = { p: g.p, d: g.d, a: g.a, b: g.b }; S.bis = null; flash('Ahora dibuja sobre la mediatriz el trozo que quieras'); }
+      break;
+    }
+    case 'midpoint': case 'measure': case 'take':
       if (S.op && S.op.t === 'two') { finishTwo(p); break; }
       S.op = { t: 'two', kind: S.tool, a: P(p), b: null, down: { sx, sy } }; S.drag = true; break;
     case 'point': addShape({ t: 'point', p: P(p), name: nextPointName(), st: curStyle() }); break;
@@ -1112,6 +1195,7 @@ cv.addEventListener('pointermove', e => {
     S.view = { s, x: m.x - wx * s, y: m.y - wy * s }; updateZoom(); requestRender(); return;
   }
   const raw = updateCursor(e), op = S.op, p = S.cur;
+  if (!op && !S.drag) { const h = compHit(raw); cv.style.cursor = h === 'needle' ? 'move' : h === 'ap' ? 'crosshair' : h ? 'grab' : cursorFor(); }
   if (S.drag && S.drag.t === 'pan') { const { sx, sy } = evPos(e); S.view.x = S.drag.vx + sx - S.drag.sx; S.view.y = S.drag.vy + sy - S.drag.sy; requestRender(); return; }
   if (op) switch (op.t) {
     case 'rotate': {
@@ -1136,6 +1220,14 @@ cv.addEventListener('pointermove', e => {
     case 'arc': if (op.phase === 2) { const a = Math.atan2(p.y - op.c.y, p.x - op.c.x); let d = a - op.last; d = Math.atan2(Math.sin(d), Math.cos(d)); op.sw = Math.max(-TAU, Math.min(TAU, op.sw + d)); op.last = a; } break;
     case 'dim': if (op.phase === 2) { const u = V.norm(V.sub(op.b, op.a)); op.off = V.dot(V.sub(p, op.a), { x: -u.y, y: u.x }); } break;
     case 'erase': eraseAt(raw); break;
+    case 'compMove': S.comp.c = S.cursor.snap ? P(p) : V.add(raw, op.off); break;
+    case 'compSet': case 'compAp': { const C = S.comp; if (op.t === 'compSet') { const m = Math.hypot(evPos(e).sx - op.down.sx, evPos(e).sy - op.down.sy); if (m < 6) break; op.t = 'compAp'; }
+      const r = V.dist(C.c, p); if (r > .3) { C.r = r; C.ang = Math.atan2(p.y - C.c.y, p.x - C.c.x); } break; }
+    case 'compRot': case 'compPaint': { const C = S.comp, a = Math.atan2(raw.y - C.c.y, raw.x - C.c.x); let d = a - op.last; d = Math.atan2(Math.sin(d), Math.cos(d)); op.last = a;
+      if (op.t === 'compPaint') { op.sw = Math.max(-TAU, Math.min(TAU, op.sw + d)); C.ang = op.a0 + op.sw; }
+      else { let ang = a + op.grab; if (e.shiftKey) ang = Math.round(ang / (Math.PI / 12)) * (Math.PI / 12); C.ang = ang; } break; }
+    case 'gline': op.b = projG(op.g, p); break;
+    case 'bisAB': if (Math.hypot(evPos(e).sx - op.down.sx, evPos(e).sy - op.down.sy) > 6) op.moved = true; break;
   }
   requestRender();
 });
@@ -1163,7 +1255,14 @@ function endPointer(e) {
     case 'line': if (op.wait) break; if (movedPx > 6 && op.b) commitLine(op.b); else { op.wait = true; delete op.down; } break;
     case 'circle': if (op.wait) break; if (movedPx > 6 && op.b) commitCircle(op.b); else { op.wait = true; delete op.down; } break;
     case 'two': if (op.wait) break; if (movedPx > 6 && op.b) finishTwo(op.b); else { op.wait = true; delete op.down; } break;
-    case 'erase': S.op = null; break;
+    case 'erase': if (op.right && !op.did && movedPx < 6) { S.op = null; cancelOp(); } S.op = null; break;
+    case 'compMove': case 'compAp': case 'compRot': case 'compSet': S.op = null; break;
+    case 'compPaint': { const C = S.comp; S.op = null;
+      if (Math.abs(op.sw) >= TAU - .02) addShape({ t: 'circle', c: P(C.c), r: C.r, st: curStyle() });
+      else if (Math.abs(op.sw) > .004) addShape({ t: 'arc', c: P(C.c), r: C.r, a0: op.a0, sw: op.sw, st: curStyle() });
+      break; }
+    case 'gline': S.op = null; if (op.b && V.dist(op.a, op.b) > .3) addShape({ t: 'line', a: op.a, b: op.b, st: curStyle() }); break;
+    case 'bisAB': S.op = null; if (op.moved && S.bis && V.dist(S.bis.a, S.cur) > .3) { const g = liveGuide(S.cur); S.guide = { p: g.p, d: g.d, a: g.a, b: g.b }; S.bis = null; flash('Ahora dibuja sobre la mediatriz el trozo que quieras'); } break;
   }
   setHint(); requestRender();
 }
@@ -1172,6 +1271,7 @@ cv.addEventListener('pointercancel', endPointer);
 cv.addEventListener('pointerleave', () => { if (S.cursor) S.cursor.in = false; requestRender(); });
 cv.addEventListener('contextmenu', e => e.preventDefault());
 cv.addEventListener('dblclick', e => {
+  if (S.tool === 'circle' && S.comp.c) { const v = prompt('Abertura del compás (radio en mm):', fmtMM(S.comp.r)); const r = v && parseFloat(v.replace(',', '.')); if (r > 0) { S.comp.r = r; requestRender(); } return; }
   if (S.tool !== 'select') return; const w = toWorld(...Object.values(evPos(e))), hit = hitShape(w);
   if (!hit) return;
   if (hit.t === 'point') { const n = prompt('Nombre del punto:', hit.name || ''); if (n !== null) { snapshot(); hit.name = n.trim(); changed(); } }
@@ -1180,6 +1280,8 @@ cv.addEventListener('dblclick', e => {
 });
 cv.addEventListener('wheel', e => {
   e.preventDefault(); if (!S.doc) return; const { sx, sy } = evPos(e);
+  const mouse = e.deltaMode === 1 || (e.deltaX === 0 && Math.abs(e.deltaY) >= 50 && e.deltaY % 1 === 0 && (!e.wheelDeltaY || Math.abs(e.wheelDeltaY) % 120 === 0));
+  if (!e.ctrlKey && !mouse) { S.view.x -= e.deltaX; S.view.y -= e.deltaY; requestRender(); return; }
   if (e.shiftKey && !e.ctrlKey) { S.view.x -= e.deltaY || e.deltaX; requestRender(); return; }
   const k = e.ctrlKey ? .012 : .0018; zoomAt(Math.exp(-e.deltaY * k), sx, sy);
 }, { passive: false });
@@ -1199,7 +1301,7 @@ function eraseAt(w) {
   page().shapes.splice(page().shapes.indexOf(hit), 1); S.sel.delete(hit); changed();
 }
 function cancelOp() {
-  if (S.op) S.op = null; else if (S.ref) S.ref = null; else if (S.measure) S.measure = null; else S.sel.clear();
+  if (S.op) S.op = null; else if (S.guide) S.guide = null; else if (S.bis) S.bis = null; else if (S.ref) S.ref = null; else if (S.measure) S.measure = null; else S.sel.clear();
   setHint(); requestRender();
 }
 
@@ -1217,34 +1319,33 @@ function buildTools() {
     b.onmouseleave = () => tipEl.classList.add('hidden');
     nav.appendChild(b);
   }
+  nav.insertAdjacentHTML('beforeend', '<span class="tsep"></span>');
+  for (const [id, name, key] of [['esc', 'Escuadra', 'Q'], ['car', 'Cartabón', 'W']]) {
+    const b = document.createElement('button'); b.className = 'tb inst'; b.id = 'i-' + id; b.setAttribute('aria-label', name); b.innerHTML = svg(ICONS[id]) + `<span class="k">${key}</span>`;
+    b.onclick = () => toggleInst(id);
+    b.onmouseenter = () => { const r = b.getBoundingClientRect(); tipEl.innerHTML = `${name}<kbd>${key}</kbd>`; tipEl.style.left = r.right + 8 + 'px'; tipEl.style.top = r.top + 7 + 'px'; tipEl.classList.remove('hidden'); };
+    b.onmouseleave = () => tipEl.classList.add('hidden');
+    nav.appendChild(b);
+  }
 }
 function cursorFor() { return S.tool === 'hand' || S.spaceDown ? 'grab' : S.tool === 'select' ? 'default' : S.tool === 'text' ? 'text' : 'crosshair'; }
 function setTool(id) {
   if (id === 'take') { S.prevTool = S.tool === 'take' ? 'circle' : S.tool; }
-  S.tool = id; S.op = null; if (id !== 'parallel' && id !== 'perp') S.ref = null; if (id !== 'measure') S.measure = null;
-  document.querySelectorAll('.tb').forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === id));
-  $('#m-take').setAttribute('aria-pressed', id === 'take');
+  const was = S.tool; S.tool = id; S.op = null; S.guide = null; S.bis = null; if (id !== 'parallel' && id !== 'perp' || was !== id) S.ref = null; if (id !== 'measure') S.measure = null;
+  if (id === 'circle' && !S.comp.c && S.doc) { const c = toWorld(CW / 2, CH / 2); S.comp.c = c; S.comp.r = Math.min(40, 120 / S.view.s); }
+  document.querySelectorAll('.tb:not(.inst)').forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === id));
   cv.style.cursor = cursorFor(); setHint(); requestRender();
 }
 function setHint() {
-  const op = S.op, mem = S.mem ? fmtMM(S.mem) + ' mm' : null; let h = '';
+  const op = S.op; let h = '';
   switch (S.tool) {
-    case 'select': h = 'Clic para seleccionar · arrastra para mover · recuadro para varios · Supr borra · Ctrl+D duplica · doble clic renombra puntos y edita textos'; break;
-    case 'hand': h = 'Arrastra para desplazar la lámina · también con la barra espaciadora o el botón central'; break;
-    case 'pencil': h = 'Dibuja a mano alzada · apoya el trazo en el borde de la escuadra o el cartabón para hacerlo recto'; break;
-    case 'line': h = op ? 'Clic en el segundo punto · Mayús fija ángulos de 15° · Esc cancela' : 'Clic en el primer punto (o arrastra) · junto al borde de un instrumento traza sobre él'; break;
-    case 'circle': h = mem && !op ? `Clic para fijar el centro · radio guardado ${mem}` : op ? 'Clic para fijar el radio' : 'Clic para fijar el centro'; break;
-    case 'arc': h = !op ? 'Clic para fijar el centro' : op.phase === 1 ? (mem ? `Clic para marcar el inicio del arco · radio ${mem}` : 'Clic en el punto inicial (fija el radio)') : 'Gira alrededor del centro para abrir el arco y haz clic para terminar'; break;
-    case 'parallel': h = S.ref ? 'Selecciona el punto por el que pasa la paralela · Esc para elegir otra recta' : 'Selecciona la recta de referencia (también un borde de escuadra o cartabón)'; break;
-    case 'perp': h = S.ref ? 'Selecciona el punto por el que pasa la perpendicular · Esc para elegir otra recta' : 'Selecciona la recta de referencia (también un borde de escuadra o cartabón)'; break;
-    case 'bisector': h = op ? 'Selecciona el segundo extremo del segmento' : 'Selecciona el primer extremo del segmento'; break;
-    case 'midpoint': h = op ? 'Selecciona el segundo punto' : 'Selecciona el primer punto'; break;
-    case 'point': h = 'Clic para colocar un punto con nombre · en Seleccionar, arrastra el nombre para moverlo'; break;
-    case 'measure': h = op ? 'Selecciona el segundo punto' : 'Clic en dos puntos para medir distancia y ángulo'; break;
-    case 'take': h = op ? 'Clic en el segundo punto: esa distancia será el radio del compás' : 'Tomar medida: clic en el primer punto'; break;
-    case 'dim': h = !op ? 'Clic en el primer punto a acotar' : op.phase === 1 ? 'Clic en el segundo punto' : 'Mueve para separar la cota y haz clic para colocarla'; break;
-    case 'text': h = 'Clic donde quieras escribir'; break;
-    case 'eraser': h = 'Pasa por encima de los trazos para borrarlos'; break;
+    case 'select': h = 'Clic para seleccionar · arrastra para mover · Supr borra · Ctrl+D duplica'; break;
+    case 'pencil': h = 'Dibuja a mano · apoyado en el borde de la escuadra o el cartabón sale recto'; break;
+    case 'line': h = op ? 'Clic en el segundo punto · Mayús: ángulos de 15°' : 'Clic y clic, o arrastra · junto a un borde de la escuadra traza sobre él'; break;
+    case 'circle': h = 'Negro: aguja · Azul: abertura · Cabeza: girar sin pintar · Rojo: arrastra para pintar el arco · Clic en la hoja clava la aguja · Doble clic: radio exacto'; break;
+    case 'parallel': case 'perp': h = !S.ref ? 'Toca la recta de referencia (o un borde de la escuadra)' : S.guide ? 'Arrastra sobre la guía para dibujar el trozo que quieras · clic lejos para otra guía · Esc para cambiar de recta' : 'Clic o arrastra desde el punto por donde tiene que pasar'; break;
+    case 'bisector': h = S.guide ? 'Arrastra sobre la mediatriz para dibujar el trozo que quieras · clic lejos para empezar otra' : S.bis ? 'Clic en el segundo extremo del segmento' : 'Clic en el primer extremo (o arrastra de un extremo al otro)'; break;
+    case 'eraser': h = 'Pasa por encima de los trazos para borrarlos · también con clic derecho en cualquier herramienta'; break;
   }
   $('#hint').textContent = h;
 }
@@ -1255,9 +1356,8 @@ function buildSide() {
   const cs = $('#colors');
   for (const [n, c] of COLORS) { const b = document.createElement('button'); b.style.background = c; b.title = n; b.dataset.v = c; b.onclick = () => setStyle('color', c); cs.appendChild(b); }
   const seg = (el, items, key) => { for (const [v, label] of items) { const b = document.createElement('button'); b.textContent = label; b.dataset.v = v; b.onclick = () => setStyle(key, v); el.appendChild(b); } };
-  seg($('#widths'), WIDTHS.map(w => [w, String(w).replace('0.', ',')]), 'w');
+  seg($('#widths'), WIDTHS.map((w, i) => [w, WIDTH_NAMES[i]]), 'w');
   seg($('#dashes'), DASH_NAMES, 'dash');
-  seg($('#hards'), HARDS.map(([n, a]) => [a, n]), 'alpha');
   updateStyleUI();
 }
 function setStyle(k, v) {
@@ -1269,7 +1369,6 @@ function updateStyleUI() {
   document.querySelectorAll('#colors button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === S.style.color));
   document.querySelectorAll('#widths button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.v === S.style.w));
   document.querySelectorAll('#dashes button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === S.style.dash));
-  document.querySelectorAll('#hards button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.v === S.style.alpha));
 }
 function toggleInst(k) {
   const I = S.inst[k]; I.on = !I.on;
@@ -1283,7 +1382,7 @@ function updateInstUI() {
   $('#i-esc').setAttribute('aria-pressed', S.inst.esc.on); $('#i-car').setAttribute('aria-pressed', S.inst.car.on);
   const I = S.inst[S.activeInst]; $('#i-ang').textContent = I.on ? `${S.activeInst === 'esc' ? 'Escuadra' : 'Cartabón'} · ${fmtDeg(((-I.rot * DEG) % 360 + 360) % 360)}` : '—';
 }
-function updateMem() { $('#memv').textContent = S.mem ? fmtMM(S.mem) + ' mm' : 'sin medida'; setHint(); requestRender(); }
+function updateMem() { setHint(); requestRender(); }
 const EYE_ON = svg('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>');
 const EYE_OFF = svg('<path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a9.6 9.6 0 0 0 5.4-1.6"/>');
 function updateLayers() {
@@ -1294,10 +1393,11 @@ function setSwitch(id, v) { $(id).setAttribute('aria-checked', v); }
 function buildHelp() {
   const rows = [
     ['Herramientas'], ...TOOLS.filter(t => t !== '|').map(([, n, k]) => [n, k]),
-    ['Instrumentos'], ['Escuadra', 'Q'], ['Cartabón', 'W'], ['Voltear instrumento', 'F'], ['Girar ±15° (con Mayús ±1°)', '[ ]'], ['Girar con el ratón: arrastra el pomo · Mayús salta de 15 en 15°', ''],
-    ['Compás'], ['Tomar medida', 'T'], ['Olvidar medida', 'Mayús T'],
-    ['Precisión'], ['Enganche a la geometría', 'S'], ['Lupa de precisión', 'U'], ['Ángulos de 15° al trazar', 'Mayús'],
-    ['Edición'], ['Deshacer', 'Ctrl Z'], ['Rehacer', 'Ctrl Mayús Z'], ['Borrar selección', 'Supr'], ['Duplicar selección', 'Ctrl D'], ['Seleccionar todo', 'Ctrl A'], ['Cancelar el trazo en curso', 'Esc · clic derecho'],
+    ['Ratón'], ['Mover escuadra o cartabón', 'Clic derecho mantenido'], ['Girarlos', 'Clic derecho en el pomo'], ['Borrar un trazo', 'Clic derecho'], ['Mover la hoja', 'Dos dedos · Espacio'], ['Zoom', 'Pellizcar · Ctrl + rueda'],
+    ['Instrumentos'], ['Escuadra', 'Q'], ['Cartabón', 'W'], ['Voltear instrumento', 'F'], ['Girar ±15° (con Mayús ±1°)', '[ ]'],
+    ['Compás'], ['Radio exacto', 'Doble clic'], ['Girar de 15 en 15°', 'Mayús'],
+    ['Precisión'], ['Imán a puntos y cruces', 'S'], ['Ángulos de 15° al trazar', 'Mayús'],
+    ['Edición'], ['Deshacer', 'Ctrl Z'], ['Rehacer', 'Ctrl Mayús Z'], ['Borrar selección', 'Supr'], ['Duplicar selección', 'Ctrl D'], ['Seleccionar todo', 'Ctrl A'], ['Cancelar o quitar la guía', 'Esc'],
     ['Vista y archivo'], ['Desplazar', 'Espacio + arrastrar'], ['Zoom en el cursor', 'Rueda'], ['Acercar / alejar', '+ −'], ['Ajustar página', '0'], ['Página anterior / siguiente', 'RePág AvPág'], ['Abrir', 'Ctrl O'], ['Guardar proyecto', 'Ctrl S'], ['Exportar PDF', 'Ctrl E'],
   ];
   $('#helpcols').innerHTML = rows.map(r => r.length === 1 ? `<h3>${r[0]}</h3>` : `<div><span>${r[0]}</span>${r[1] ? `<kbd>${r[1]}</kbd>` : ''}</div>`).join('');
@@ -1335,14 +1435,13 @@ window.addEventListener('keydown', e => {
   if (k === 'f') { flipInst(); return; }
   if (k === 's') { S.snap = !S.snap; setSwitch('#t-snap', S.snap); flash(S.snap ? 'Enganche activado' : 'Sin enganche'); return; }
   if (k === 'u') { S.loupe = !S.loupe; setSwitch('#t-loupe', S.loupe); requestRender(); return; }
-  if (k === 't') { if (e.shiftKey) { S.mem = null; updateMem(); flash('Medida olvidada'); } else setTool('take'); return; }
   if (KEYMAP[k]) setTool(KEYMAP[k]);
 });
 window.addEventListener('keyup', e => { if (e.key === ' ') { S.spaceDown = false; cv.style.cursor = cursorFor(); } });
 
 /* ---------------- arranque y eventos de la interfaz ---------------- */
 readTheme(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
-buildTools(); buildSide(); buildHelp(); setTool('pencil'); updateInstUI(); updateMem();
+buildTools(); buildSide(); buildHelp(); S.auxConstr = false; setTool('pencil'); updateInstUI(); updateMem();
 const fi = $('#fileinput');
 fi.onchange = () => { openFiles(fi.files); fi.value = ''; };
 $('#c-open').onclick = () => fi.click();
@@ -1379,16 +1478,10 @@ $('#filepop').onclick = e => {
 $('#pg-prev').onclick = () => goPage(S.pi - 1);
 $('#pg-next').onclick = () => goPage(S.pi + 1);
 $('#pg-add').onclick = addPage;
-$('#i-esc').onclick = () => toggleInst('esc');
-$('#i-car').onclick = () => toggleInst('car');
 $('#i-flip').onclick = flipInst;
 $('#i-rl').onclick = () => rotInst(-15);
 $('#i-rr').onclick = () => rotInst(15);
-$('#m-take').onclick = () => setTool('take');
-$('#m-forget').onclick = () => { S.mem = null; updateMem(); };
 $('#t-snap').onclick = () => { S.snap = !S.snap; setSwitch('#t-snap', S.snap); };
-$('#t-loupe').onclick = () => { S.loupe = !S.loupe; setSwitch('#t-loupe', S.loupe); };
-$('#t-aux').onclick = () => { S.auxConstr = !S.auxConstr; setSwitch('#t-aux', S.auxConstr); };
 document.querySelectorAll('.layer').forEach(el => el.addEventListener('click', e => {
   const eye = e.target.closest('.eye');
   if (eye) { S.doc.layers[eye.dataset.eye] = !S.doc.layers[eye.dataset.eye]; S.sel.clear(); changed(); }
@@ -1406,7 +1499,7 @@ window.addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth =
 window.addEventListener('dragover', e => e.preventDefault());
 window.addEventListener('drop', e => { e.preventDefault(); dragDepth = 0; $('#drop').classList.add('hidden'); openFiles(e.dataTransfer.files); });
 window.addEventListener('beforeunload', () => autosave());
-document.fonts && document.fonts.ready.then(requestRender);
+document.fonts && document.fonts.ready.then(invalidate);
 showStart();
 </script>
 </body>
