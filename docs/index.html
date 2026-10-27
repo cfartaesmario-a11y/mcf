@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-TvF5pKD4ve2ZQ0FyuSMExYXVIoESDn6pd7cdRvEmuVI=' https://www.gstatic.com https://apis.google.com https://www.google.com https://*.firebasedatabase.app https://*.firebaseio.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.googleusercontent.com; media-src 'self' blob:; connect-src 'self' https://*.googleapis.com https://*.firebasedatabase.app wss://*.firebasedatabase.app https://*.firebaseio.com wss://*.firebaseio.com https://www.google.com; frame-src blob: https://*.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-2oE74Yfi/w/ZhJgKzpy51MXPf0xHhl0rcfq8XvtC4fY=' https://www.gstatic.com https://apis.google.com https://www.google.com https://*.firebasedatabase.app https://*.firebaseio.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.googleusercontent.com; media-src 'self' blob:; connect-src 'self' https://*.googleapis.com https://*.firebasedatabase.app wss://*.firebasedatabase.app https://*.firebaseio.com wss://*.firebaseio.com https://www.google.com; frame-src blob: https://*.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'">
 <meta name="theme-color" content="#000000">
 <meta name="description" content="MCF Docs: documentos y apuntes con grabación de clase ilimitada, transcripción en directo y audio sincronizado.">
 <title>MCF Docs</title>
@@ -1585,6 +1585,9 @@ const Sync = {
     clearTimeout(this.idxT);
     this.idxT = setTimeout(() => {
       const idx = { folders: meta.folders, docs: {} };
+      if (!this.ready) return; // hasta leer la nube no se escribe el índice
+      const prev = (this.remoteIdx && this.remoteIdx.docs) || {};
+      for (const [id, r] of Object.entries(prev)) if (!r.del && !meta.tomb[id]) idx.docs[id] = r; // docs de otros dispositivos que aún no tenemos
       DOCS.forEach(d => idx.docs[d.id] = { t: d.title, f: d.folderId, u: d.updated });
       Object.entries(meta.tomb).forEach(([id, t]) => { if (!idx.docs[id] && Date.now() - t < 90 * 864e5) idx.docs[id] = { del: t }; });
       this.lastSent = JSON.stringify(idx);
@@ -1593,7 +1596,8 @@ const Sync = {
   },
   async pull(raw) {
     let idx; try { idx = JSON.parse(raw || 'null'); } catch (e) { idx = null; }
-    if (!idx) { DOCS.forEach(d => this.pushDoc(d)); this.pushIndex(); return; }
+    if (!idx) { this.ready = true; this.remoteIdx = null; DOCS.forEach(d => this.pushDoc(d)); this.pushIndex(); this.rescue(); return; }
+    this.remoteIdx = idx;
     // carpetas: se juntan las de los dos lados
     for (const f of idx.folders || []) { const l = folderById(f.id); if (l) Object.assign(l, f); else if (!meta.folders.some(x => x.name === f.name)) meta.folders.push(f); }
     let changed = false;
@@ -1619,8 +1623,28 @@ const Sync = {
     // lo local más nuevo sube
     DOCS.forEach(d => { const r = (idx.docs || {})[d.id]; if (!r || (!r.del && d.updated > r.u)) this.pushDoc(d); });
     kvPut('meta', JSON.parse(JSON.stringify(meta)));
+    const first = !this.ready; this.ready = true;
+    if (first) { this.pushIndex(); this.rescue(); }
     if (changed) { if (!cur && DOCS.length) openDoc(DOCS.sort((a, b) => b.updated - a.updated)[0].id); renderAll(); }
     this.set('ok');
+  },
+  async rescue() {
+    try {
+      const tok = await USER.getIdToken();
+      const res = await fetch(firebaseConfig.databaseURL + '/mcf/' + USER.uid + '.json?shallow=true&auth=' + encodeURIComponent(tok));
+      if (!res.ok) return;
+      const keys = Object.keys((await res.json()) || {}).filter(k => k.startsWith('kd_')).map(k => k.slice(3));
+      let n = 0;
+      for (const id of keys) {
+        if (DOCS.some(d => d.id === id) || meta.tomb[id]) continue;
+        const v = (await this.ref('kd_' + id).get()).val(); if (!v) continue;
+        const o = JSON.parse(v);
+        const d = { id, title: o.t, html: o.h, folderId: o.f, created: o.c, updated: o.u, math: o.m, sessions: (o.s || []).map(x => ({ ...x, remote: true })) };
+        if (!folderById(d.folderId)) d.folderId = (meta.folders[0] || {}).id;
+        DOCS.push(d); await docPut(d); n++;
+      }
+      if (n) { this.pushIndex(); renderAll(); toast(n === 1 ? 'Recuperado 1 documento de tu cuenta' : 'Recuperados ' + n + ' documentos de tu cuenta'); }
+    } catch (e) {}
   },
   start() {
     if (!this.canWrite()) { this.on = false; this.set('unverified'); return; }
@@ -1631,7 +1655,7 @@ const Sync = {
     r.on('value', h, () => this.set('err'));
     this.offIdx = () => r.off('value', h);
   },
-  stop() { this.on = false; this.offIdx && this.offIdx(); this.offIdx = null; this.set('off'); },
+  stop() { this.on = false; this.ready = false; this.offIdx && this.offIdx(); this.offIdx = null; this.set('off'); },
 };
 function renderAccount() {
   const a = $('acct');
@@ -1744,6 +1768,50 @@ function bind() {
   setInterval(() => { if (cur && !dirty) maybeSnapshot(); }, 60000);
 }
 
+/* ---------- apuntes de la antigua MCF Apuntes ---------- */
+function oldApuntesDb() {
+  return new Promise(res => {
+    let done = false; const fin = v => { if (!done) { done = true; res(v); } };
+    setTimeout(() => fin(null), 3000);
+    try {
+      const r = indexedDB.open('apunts-classe');
+      r.onupgradeneeded = () => { try { r.transaction.abort(); } catch (e) {} fin(null); };
+      r.onerror = () => fin(null);
+      r.onsuccess = () => { const db = r.result; try { if (!db.objectStoreNames.contains('kv')) { db.close(); return fin(null); } const q = db.transaction('kv').objectStore('kv').get('db'); q.onsuccess = () => { db.close(); fin(q.result || null); }; q.onerror = () => { db.close(); fin(null); }; } catch (e) { db.close(); fin(null); } };
+    } catch (e) { fin(null); }
+  });
+}
+function plainToHtml(t) {
+  return String(t || '').replace(/\r/g, '').split(/\n{2,}/).map(p => p.trim()).filter(Boolean)
+    .map(p => '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>').join('') || '<p><br></p>';
+}
+async function importApuntes() {
+  const seen = new Set(meta.imported || []);
+  let old = await oldApuntesDb();
+  let ls = null; try { ls = JSON.parse(localStorage.getItem('apunts-classe-v1') || 'null'); } catch (e) {}
+  const notes = [], fmap = {};
+  for (const src of [old, ls]) {
+    if (!src || !Array.isArray(src.notes)) continue;
+    (src.folders || []).forEach(f => fmap[f.id] = f);
+    src.notes.forEach(n => { if (n && n.id && !notes.some(x => x.id === n.id)) notes.push(n); });
+  }
+  let n = 0;
+  for (const o of notes) {
+    const id = 'ap' + o.id;
+    if (seen.has(o.id) || DOCS.some(d => d.id === id) || meta.tomb[id]) continue;
+    seen.add(o.id);
+    if (!String(o.text || '').trim() && !String(o.title || '').trim()) continue;
+    const of = fmap[o.folderId];
+    const nrm = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    let f = of ? meta.folders.find(x => nrm(x.name) === nrm(of.name)) : null;
+    if (!f && of) { f = { id: uid(), name: of.name, math: !!of.math, color: COLORS[meta.folders.length % COLORS.length] }; meta.folders.push(f); }
+    const d = { id, title: o.title || 'Apuntes', html: plainToHtml(o.text), folderId: f ? f.id : (meta.folders[0] || {}).id, created: o.created || Date.now(), updated: o.updated || o.created || Date.now(), math: !!(of && of.math), sessions: [] };
+    DOCS.push(d); await docPut(d); Sync.pushDoc(d); n++;
+  }
+  meta.imported = [...seen]; saveMeta();
+  if (n) { renderAll(); toast(n === 1 ? 'Importado 1 apunte de MCF Apuntes' : 'Importados ' + n + ' apuntes de MCF Apuntes'); }
+}
+
 /* ---------- arranque ---------- */
 (async () => {
   try { await load(); } catch (e) { warn('Este navegador no permite guardar datos (¿modo incógnito?). Lo que escribas se perderá al cerrar.'); meta = { folders: DEFAULT_FOLDERS.map(([name, math], i) => ({ id: uid(), name, math, color: COLORS[i] })), settings: { lang: 'es-ES', theme: 'light' }, cur: { folder: 'all' }, tomb: {} }; }
@@ -1752,6 +1820,7 @@ function bind() {
   $('lang').value = meta.settings.lang;
   bind(); renderAll();
   if (!DOCS.length) { await newDoc({ title: 'Bienvenida a MCF Docs' }); ed.innerHTML = WELCOME; save(); flushSave(); showHome(); }
+  try { await importApuntes(); } catch (e) {}
   route();
   updateStorage();
   if (!SR) warn('Este navegador puede grabar el audio de clase, pero no transcribirlo. Para tener el texto en directo usa <b>Chrome</b> o <b>Edge</b>.');
