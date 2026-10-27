@@ -35,6 +35,9 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 .rb:hover{transform:scale(1.07)}.rb:active{transform:scale(.94)}
 .rb.blue{background:#2f67d8;box-shadow:0 0 0 3px #1d3f86,0 6px 14px rgba(0,0,0,.25)}
 .rb svg{width:46%;height:46%}
+#tbtns{position:absolute;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));display:none;flex-direction:column;gap:10px;pointer-events:auto}
+#tbtns button{width:58px;height:58px;border-radius:50%;background:rgba(20,20,22,.7);color:#fff;font-size:22px;touch-action:none}
+@media (pointer:coarse){#tbtns{display:flex}}
 #tip{position:absolute;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(20,20,22,.78);color:#fff;font-weight:600;font-size:14px;padding:9px 16px;border-radius:99px;max-width:calc(100% - 32px);text-align:center;transition:opacity .4s}
 
 /* Overlays */
@@ -86,7 +89,8 @@ h2{margin:6px 0 0;font-size:32px;font-weight:900}
     <button class="rb" id="bMenu" title="Niveles (Esc)" aria-label="Niveles"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></button>
     <button class="rb blue" id="bRestart" title="Repetir (R)" aria-label="Repetir"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v5h-5" stroke-linejoin="round"/></svg></button>
   </div>
-  <div id="tip">Apunta con el ratón o ← → · Mantén pulsado (Espacio o clic) y suelta cuando la barra esté donde quieras</div>
+  <div id="tip">Apunta con ← → · Mantén pulsado Espacio (o clic) y suelta cuando la barra esté donde quieras</div>
+  <div id="tbtns"><button id="tL" aria-label="Subir">▲</button><button id="tR" aria-label="Bajar">▼</button></div>
 </div>
 
 <div id="rot">📱↻ Gira el móvil para jugar mejor</div>
@@ -96,7 +100,7 @@ h2{margin:6px 0 0;font-size:32px;font-weight:900}
     <h1>MCF<br><em>ARQUERO</em></h1>
     <p class="sub">Derriba a todos los muñecos con tus flechas.<br>Si das en el pecho o en la cabeza, lo verás por rayos&nbsp;X.</p>
     <div class="btns"><button class="btn pri" id="bPlay">Jugar</button><button class="btn" id="bLevels">Niveles</button><a class="btn" href="../" style="text-decoration:none">← MCF Games</a></div>
-    <div class="keys">Apuntar: ratón o <kbd>←</kbd><kbd>→</kbd> (<kbd>Mayús</kbd> = fino) · Fuerza: mantén <kbd>Espacio</kbd> o el clic, la barra sube y baja, y suelta · Móvil: toca hacia donde apuntas, mantén y suelta · <kbd>R</kbd> repetir</div>
+    <div class="keys">Apuntar: <kbd>←</kbd> sube · <kbd>→</kbd> baja (<kbd>Mayús</kbd> = fino) · Fuerza: mantén <kbd>Espacio</kbd> o el clic, la barra sube y baja, y suelta · Móvil: botones ▲▼ y mantén el dedo en la pantalla · <kbd>R</kbd> repetir</div>
     <div class="keys"><button class="btn" id="bGore" style="padding:8px 14px;font-size:13px"></button></div>
   </div>
 </div>
@@ -127,6 +131,8 @@ h2{margin:6px 0 0;font-size:32px;font-weight:900}
    Mundo fijo de 1280×720, física verlet a 120 Hz.
    ========================================================= */
 const W = 1280, H = 720, G = 1000, DT = 1 / 120;
+// flecha lenta y con curva bonita: gravedad propia más suave y menos velocidad
+const AG = 430, V0 = 230, V1 = 610, WINDK = 0.45;
 const $ = id => document.getElementById(id);
 const cv = $('c'), cx = cv.getContext('2d');
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
@@ -170,11 +176,11 @@ const LEVELS = [
   { n: 'Barricada', a: 5, o: [pil(820, 380, 26), pil(850, 560, 260)], e: [E(890, 560), E(970, 560), E(1060, 560)] },
   { n: 'Vendaval', a: 5, w: 260, o: [pil(1180, 250, 50), pil(900, 520)], e: [E(1205, 250), E(929, 520, { s: 1 })] },
   { n: 'Francotirador', a: 3, p: { x: 140, y: 330 }, o: [pil(1220, 160, 40), pil(980, 620, 60)], e: [E(1240, 160), E(1010, 620)] },
-  { n: 'Fortaleza', a: 5, o: [blk(860, 400, 300, 22), pil(860, 580, 300)], e: [E(1000, 400), E(895, 580, { s: 1 }), E(990, 580), E(1060, 580)], t: [T(1125, 580)] },
+  { n: 'Fortaleza', a: 5, o: [blk(860, 350, 300, 22), pil(860, 580, 300)], e: [E(1000, 350), E(895, 580, { s: 1 }), E(990, 580), E(1060, 580)], t: [T(1125, 580)] },
   { n: 'Plataformas', a: 6, o: [mov(560, 300, 80, 16, 200, 0, 4), mov(760, 470, 80, 16, -200, 0, 5), mov(1040, 260, 80, 16, 0, 260, 6)], e: [E(600, 300, { on: 0 }), E(800, 470, { on: 1 }), E(1080, 260, { on: 2 })] },
   { n: 'Cruce peligroso', a: 4, o: [mov(470, 480, 110, 16, 300, 0, 4.5), pil(1050, 420, 120)], e: [Hs(525, 480, { on: 0 }), E(1080, 420), E(1140, 420)] },
   { n: 'Caos', a: 6, w: -120, o: [pil(690, 520, 150), mov(900, 380, 80, 16, 0, 180, 4), pil(1100, 300, 140)], e: [E(720, 520, { s: 1 }), Hs(800, 520), E(940, 380, { on: 1 }), E(1130, 300), E(1215, 300)], t: [T(1172, 300)] },
-  { n: 'Gran final', a: 8, w: 150, o: [pil(640, 560), pil(780, 460), pil(920, 360), pil(1060, 260), mov(1160, 520, 90, 16, 0, -260, 5)], e: [E(669, 560), E(809, 460, { s: 1 }), E(949, 360), E(1089, 260, { s: 1 }), E(1205, 520, { on: 4 })] },
+  { n: 'Gran final', a: 8, w: 150, o: [pil(640, 560), pil(780, 460), pil(920, 360), pil(1060, 260), mov(1160, 520, 90, 16, 0, -310, 5)], e: [E(669, 560), E(809, 460, { s: 1 }), E(949, 360), E(1089, 260, { s: 1 }), E(1205, 520, { on: 4 })] },
 ];
 
 /* ---------- muñeco (ragdoll) ----------
@@ -315,7 +321,7 @@ function hitTest(x, y) {
 
 function shoot() {
   if (state !== 'play' || arrowsLeft <= 0) return;
-  const o = bowPos(), v = 450 + 1080 * aim.p;
+  const o = bowPos(), v = V0 + V1 * aim.p;
   arrows.push({ x: o.x + Math.cos(aim.a) * 30, y: o.y + Math.sin(aim.a) * 30, vx: Math.cos(aim.a) * v, vy: Math.sin(aim.a) * v, st: 'fly', trail: [], path: [] });
   arrowsLeft--; shots++; bowRelease = 1; hud(); sfx('twang');
   if (!firstShotDone) { firstShotDone = true; $('tip').style.opacity = 0; }
@@ -324,7 +330,7 @@ function bowPos() { return { x: player.x + Math.cos(aim.a) * 34, y: player.y - 8
 
 function stepArrow(A, dt) {
   if (A.st !== 'fly') return;
-  A.vx += wind * dt; A.vy += G * dt;
+  A.vx += wind * WINDK * dt; A.vy += AG * dt;
   const n = 3, sx = A.vx * dt / n, sy = A.vy * dt / n;
   for (let i = 0; i < n; i++) {
     A.x += sx; A.y += sy;
@@ -350,7 +356,7 @@ function onHit(A, h) {
   A.st = 'stuck';
   if (h.part === 'escudo') {
     stickTo(A, P, 11, 12, 6); sfx('shield'); dust(A.x, A.y, 8, '#b98a4c');
-    if (!d.rag) { d.sway += 0.4; } else push(d, A.vx, A.vy, [11, 12], 0.12, 0.03);
+    if (!d.rag) { d.sway += 0.4; } else push(d, A.vx, A.vy, [11, 12], 0.25, 0.06);
     popText(A.x, A.y - 20, '¡Bloqueado!', '#6b4b22'); return;
   }
   stickTo(A, P, h.a, h.b, h.part === 'cabeza' ? 7 : 5);
@@ -361,7 +367,7 @@ function onHit(A, h) {
   const hitIdx = h.part === 'cabeza' ? [0, 1] : [h.a, h.b];
   d.hits++;
   const wasRag = d.rag; d.rag = true;
-  push(d, A.vx, A.vy, hitIdx, wasRag ? 0.22 : 0.3, wasRag ? 0.06 : 0.1);
+  push(d, A.vx, A.vy, hitIdx, wasRag ? 0.45 : 0.6, wasRag ? 0.12 : 0.2);
   sfx('thunk');
   if (d.hostage) { kill(d, h.part); failMsg = '¡Le has dado al rehén!'; return; }
   if (vital || d.hits >= 2) {
@@ -773,7 +779,7 @@ const toWorldXY = e => [((e.clientX * dpr) - ox) / sc, ((e.clientY * dpr) - oy) 
 /* Apuntar: ratón (la flecha mira al puntero) o ←/→ · Fuerza: mantener pulsado (Espacio, clic o dedo):
    la barra sube y baja, y al soltar esa es la fuerza. */
 let charge = null, lastPow = null;
-const POW_SPEED = 0.8; // ciclos (subir + bajar) por segundo
+const POW_SPEED = 0.7; // ciclos (subir + bajar) por segundo
 function powNow() { if (!charge) return 0; const u = ((performance.now() - charge.t0) / 1000) * POW_SPEED, f = u - Math.floor(u); return 0.06 + 0.94 * (1 - Math.abs(1 - 2 * f)); }
 function aimAt(x, y) { const b = bowPos(), a = Math.atan2(y - b.y, x - b.x); if (x < player.x - 10) return; aim.a = clamp(a, -1.5, 1.25); }
 function startCharge(src, id) { if (state !== 'play' || arrowsLeft <= 0 || charge) return; charge = { src, id, t0: performance.now() }; sfx('draw'); }
@@ -782,13 +788,14 @@ cv.addEventListener('pointerdown', e => {
   audio();
   if (xray) { xray.t = Math.max(xray.t, 2.55); return; } // tocar durante los rayos X los salta
   if (state !== 'play' || arrowsLeft <= 0) return;
-  const [x, y] = toWorldXY(e); aimAt(x, y);
   cv.setPointerCapture(e.pointerId); startCharge('ptr', e.pointerId);
 });
-cv.addEventListener('pointermove', e => {
-  if (state !== 'play') return;
-  if (e.pointerType === 'mouse' || (charge && charge.id === e.pointerId)) { const [x, y] = toWorldXY(e); aimAt(x, y); }
-});
+// botones ◀ ▶ en pantallas táctiles (en ordenador se apunta con las flechas del teclado)
+for (const [id, k] of [['tL', 'arrowleft'], ['tR', 'arrowright']]) {
+  const b = $(id);
+  b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); held[k] = true; });
+  for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) b.addEventListener(ev, () => { held[k] = false; });
+}
 cv.addEventListener('pointerup', e => endCharge('ptr', e.pointerId));
 cv.addEventListener('pointercancel', e => { if (charge && charge.src === 'ptr') charge = null; });
 const held = {};
@@ -1086,7 +1093,7 @@ function sfx(k) {
 /* ---------- arranque ---------- */
 loadLevel(0); state = 'menu'; show('home');
 requestAnimationFrame(frame);
-window.__arq = { LEVELS, loadLevel, get dolls() { return dolls; }, get state() { return state; }, aimSet(a, p) { aim.a = a; aim.p = p; }, shoot, hitTest, bowPos, get wind() { return wind; }, get rects() { return rects; } };
+window.__arq = { AG, V0, V1, WINDK, LEVELS, loadLevel, get dolls() { return dolls; }, get state() { return state; }, aimSet(a, p) { aim.a = a; aim.p = p; }, shoot, hitTest, bowPos, get wind() { return wind; }, get rects() { return rects; } };
 </script>
 </body>
 </html>
