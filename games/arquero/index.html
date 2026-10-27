@@ -86,7 +86,7 @@ h2{margin:6px 0 0;font-size:32px;font-weight:900}
     <button class="rb" id="bMenu" title="Niveles (Esc)" aria-label="Niveles"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></button>
     <button class="rb blue" id="bRestart" title="Repetir (R)" aria-label="Repetir"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v5h-5" stroke-linejoin="round"/></svg></button>
   </div>
-  <div id="tip">Arrastra hacia atrás para tensar el arco y suelta para disparar</div>
+  <div id="tip">Apunta con el ratón o ← → · Mantén pulsado (Espacio o clic) y suelta cuando la barra esté donde quieras</div>
 </div>
 
 <div id="rot">📱↻ Gira el móvil para jugar mejor</div>
@@ -96,7 +96,8 @@ h2{margin:6px 0 0;font-size:32px;font-weight:900}
     <h1>MCF<br><em>ARQUERO</em></h1>
     <p class="sub">Derriba a todos los muñecos con tus flechas.<br>Si das en el pecho o en la cabeza, lo verás por rayos&nbsp;X.</p>
     <div class="btns"><button class="btn pri" id="bPlay">Jugar</button><button class="btn" id="bLevels">Niveles</button><a class="btn" href="../" style="text-decoration:none">← MCF Games</a></div>
-    <div class="keys">Ratón o dedo: arrastra hacia atrás y suelta · Teclado: <kbd>↑</kbd><kbd>↓</kbd> ángulo · <kbd>←</kbd><kbd>→</kbd> fuerza · <kbd>Espacio</kbd> disparar · <kbd>R</kbd> repetir</div>
+    <div class="keys">Apuntar: ratón o <kbd>←</kbd><kbd>→</kbd> (<kbd>Mayús</kbd> = fino) · Fuerza: mantén <kbd>Espacio</kbd> o el clic, la barra sube y baja, y suelta · Móvil: toca hacia donde apuntas, mantén y suelta · <kbd>R</kbd> repetir</div>
+    <div class="keys"><button class="btn" id="bGore" style="padding:8px 14px;font-size:13px"></button></div>
   </div>
 </div>
 
@@ -187,6 +188,7 @@ const SEGS = [ // [a, b, grosor de impacto, parte]
   [1, 2, 8, 'torso'], [1, 3, 6, 'brazo'], [3, 4, 6, 'brazo'], [1, 5, 6, 'brazo'], [5, 6, 6, 'brazo'],
   [2, 7, 6, 'pierna'], [7, 8, 6, 'pierna'], [2, 9, 6, 'pierna'], [9, 10, 6, 'pierna']];
 const HEAD_R = 14;
+const MINS = [[2, 8, 34], [2, 10, 34], [1, 4, 16], [1, 6, 16], [0, 7, 70], [0, 9, 70], [8, 10, 6]];
 
 function makeDoll(d) {
   const pose = POSE.map((p, i) => (d.s && POSE_SH[i]) ? POSE_SH[i] : p);
@@ -200,7 +202,7 @@ function makeDoll(d) {
 let L = null, lvIdx = 0, rects = [], dolls = [], tnts = [], arrows = [], parts = [], pops = [];
 let player = { x: 150, y: 560 }, aim = { a: -0.35, p: 0.62 }, aiming = null, arrowsLeft = 0, shots = 0;
 let time = 0, timeScale = 1, slowT = 0, shake = 0, xray = null, xq = [], state = 'menu', endT = 0, failMsg = '', wind = 0;
-let bowRelease = 0, firstShotDone = false;
+let bowRelease = 0, firstShotDone = false, hitStop = 0, flash = 0, lastPath = null;
 let save = { best: {} };
 try { save = Object.assign(save, JSON.parse(localStorage.getItem('mcf.arquero') || '{}')); } catch (e) {}
 const persist = () => { try { localStorage.setItem('mcf.arquero', JSON.stringify(save)); } catch (e) {} };
@@ -213,8 +215,8 @@ function loadLevel(i) {
   rects.push({ x: player.x - 58, y: player.y, w: 116, h: 14, k: 'ledge' });
   dolls = L.e.map(d => { const o = makeDoll(d); if (d.on != null) { o.onOff = d.x - rects[d.on].x; } return o; });
   tnts = (L.t || []).map(t => ({ x: t.x - 17, y: t.y - 34, w: 34, h: 34, alive: true, fuse: -1 }));
-  arrows = []; parts = []; pops = []; xray = null; xq = [];
-  arrowsLeft = L.a; shots = 0; wind = L.w || 0; time = 0; timeScale = 1; slowT = 0; endT = 0; failMsg = '';
+  arrows = []; parts = []; pops = []; xray = null; xq = []; stains = []; lastPath = null; charge = null; hitStop = 0; flash = 0;
+  arrowsLeft = L.a + 1; shots = 0; wind = L.w || 0; time = 0; timeScale = 1; slowT = 0; endT = 0; failMsg = '';
   aim = { a: -0.35, p: 0.62 };
   updMoving(0);
   dolls.forEach(placeAlive);
@@ -257,6 +259,10 @@ function stepDoll(d, dt) {
     for (const [a, b, len] of d.sticks) {
       const A = d.pts[a], B = d.pts[b], dx = B.x - A.x, dy = B.y - A.y, dist = Math.hypot(dx, dy) || 1e-6;
       const k = (dist - len) / dist * 0.5; A.x += dx * k; A.y += dy * k; B.x -= dx * k; B.y -= dy * k;
+    }
+    for (const [a, b, mn] of MINS) {
+      const A = d.pts[a], B = d.pts[b], dx = B.x - A.x, dy = B.y - A.y, dist = Math.hypot(dx, dy) || 1e-6;
+      if (dist < mn) { const k = (dist - mn) / dist * 0.25; A.x += dx * k; A.y += dy * k; B.x -= dx * k; B.y -= dy * k; }
     }
     for (let i = 0; i < d.pts.length; i++) collidePoint(d.pts[i], i === 0 ? 12 : 4);
   }
@@ -310,7 +316,7 @@ function hitTest(x, y) {
 function shoot() {
   if (state !== 'play' || arrowsLeft <= 0) return;
   const o = bowPos(), v = 450 + 1080 * aim.p;
-  arrows.push({ x: o.x + Math.cos(aim.a) * 30, y: o.y + Math.sin(aim.a) * 30, vx: Math.cos(aim.a) * v, vy: Math.sin(aim.a) * v, st: 'fly', trail: [] });
+  arrows.push({ x: o.x + Math.cos(aim.a) * 30, y: o.y + Math.sin(aim.a) * 30, vx: Math.cos(aim.a) * v, vy: Math.sin(aim.a) * v, st: 'fly', trail: [], path: [] });
   arrowsLeft--; shots++; bowRelease = 1; hud(); sfx('twang');
   if (!firstShotDone) { firstShotDone = true; $('tip').style.opacity = 0; }
 }
@@ -337,7 +343,7 @@ function onHit(A, h) {
   if (h.rect) {
     A.st = 'stuck'; A.ang = ang;
     const R = h.rect; A.x += Math.cos(ang) * 8; A.y += Math.sin(ang) * 8; A.rect = R; A.ox = A.x - R.x; A.oy = A.y - R.y;
-    dust(A.x, A.y, 6, '#3a3a3a'); sfx('wood'); return;
+    dust(A.x, A.y, 6, '#3a3a3a'); A.wob = 1; sfx('wood'); return;
   }
   if (h.tnt) { A.st = 'gone'; explode(h.tnt); return; }
   const d = h.d, P = d.pts;
@@ -348,8 +354,10 @@ function onHit(A, h) {
     popText(A.x, A.y - 20, '¡Bloqueado!', '#6b4b22'); return;
   }
   stickTo(A, P, h.a, h.b, h.part === 'cabeza' ? 7 : 5);
-  A.body = true;
+  A.body = true; A.bleed = gore() ? 4 : 0;
   const vital = h.part === 'cabeza' || h.part === 'pecho';
+  bleed(A.x, A.y, A.vx, A.vy, vital ? 34 : 18, vital ? 1.2 : .9);
+  hitStop = vital ? 0.07 : 0.04; shake = Math.max(shake, vital ? 7 : 4); if (vital && gore()) flash = 1;
   const hitIdx = h.part === 'cabeza' ? [0, 1] : [h.a, h.b];
   d.hits++;
   const wasRag = d.rag; d.rag = true;
@@ -388,7 +396,7 @@ function explode(X) {
     if (dist < 175) {
       const f = (1 - dist / 175) * 900 + 300, a = Math.atan2(dy - 60, dx);
       d.rag = true; push(d, Math.cos(a) * f, Math.sin(a) * f, [], 0, 1);
-      if (!d.dead) { if (d.hostage) failMsg = '¡La explosión ha alcanzado al rehén!'; else n++; kill(d, 'boom'); }
+      if (!d.dead) { if (d.hostage) failMsg = '¡La explosión ha alcanzado al rehén!'; else n++; kill(d, 'boom'); bleed(d.pts[1].x, d.pts[1].y, Math.cos(a) * 400, Math.sin(a) * 400, 22, 1.4); }
     }
   }
   for (const Y of tnts) if (Y.alive && Math.hypot(Y.x - X.x, Y.y - X.y) < 165) Y.fuse = 0.14;
@@ -398,30 +406,85 @@ function dust(x, y, n, c) { for (let i = 0; i < n; i++) parts.push({ x, y, vx: r
 function popText(x, y, t, c, size = 22) { pops.push({ x, y, t, c, size, life: 1.3 }); }
 
 /* ---------- rayos X ---------- */
+// Coordenadas del dibujo de rayos X: el cuerpo de pie, centrado, de -150 a 150.
+const XCTX = document.createElement('canvas').getContext('2d');
+const RIBS = [];
+for (let i = 0; i < 10; i++) for (const sd of [-1, 1]) {
+  const y0 = -114 + i * 17, ex = sd * (72 - Math.max(0, i - 6) * 4), pts = [];
+  const P0 = [sd * 9, y0], C1 = [sd * 36, y0 - 15], C2 = [sd * 64, y0 - 8], P1 = [ex, y0 + 16];
+  for (let k = 0; k <= 16; k++) { const t = k / 16, u = 1 - t; pts.push([u * u * u * P0[0] + 3 * u * u * t * C1[0] + 3 * u * t * t * C2[0] + t * t * t * P1[0], u * u * u * P0[1] + 3 * u * u * t * C1[1] + 3 * u * t * t * C2[1] + t * t * t * P1[1]]); }
+  const Q = [sd * 70, y0 + 46], E2 = [sd * (24 + i * 1.6), y0 + 52 + i * 2];
+  for (let k = 1; k <= 10; k++) { const t = k / 10, u = 1 - t; pts.push([u * u * P1[0] + 2 * u * t * Q[0] + t * t * E2[0], u * u * P1[1] + 2 * u * t * Q[1] + t * t * E2[1]]); }
+  RIBS.push({ i, sd, pts, nP: 17 });
+}
+const LUNG = { [-1]: [[-22, -104], [-44, -100], [-62, -74], [-70, -30], [-73, 20], [-70, 60], 'q', [-48, 32], [-22, 46], [-19, 10], [-17, -40], [-20, -90]],
+  [1]: [[22, -104], [44, -100], [62, -74], [70, -30], [73, 20], [70, 62], 'q', [52, 36], [46, 50], [40, 14], [26, -38], [20, -90]] };
+function lungPath(sd, f = 1) {
+  const hx = sd * 30, hy = -36, m = ([x, y]) => [hx + (x - hx) * f, hy + (y - hy) * f], p = new Path2D(), L = LUNG[sd];
+  let i = 0; p.moveTo(...m(L[0]));
+  for (i = 1; i < L.length; i++) { if (L[i] === 'q') { p.quadraticCurveTo(...m(L[i + 1]), ...m(L[i + 2])); i += 2; } else p.lineTo(...m(L[i])); }
+  p.closePath(); return p;
+}
+const VESSELS = { [-1]: [], [1]: [] };
+(function () {
+  let seed = 7; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (const sd of [-1, 1]) {
+    const grow = (x, y, a, len, w, lv) => {
+      const x2 = x + Math.cos(a) * len, y2 = y + Math.sin(a) * len; VESSELS[sd].push([x, y, x2, y2, w]);
+      if (lv < 4) for (let k = 0; k < 2; k++) grow(x2, y2, a + (r() - .5) * 1.1, len * (.62 + r() * .2), w * .66, lv + 1);
+    };
+    for (const a of [-1.9, -1.2, -0.5, 0.3, 1.0]) grow(sd * 28, -36, sd > 0 ? a : Math.PI - a, 20, 2.2, 0);
+  }
+})();
+let NOISE = null;
+function noiseCanvas() {
+  if (NOISE) return NOISE;
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'), id = g.createImageData(256, 256);
+  for (let i = 0; i < id.data.length; i += 4) { const v = Math.random() * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 34; }
+  g.putImageData(id, 0, 0); return NOISE = c;
+}
+const XB = {};
+function xrBase(kind) {
+  if (XB[kind]) return XB[kind];
+  const c = document.createElement('canvas'); c.width = c.height = 600; const g = c.getContext('2d');
+  g.translate(300, 300); g.scale(2, 2); g.fillStyle = '#030405'; g.fillRect(-150, -150, 300, 300);
+  if (kind === 'chest') {
+    g.filter = 'blur(8px)';
+    g.fillStyle = '#41464c'; for (const sd of [-1, 1]) { g.beginPath(); g.ellipse(sd * 104, -10, 22, 150, sd * .06, 0, 7); g.fill(); } // brazos
+    g.fillStyle = '#5a6067'; g.beginPath(); g.moveTo(-18, -160); g.lineTo(-20, -128); g.quadraticCurveTo(-82, -128, -88, -96); g.lineTo(-84, 40); g.quadraticCurveTo(-80, 120, -70, 170); g.lineTo(70, 170); g.quadraticCurveTo(80, 120, 84, 40); g.lineTo(88, -96); g.quadraticCurveTo(82, -128, 20, -128); g.lineTo(18, -160); g.closePath(); g.fill();
+    g.fillStyle = '#727880'; g.fillRect(-15, -160, 30, 200); // mediastino
+    g.beginPath(); g.ellipse(0, 110, 80, 60, 0, 0, 7); g.fill(); // abdomen
+  } else {
+    g.filter = 'blur(9px)';
+    g.fillStyle = '#464b51'; g.beginPath(); g.ellipse(0, -14, 100, 118, 0, 0, 7); g.fill();
+    g.fillRect(-40, 80, 80, 90);
+    for (const sd of [-1, 1]) { g.beginPath(); g.ellipse(sd * 98, 8, 12, 24, 0, 0, 7); g.fill(); }
+  }
+  g.filter = 'none';
+  const v = g.createRadialGradient(0, 0, 80, 0, 0, 160); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.7)');
+  g.fillStyle = v; g.fillRect(-150, -150, 300, 300);
+  return XB[kind] = c;
+}
+
 function startXray(d, h, A, ang) {
   const P = d.pts, head = h.part === 'cabeza';
-  const sa = head ? Math.atan2(P[0].y - P[1].y, P[0].x - P[1].x) + Math.PI : Math.atan2(P[2].y - P[1].y, P[2].x - P[1].x);
+  const sa = head ? Math.atan2(P[1].y - P[0].y, P[1].x - P[0].x) : Math.atan2(P[2].y - P[1].y, P[2].x - P[1].x);
   const rel = ang - (sa - Math.PI / 2); // dirección de la flecha con el cuerpo de pie
-  const x = { d, head, t: 0, rel, hy: head ? 0 : clamp(h.t ?? 0.3, 0.05, 0.58), shards: [], bubbles: [], cracked: false, popped: false, label: '' };
-  // trayectoria dentro del dibujo (unidades del zoom)
   const dx = Math.cos(rel), dy = Math.sin(rel);
-  if (head) { x.end = [dx * 18, -6 + dy * 18]; }
-  else { const y = -95 + x.hy * 190; x.end = [dx * 22, y + dy * 22]; }
-  x.dir = [dx, dy];
-  x.start = [x.end[0] - dx * 260, x.end[1] - dy * 260];
-  // costilla que atraviesa
+  const x = { d, head, t: 0, hy: head ? 0 : clamp(h.t ?? 0.3, 0.02, 0.58), dir: [dx, dy], shards: [], blobs: [], frac: [], cracked: false, popped: false, label: '', sub: '', ribP: 2 };
+  if (head) x.end = [dx * 24, -25 + dy * 24]; else { const y = -110 + x.hy / 0.58 * 160; x.end = [clamp(-dx * 34, -40, 40), y + dy * 14]; } // la punta se queda en el pulmón del lado por donde entra
+  x.start = [x.end[0] - dx * 320, x.end[1] - dy * 320];
+  outer: for (let s = 0; s <= 1; s += 0.004) {
+    const px = lerp(x.start[0], x.end[0], s), py = lerp(x.start[1], x.end[1], s);
+    if (head) { if ((px / 84) ** 2 + ((py + 28) / 88) ** 2 < 1) { x.ribP = s; x.cp = [px, py]; break; } continue; }
+    for (const r of RIBS) for (let k = 1; k < r.pts.length - 1; k++) {
+      const q = r.pts[k]; if (Math.hypot(q[0] - px, q[1] - py) < 4.5) { x.ribP = s; x.rib = r; x.ribK = k; x.cp = [px, py]; break outer; }
+    }
+  }
   if (!head) {
-    let bestP = null;
-    for (let s = 0; s <= 1; s += 0.01) { const px = lerp(x.start[0], x.end[0], s); if (Math.abs(px) <= 40 && bestP == null) { bestP = s; } }
-    x.ribP = bestP ?? 0.9; const ry = lerp(x.start[1], x.end[1], x.ribP);
-    x.rib = clamp(Math.round((ry + 70) / 20), 0, 6); x.side = lerp(x.start[0], x.end[0], x.ribP) < 0 ? -1 : 1;
     const [ex, ey] = x.end;
-    const inL = ((ex + 22) / 17) ** 2 + ((ey + 30) / 40) ** 2 < 1, inR = ((ex - 22) / 17) ** 2 + ((ey + 30) / 40) ** 2 < 1;
-    x.lung = inL ? -1 : inR ? 1 : 0;
-    x.heart = !x.lung && Math.hypot(ex - 8, ey + 4) < 22;
-  } else {
-    let bestP = null; for (let s = 0; s <= 1; s += 0.01) { const px = lerp(x.start[0], x.end[0], s), py = lerp(x.start[1], x.end[1], s); if (Math.hypot(px, py) <= 72 && bestP == null) bestP = s; }
-    x.ribP = bestP ?? 0.9;
+    x.heart = ((ex - 16) / 36) ** 2 + ((ey - 24) / 38) ** 2 < 1;
+    x.lung = x.heart ? 0 : XCTX.isPointInPath(lungPath(-1), ex, ey) ? -1 : XCTX.isPointInPath(lungPath(1), ex, ey) ? 1 : 0;
   }
   if (xray) { xq.push(x); return; }
   xray = x; sfx('xray');
@@ -429,23 +492,223 @@ function startXray(d, h, A, ang) {
 function updXray(rdt) {
   if (!xray) return;
   const x = xray; x.t += rdt;
-  const p = clamp((x.t - 0.25) / 0.5, 0, 1), e = 1 - Math.pow(1 - p, 3);
-  if (!x.cracked && e >= x.ribP) {
-    x.cracked = true; sfx('crack');
-    const cp = [lerp(x.start[0], x.end[0], x.ribP), lerp(x.start[1], x.end[1], x.ribP)];
-    for (let i = 0; i < 9; i++) x.shards.push({ x: cp[0], y: cp[1], vx: rnd(-160, 160) - x.dir[0] * 40, vy: rnd(-220, 40), r: rnd(0, 6), vr: rnd(-12, 12), s: rnd(3, 7) });
-    x.label = x.head ? '¡CRÁNEO!' : '¡COSTILLA ROTA!';
+  const p = clamp((x.t - 0.25) / 0.6, 0, 1), e = 1 - Math.pow(1 - p, 3);
+  if (!x.cracked && x.ribP <= 1 && e >= x.ribP) {
+    x.cracked = true; x.crT = x.t; sfx('crack');
+    const [cxp, cyp] = x.cp;
+    for (let i = 0; i < 12; i++) x.shards.push({ x: cxp, y: cyp, vx: rnd(-110, 110) + x.dir[0] * 90, vy: rnd(-150, 50) + x.dir[1] * 90, r: rnd(0, 6), vr: rnd(-10, 10), s: rnd(1.5, 4) });
+    if (x.head) {
+      const base = Math.atan2(-28 - cyp, -cxp);
+      for (let i = 0; i < 7; i++) { let a = base + (i - 3) * 0.42 + rnd(-.15, .15), px = cxp, py = cyp; const pl = [[px, py]]; for (let j = 0; j < 5; j++) { a += rnd(-.5, .5); const l = rnd(7, 15); px += Math.cos(a) * l; py += Math.sin(a) * l; pl.push([px, py]); } x.frac.push(pl); }
+    }
+    x.label = x.head ? 'FRACTURA DE CRÁNEO' : 'COSTILLA ROTA';
+    if (gore()) x.blobs.push({ x: cxp, y: cyp, r: 0, max: 9 });
   }
   if (!x.popped && p >= 1) {
-    x.popped = true; x.popT = x.t;
-    if (!x.head && (x.lung || x.heart)) {
-      sfx('pop'); x.label = x.lung ? '¡PULMÓN PERFORADO!' : '¡AL CORAZÓN!';
-      for (let i = 0; i < 14; i++) x.bubbles.push({ x: x.end[0] + rnd(-6, 6), y: x.end[1] + rnd(-6, 6), vx: rnd(-30, 30), vy: rnd(-90, -30), r: rnd(2, 5), l: rnd(.6, 1.2) });
-    } else if (x.head) x.label = '¡HEADSHOT!';
+    x.popped = true; x.popT = x.t; sfx(x.head ? 'crack' : 'pop');
+    if (x.head) { x.label = '¡HEADSHOT!'; x.sub = 'Fractura de cráneo y hemorragia'; }
+    else if (x.heart) { x.label = '¡AL CORAZÓN!'; x.sub = 'Hemorragia masiva'; }
+    else if (x.lung) { x.label = '¡PULMÓN PERFORADO!'; x.sub = 'Neumotórax y hemotórax'; }
+    else { x.label = '¡IMPACTO EN EL TÓRAX!'; x.sub = x.cracked ? 'Costilla rota' : ''; }
+    if (gore()) {
+      x.blobs.push({ x: x.end[0], y: x.end[1], r: 0, max: x.heart ? 40 : x.head ? 30 : 20 });
+      for (let k = 1; k <= 4; k++) x.blobs.push({ x: x.end[0] - x.dir[0] * k * 16, y: x.end[1] - x.dir[1] * k * 16, r: 0, max: rnd(4, 9) });
+    }
   }
-  for (const s of x.shards) { s.x += s.vx * rdt; s.y += s.vy * rdt; s.vy += 500 * rdt; s.r += s.vr * rdt; }
-  for (const b of x.bubbles) { b.x += b.vx * rdt; b.y += b.vy * rdt; b.l -= rdt; }
-  if (x.t > 2.25) { xray = xq.shift() || null; if (xray) sfx('xray'); else slowT = 0.15; }
+  for (const s of x.shards) { s.x += s.vx * rdt; s.y += s.vy * rdt; s.vy += 260 * rdt; s.r += s.vr * rdt; s.vx *= .97; s.vy *= .97; }
+  for (const b of x.blobs) b.r += (b.max - b.r) * Math.min(1, rdt * 1.8);
+  if (x.t > 2.9) { xray = xq.shift() || null; if (xray) sfx('xray'); else slowT = 0.15; }
+}
+
+/* ---- dibujo de los rayos X ---- */
+function drawXray(x) {
+  const d = x.d, P = d.pts, head = x.head;
+  const fx = head ? P[0].x : lerp(P[1].x, P[2].x, x.hy), fy = head ? P[0].y : lerp(P[1].y, P[2].y, x.hy);
+  const t = x.t, inS = t < 0.22 ? (1 - Math.pow(1 - t / 0.22, 3)) * (1 + 0.12 * Math.sin(t / 0.22 * Math.PI)) : 1, outS = t > 2.6 ? clamp(1 - (t - 2.6) / 0.3, 0, 1) : 1;
+  const k = inS * outS; if (k <= 0) return;
+  const R = 160;
+  let lx = fx - 250, ly = fy - 100; lx = clamp(lx, R + 20, W - R - 20); ly = clamp(ly, R + 20, H - R - 50);
+  if (Math.hypot(lx - fx, ly - fy) < R + 30) lx = clamp(fx + (fx > W / 2 ? -1 : 1) * (R + 70), R + 20, W - R - 20);
+  cx.save(); cx.setTransform(1, 0, 0, 1, 0, 0); cx.fillStyle = `rgba(4,6,10,${0.45 * k})`; cx.fillRect(0, 0, cv.width, cv.height); cx.restore();
+  cx.strokeStyle = `rgba(170,220,255,${0.9 * k})`; cx.lineWidth = 2.5; cx.beginPath(); cx.arc(fx, fy, head ? 22 : 26, 0, 7); cx.stroke();
+  const ang = Math.atan2(fy - ly, fx - lx);
+  cx.setLineDash([6, 6]); cx.beginPath(); cx.moveTo(lx + Math.cos(ang) * R * k, ly + Math.sin(ang) * R * k); cx.lineTo(fx - Math.cos(ang) * 26, fy - Math.sin(ang) * 26); cx.stroke(); cx.setLineDash([]);
+  cx.save(); cx.translate(lx, ly); cx.scale(k, k);
+  cx.beginPath(); cx.arc(0, 0, R, 0, 7); cx.fillStyle = '#030405'; cx.fill();
+  cx.save(); cx.clip();
+  const sh = x.popped && t - x.popT < .3 ? (1 - (t - x.popT) / .3) * 3 : 0;
+  cx.translate(rnd(-sh, sh), rnd(-sh, sh));
+  cx.scale(R / 150, R / 150);
+  if (head) drawSkullX(x); else drawChestX(x);
+  // flecha: la punta metálica sale blanquísima, la madera casi no se ve
+  const p = clamp((t - 0.25) / 0.6, 0, 1), e = 1 - Math.pow(1 - p, 3);
+  drawXArrow([lerp(x.start[0], x.end[0], e), lerp(x.start[1], x.end[1], e)], x.dir);
+  for (const s of x.shards) { cx.save(); cx.translate(s.x, s.y); cx.rotate(s.r); cx.fillStyle = 'rgba(235,240,244,.9)'; cx.beginPath(); cx.moveTo(-s.s, 0); cx.lineTo(0, -s.s * .7); cx.lineTo(s.s, s.s * .4); cx.fill(); cx.restore(); }
+  // grano de película y barrido del escáner
+  const N = noiseCanvas(), o = (performance.now() / 16 | 0) % 7;
+  cx.globalAlpha = .55; for (let gx = -150; gx < 150; gx += 128) for (let gy = -150; gy < 150; gy += 128) cx.drawImage(N, o * 9, o * 13, 128, 128, gx, gy, 128, 128); cx.globalAlpha = 1;
+  if (t < 0.6) { const sy = -150 + (t / 0.6) * 300; const sg = cx.createLinearGradient(0, sy - 30, 0, sy); sg.addColorStop(0, 'rgba(160,220,255,0)'); sg.addColorStop(1, 'rgba(160,220,255,.35)'); cx.fillStyle = sg; cx.fillRect(-150, sy - 30, 300, 30); }
+  cx.fillStyle = 'rgba(220,230,238,.7)'; cx.font = '700 9px Rubik, sans-serif'; cx.textAlign = 'left'; cx.fillText(head ? 'CRÁNEO · AP' : 'TÓRAX · PA', -86, 118); cx.fillText('R', -116, -60);
+  cx.restore();
+  cx.strokeStyle = '#bfe6ff'; cx.lineWidth = 4; cx.beginPath(); cx.arc(0, 0, R, 0, 7); cx.stroke();
+  cx.strokeStyle = 'rgba(191,230,255,.25)'; cx.lineWidth = 12; cx.beginPath(); cx.arc(0, 0, R + 8, 0, 7); cx.stroke();
+  for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2; cx.strokeStyle = '#bfe6ff'; cx.lineWidth = 3; cx.beginPath(); cx.moveTo(Math.cos(a) * (R - 10), Math.sin(a) * (R - 10)); cx.lineTo(Math.cos(a) * (R + 4), Math.sin(a) * (R + 4)); cx.stroke(); }
+  cx.fillStyle = '#050d18'; rr(-42, -R - 12, 84, 22, 11); cx.fill(); cx.strokeStyle = '#bfe6ff'; cx.lineWidth = 2; cx.stroke();
+  cx.fillStyle = '#bfe6ff'; cx.font = '800 12px Rubik, sans-serif'; cx.textAlign = 'center'; cx.fillText('RAYOS X', 0, -R + 3);
+  if (x.label) {
+    cx.font = '900 24px Rubik, sans-serif'; cx.lineWidth = 6; cx.strokeStyle = '#050d18'; cx.strokeText(x.label, 0, R + 36); cx.fillStyle = '#fff'; cx.fillText(x.label, 0, R + 36);
+    if (x.sub) { cx.font = '700 14px Rubik, sans-serif'; cx.lineWidth = 4; cx.strokeText(x.sub, 0, R + 56); cx.fillStyle = '#ffb3b3'; cx.fillText(x.sub, 0, R + 56); }
+  }
+  cx.restore();
+}
+function polyPath(pts, a, b, ox = 0, oy = 0) { cx.beginPath(); for (let i = a; i <= b; i++) i === a ? cx.moveTo(pts[i][0] + ox, pts[i][1] + oy) : cx.lineTo(pts[i][0] + ox, pts[i][1] + oy); }
+function bone(pts, a, b, w, al, ox = 0, oy = 0) {
+  polyPath(pts, a, b, ox, oy); cx.lineCap = 'round'; cx.lineJoin = 'round';
+  cx.strokeStyle = `rgba(214,221,227,${al})`; cx.lineWidth = w; cx.stroke();
+  cx.strokeStyle = `rgba(40,44,49,${al * .45})`; cx.lineWidth = Math.max(1, w - 2.6); cx.stroke(); // médula más oscura: bordes de cortical brillantes
+}
+function drawBlood(x) {
+  if (!x.blobs.length) return;
+  cx.filter = 'blur(5px)';
+  for (const b of x.blobs) if (b.r > .5) { cx.fillStyle = 'rgba(165,12,24,.62)'; cx.beginPath(); cx.arc(b.x, b.y + b.r * .25, b.r, 0, 7); cx.fill(); }
+  cx.filter = 'none';
+}
+function drawChestX(x) {
+  const t = x.t, col = x.lung && x.popped, f = col ? 1 - 0.32 * clamp((t - x.popT) / 1, 0, 1) : 1;
+  cx.drawImage(xrBase('chest'), -150, -150, 300, 300);
+  for (const sd of [-1, 1]) {
+    const fs = x.lung === sd ? f : 1, full = lungPath(sd), lp = lungPath(sd, fs);
+    cx.filter = 'blur(4px)';
+    if (fs < 1) { cx.fillStyle = '#040506'; cx.fill(full); }
+    cx.fillStyle = '#0d0f12'; cx.fill(lp); cx.filter = 'none';
+    cx.save(); cx.clip(lp); cx.translate(sd * 30, -36); cx.scale(fs, fs); cx.translate(-sd * 30, 36);
+    cx.strokeStyle = 'rgba(120,128,136,.42)'; cx.lineCap = 'round';
+    for (const [x1, y1, x2, y2, w] of VESSELS[sd]) { cx.lineWidth = w; cx.beginPath(); cx.moveTo(x1, y1); cx.lineTo(x2, y2); cx.stroke(); }
+    cx.restore();
+    if (fs < 1) { cx.strokeStyle = 'rgba(210,216,222,.55)'; cx.lineWidth = 1; cx.stroke(lp); }
+    if (gore() && x.lung === sd && x.popped) { // sangre acumulándose en la base del pulmón
+      const lv = 30 * clamp((t - x.popT) / 1.4, 0, 1), y = 62 - lv;
+      cx.save(); cx.clip(full); cx.filter = 'blur(2px)'; cx.fillStyle = 'rgba(160,14,26,.7)';
+      cx.beginPath(); cx.moveTo(sd * 90, 90); cx.lineTo(sd * 90, y - 10); cx.quadraticCurveTo(sd * 66, y - 2, sd * 40, y); cx.lineTo(sd * 10, y); cx.lineTo(sd * 10, 90); cx.closePath(); cx.fill(); cx.filter = 'none'; cx.restore();
+    }
+  }
+  const hb = 1 + 0.035 * Math.sin(t * (x.heart && x.popped ? 3 : 9));
+  cx.filter = 'blur(7px)'; cx.fillStyle = '#4a5057'; cx.beginPath(); cx.ellipse(16, 24, 36 * hb, 38 * hb, -.35, 0, 7); cx.fill(); cx.filter = 'none';
+  drawBlood(x);
+  cx.filter = 'blur(.6px)';
+  for (const sd of [-1, 1]) { // escápulas y húmeros
+    cx.strokeStyle = 'rgba(220,226,230,.2)'; cx.lineWidth = 3; cx.beginPath(); cx.moveTo(sd * 52, -120); cx.lineTo(sd * 86, -124); cx.lineTo(sd * 66, -40); cx.closePath(); cx.stroke();
+  }
+  cx.filter = 'blur(2.5px)';
+  for (const sd of [-1, 1]) { cx.fillStyle = 'rgba(205,212,218,.28)'; cx.beginPath(); cx.arc(sd * 100, -112, 17, 0, 7); cx.fill(); rr(sd * 100 - 8, -112, 16, 170, 8); cx.fill(); }
+  cx.filter = 'blur(.6px)';
+  for (let y = -152; y < 152; y += 16) { // columna
+    cx.fillStyle = 'rgba(200,207,213,.2)'; rr(-12, y, 24, 12.5, 4); cx.fill(); cx.strokeStyle = 'rgba(232,237,241,.3)'; cx.lineWidth = 1.2; cx.stroke();
+    cx.strokeStyle = 'rgba(232,237,241,.22)'; for (const sd of [-1, 1]) { cx.beginPath(); cx.ellipse(sd * 8, y + 5, 2.2, 3, 0, 0, 7); cx.stroke(); }
+    cx.fillStyle = 'rgba(230,236,240,.2)'; cx.beginPath(); cx.ellipse(0, y + 9, 1.6, 3.4, 0, 0, 7); cx.fill();
+  }
+  for (const r of RIBS) {
+    const broken = x.cracked && x.rib === r;
+    if (!broken) { bone(r.pts, 0, r.nP - 1, 5.5, .5); bone(r.pts, r.nP - 1, r.pts.length - 1, 3.6, .22); continue; }
+    const k = x.ribK, dsp = 4 * clamp((t - x.crT) / .15, 0, 1), ox = x.dir[0] * dsp, oy = x.dir[1] * dsp + dsp * .4;
+    const kk = Math.max(1, k - 1);
+    if (k < r.nP) { bone(r.pts, 0, kk, 5.5, .6); bone(r.pts, k + 1, r.nP - 1, 5.5, .6, ox, oy); bone(r.pts, r.nP - 1, r.pts.length - 1, 3.6, .22, ox, oy); }
+    else { bone(r.pts, 0, r.nP - 1, 5.5, .5); bone(r.pts, r.nP - 1, kk, 3.6, .3); bone(r.pts, k + 1, r.pts.length - 1, 3.6, .3, ox, oy); }
+  }
+  for (const sd of [-1, 1]) bone([[sd * 8, -124], [sd * 28, -119], [sd * 50, -127], [sd * 80, -123]], 0, 3, 7, .75); // clavículas
+  cx.filter = 'none';
+}
+function drawSkullX(x) {
+  cx.drawImage(xrBase('head'), -150, -150, 300, 300);
+  cx.filter = 'blur(6px)'; cx.fillStyle = '#25292e'; cx.beginPath(); cx.ellipse(0, -28, 76, 80, 0, 0, 7); cx.fill(); cx.filter = 'none';
+  drawBlood(x);
+  cx.filter = 'blur(.6px)';
+  // bóveda: díploe con tablas interna y externa brillantes
+  cx.lineWidth = 12; cx.strokeStyle = 'rgba(200,208,214,.42)'; cx.beginPath(); cx.ellipse(0, -28, 84, 88, 0, Math.PI * .86, Math.PI * 2.14); cx.stroke();
+  cx.lineWidth = 2; cx.strokeStyle = 'rgba(240,244,247,.85)';
+  for (const d of [-5, 5]) { cx.beginPath(); cx.ellipse(0, -28, 84 + d, 88 + d, 0, Math.PI * .86, Math.PI * 2.14); cx.stroke(); }
+  // base del cráneo y alas del esfenoides
+  cx.strokeStyle = 'rgba(220,226,232,.45)'; cx.lineWidth = 3;
+  for (const sd of [-1, 1]) { cx.beginPath(); cx.moveTo(sd * 8, -10); cx.quadraticCurveTo(sd * 34, -22, sd * 70, -8); cx.stroke(); }
+  // órbitas
+  for (const sd of [-1, 1]) {
+    cx.fillStyle = '#0c0e10'; cx.beginPath(); cx.ellipse(sd * 30, 10, 21, 18, sd * .08, 0, 7); cx.fill();
+    cx.strokeStyle = 'rgba(232,237,241,.8)'; cx.lineWidth = 3; cx.stroke();
+    cx.fillStyle = '#15181b'; cx.beginPath(); cx.ellipse(sd * 32, 50, 15, 13, 0, 0, 7); cx.fill(); // senos maxilares
+    cx.strokeStyle = 'rgba(220,226,232,.5)'; cx.lineWidth = 5; cx.beginPath(); cx.moveTo(sd * 50, 18); cx.quadraticCurveTo(sd * 76, 22, sd * 82, 40); cx.stroke(); // arco cigomático
+  }
+  cx.fillStyle = '#0c0e10'; cx.beginPath(); cx.moveTo(0, 26); cx.quadraticCurveTo(-16, 46, -12, 62); cx.lineTo(12, 62); cx.quadraticCurveTo(16, 46, 0, 26); cx.fill(); // fosa nasal
+  cx.strokeStyle = 'rgba(220,226,232,.55)'; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(0, 30); cx.lineTo(0, 62); cx.stroke();
+  // dientes
+  for (let i = -4; i < 4; i++) { cx.fillStyle = 'rgba(240,244,247,.85)'; rr(i * 9 + 1, 70, 7.5, 11, 2.5); cx.fill(); rr(i * 9 + 1, 84, 7.5, 10, 2.5); cx.fill(); }
+  // mandíbula
+  cx.lineWidth = 9; cx.strokeStyle = 'rgba(205,212,218,.5)'; cx.beginPath(); cx.moveTo(-70, 22); cx.lineTo(-62, 90); cx.quadraticCurveTo(-40, 120, 0, 122); cx.quadraticCurveTo(40, 120, 62, 90); cx.lineTo(70, 22); cx.stroke();
+  cx.lineWidth = 1.8; cx.strokeStyle = 'rgba(240,244,247,.8)'; cx.stroke();
+  for (let y = 128; y < 160; y += 14) { cx.fillStyle = 'rgba(190,198,205,.3)'; rr(-12, y, 24, 10, 3); cx.fill(); }
+  cx.filter = 'none';
+  // trazos de fractura (oscuros) con borde brillante
+  for (const pl of x.frac) {
+    const n = Math.min(pl.length - 1, Math.floor((x.t - x.crT) / 0.05) + 1);
+    cx.beginPath(); for (let i = 0; i <= n; i++) i ? cx.lineTo(pl[i][0], pl[i][1]) : cx.moveTo(pl[i][0], pl[i][1]);
+    cx.strokeStyle = 'rgba(4,5,6,.95)'; cx.lineWidth = 2.4; cx.stroke(); cx.strokeStyle = 'rgba(255,255,255,.28)'; cx.lineWidth = .8; cx.stroke();
+  }
+}
+function drawXArrow(tip, dir) {
+  const [c, s] = dir, nx = -s, ny = c, [tx, ty] = tip;
+  cx.lineCap = 'butt';
+  cx.strokeStyle = 'rgba(165,174,182,.45)'; cx.lineWidth = 5; cx.beginPath(); cx.moveTo(tx - c * 30, ty - s * 30); cx.lineTo(tx - c * 380, ty - s * 380); cx.stroke();
+  cx.shadowColor = '#ffffff'; cx.shadowBlur = 10;
+  cx.strokeStyle = 'rgba(246,249,251,.95)'; cx.lineWidth = 6.5; cx.beginPath(); cx.moveTo(tx - c * 20, ty - s * 20); cx.lineTo(tx - c * 32, ty - s * 32); cx.stroke();
+  cx.fillStyle = '#f8fbff'; cx.beginPath(); cx.moveTo(tx, ty); cx.lineTo(tx - c * 24 + nx * 9, ty - s * 24 + ny * 9); cx.lineTo(tx - c * 18, ty - s * 18); cx.lineTo(tx - c * 24 - nx * 9, ty - s * 24 - ny * 9); cx.closePath(); cx.fill();
+  cx.shadowBlur = 0; cx.lineCap = 'round';
+}
+
+/* ---------- sangre ---------- */
+let stains = [];
+const gore = () => save.gore !== false;
+function bleed(x, y, vx, vy, n, spread = 1) {
+  if (!gore()) return;
+  const sp = Math.hypot(vx, vy) || 1, ux = vx / sp, uy = vy / sp;
+  for (let i = 0; i < n; i++) {
+    const back = Math.random() < 0.25 ? -0.5 : 1, s = rnd(60, 420) * spread;
+    parts.push({ x, y, vx: ux * s * back + rnd(-90, 90) * spread, vy: uy * s * back + rnd(-160, 40) * spread, life: 2.5, max: 2.5, c: Math.random() < .5 ? '#8c0b12' : '#b3121b', r: rnd(1.4, 3.6), g: 1000, blood: 1 });
+  }
+}
+function bloodHit(p) { // la gota toca una superficie: deja mancha
+  for (const R of rects) {
+    if (p.x < R.x || p.x > R.x + R.w || p.y < R.y - 2 || p.y > R.y + Math.min(R.h, 2000)) continue;
+    const top = p.y - R.y < 10;
+    if (stains.length > 500) stains.shift();
+    stains.push({ R, ox: p.x - R.x, oy: top ? 0 : p.y - R.y, r: p.r * rnd(1.2, 2.2), top, c: p.c });
+    return true;
+  }
+  return false;
+}
+function drawStains() {
+  for (const s of stains) {
+    const x = s.R.x + s.ox, y = s.R.y + s.oy;
+    cx.fillStyle = s.c;
+    if (s.top) { cx.beginPath(); cx.ellipse(x, y + 0.5, s.r * 1.7, s.r * 0.45, 0, 0, 7); cx.fill(); }
+    else { cx.globalAlpha = .9; cx.beginPath(); cx.ellipse(x, y, s.r * .8, s.r * 1.3, 0, 0, 7); cx.fill(); cx.fillRect(x - s.r * .25, y, s.r * .5, s.r * 3); cx.globalAlpha = 1; }
+  }
+  if (!gore()) return;
+  for (const d of dolls) if (d.pool && d.pool.r > 1) {
+    const p = d.pool, x = p.R.x + p.ox, y = p.R.y;
+    cx.fillStyle = '#7a0a10'; cx.beginPath(); cx.ellipse(x, y + 0.5, p.r, Math.min(3, p.r * .14), 0, 0, 7); cx.fill();
+  }
+}
+function updBlood(dt) {
+  if (!gore()) return;
+  for (const A of arrows) if (A.body && A.bleed > 0) {
+    A.bleed -= dt; A.dripT = (A.dripT || 0) - dt;
+    if (A.dripT <= 0) { A.dripT = rnd(.05, .14); const t = A.att, [x, y] = toWorld(t.pts[t.a], t.pts[t.b], t.u, t.v); parts.push({ x, y, vx: rnd(-20, 20), vy: rnd(0, 40), life: 2.5, max: 2.5, c: '#8c0b12', r: rnd(1.2, 2.4), g: 1000, blood: 1 }); }
+  }
+  for (const d of dolls) {
+    if (!d.dead || d.out || !d.rag) continue;
+    const p = d.pts[2], v = Math.hypot(p.x - p.px, p.y - p.py);
+    if (!d.pool) { if (v < 0.4) for (const R of rects) if (p.x > R.x - 4 && p.x < R.x + R.w + 4 && p.y > R.y - 24 && p.y < R.y + 4) { d.pool = { R, ox: clamp(p.x - R.x, 6, R.w - 6), r: 0 }; break; } }
+    else d.pool.r = Math.min(d.pool.R.w / 2 + 6, 30, d.pool.r + dt * 9);
+  }
 }
 
 /* ---------- bucle ---------- */
@@ -457,7 +720,8 @@ function frame(now) {
     timeScale = lerp(timeScale, target, xray ? 0.35 : 0.12);
     if (slowT > 0) slowT -= rdt;
     updXray(rdt);
-    acc += rdt * timeScale;
+    if (flash > 0) flash = Math.max(0, flash - rdt * 3);
+    if (hitStop > 0) hitStop -= rdt; else acc += rdt * timeScale;
     let steps = 0;
     while (acc >= DT && steps < 12) { step(DT); acc -= DT; steps++; }
     keys(rdt);
@@ -475,9 +739,14 @@ function step(dt) {
   updMoving(time);
   for (const d of dolls) if (!d.rag) placeAlive(d); else if (!d.gone) stepDoll(d, dt);
   for (const A of arrows) stepArrow(A, dt);
-  for (const A of arrows) if (A.st === 'fly') { A.trail.push([A.x, A.y]); if (A.trail.length > 9) A.trail.shift(); }
+  for (const A of arrows) {
+    if (A.st === 'fly') { A.trail.push([A.x, A.y]); if (A.trail.length > 9) A.trail.shift(); if ((A.n = (A.n || 0) + 1) % 3 === 0) A.path.push([A.x, A.y]); }
+    else if (A.path && !A.pathDone) { A.path.push([A.x, A.y]); lastPath = A.path; A.pathDone = true; }
+    if (A.wob > 0) A.wob = Math.max(0, A.wob - dt * 2.5);
+  }
+  updBlood(dt);
   for (const X of tnts) if (X.fuse > 0) { X.fuse -= dt; if (X.fuse <= 0) explode(X); }
-  for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += (p.g || 0) * dt; p.life -= dt; }
+  for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += (p.g || 0) * dt; p.life -= dt; if (p.blood && p.vy > 0 && bloodHit(p)) p.life = 0; if (p.blood && p.y > H + 100) p.life = 0; }
   parts = parts.filter(p => p.life > 0);
   arrows = arrows.filter(A => A.st !== 'gone');
 }
@@ -501,40 +770,55 @@ function resize() {
 }
 addEventListener('resize', resize); resize();
 const toWorldXY = e => [((e.clientX * dpr) - ox) / sc, ((e.clientY * dpr) - oy) / sc];
+/* Apuntar: ratón (la flecha mira al puntero) o ←/→ · Fuerza: mantener pulsado (Espacio, clic o dedo):
+   la barra sube y baja, y al soltar esa es la fuerza. */
+let charge = null, lastPow = null;
+const POW_SPEED = 0.8; // ciclos (subir + bajar) por segundo
+function powNow() { if (!charge) return 0; const u = ((performance.now() - charge.t0) / 1000) * POW_SPEED, f = u - Math.floor(u); return 0.06 + 0.94 * (1 - Math.abs(1 - 2 * f)); }
+function aimAt(x, y) { const b = bowPos(), a = Math.atan2(y - b.y, x - b.x); if (x < player.x - 10) return; aim.a = clamp(a, -1.5, 1.25); }
+function startCharge(src, id) { if (state !== 'play' || arrowsLeft <= 0 || charge) return; charge = { src, id, t0: performance.now() }; sfx('draw'); }
+function endCharge(src, id) { if (!charge || charge.src !== src || (id != null && charge.id !== id)) return; aim.p = powNow(); lastPow = aim.p; charge = null; shoot(); }
 cv.addEventListener('pointerdown', e => {
-  if (state !== 'play' || arrowsLeft <= 0) return;
   audio();
-  const [x, y] = toWorldXY(e); aiming = { sx: x, sy: y, id: e.pointerId, moved: false }; cv.setPointerCapture(e.pointerId);
+  if (xray) { xray.t = Math.max(xray.t, 2.55); return; } // tocar durante los rayos X los salta
+  if (state !== 'play' || arrowsLeft <= 0) return;
+  const [x, y] = toWorldXY(e); aimAt(x, y);
+  cv.setPointerCapture(e.pointerId); startCharge('ptr', e.pointerId);
 });
 cv.addEventListener('pointermove', e => {
-  if (!aiming || e.pointerId !== aiming.id) return;
-  const [x, y] = toWorldXY(e), dx = aiming.sx - x, dy = aiming.sy - y, len = Math.hypot(dx, dy);
-  if (len > 10) { aiming.moved = true; aim.a = clamp(Math.atan2(dy, dx), -1.5, 1.25); if (dx < 0 && Math.abs(dy) < 40) aim.a = dy < 0 ? -1.5 : 1.25; aim.p = clamp(len / 250, 0.08, 1); }
+  if (state !== 'play') return;
+  if (e.pointerType === 'mouse' || (charge && charge.id === e.pointerId)) { const [x, y] = toWorldXY(e); aimAt(x, y); }
 });
-const release = e => { if (!aiming || e.pointerId !== aiming.id) return; const m = aiming.moved; aiming = null; if (m && aim.p > 0.1) shoot(); };
-cv.addEventListener('pointerup', release); cv.addEventListener('pointercancel', e => { aiming = null; });
+cv.addEventListener('pointerup', e => endCharge('ptr', e.pointerId));
+cv.addEventListener('pointercancel', e => { if (charge && charge.src === 'ptr') charge = null; });
 const held = {};
 addEventListener('keydown', e => {
   const k = e.key;
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(k)) e.preventDefault();
-  if (k === ' ' && !e.repeat) { audio(); if (state === 'play') shoot(); else if (state === 'end' && endOk) next(); }
+  if (k === ' ') {
+    audio();
+    if (e.repeat) return;
+    if (xray) { xray.t = Math.max(xray.t, 2.55); return; }
+    if (state === 'play') startCharge('key');
+    else if (state === 'end' && endOk) next();
+  }
   else if (k === 'r' || k === 'R') { if (state === 'play' || state === 'end') restart(); }
   else if (k === 'Escape') { if (state === 'play') showLevels(); }
   else if (k === 'Enter' && state === 'end') { endOk ? next() : restart(); }
   held[k.toLowerCase()] = true;
 });
-addEventListener('keyup', e => { held[e.key.toLowerCase()] = false; });
+addEventListener('keyup', e => { held[e.key.toLowerCase()] = false; if (e.key === ' ') endCharge('key'); });
+addEventListener('blur', () => { charge = null; for (const k in held) held[k] = false; });
 function keys(rdt) {
   if (state !== 'play') return;
-  if (held['arrowup'] || held['w']) aim.a = clamp(aim.a - rdt * 0.9, -1.5, 1.25);
-  if (held['arrowdown'] || held['s']) aim.a = clamp(aim.a + rdt * 0.9, -1.5, 1.25);
-  if (held['arrowright'] || held['d']) aim.p = clamp(aim.p + rdt * 0.55, 0.08, 1);
-  if (held['arrowleft'] || held['a']) aim.p = clamp(aim.p - rdt * 0.55, 0.08, 1);
+  const sp = held['shift'] ? 0.25 : 0.8; // con Mayús, ajuste fino
+  if (held['arrowleft'] || held['a']) aim.a = clamp(aim.a - rdt * sp, -1.5, 1.25);
+  if (held['arrowright'] || held['d']) aim.a = clamp(aim.a + rdt * sp, -1.5, 1.25);
 }
 
 /* ---------- pantallas ---------- */
 let endOk = false;
-function show(id) { ['home', 'levels', 'end'].forEach(x => $(x).hidden = x !== id); document.body.classList.toggle('playing', !id); $('hud').hidden = id === 'home' || id === 'levels'; }
+function show(id) { charge = null; ['home', 'levels', 'end'].forEach(x => $(x).hidden = x !== id); document.body.classList.toggle('playing', !id); $('hud').hidden = id === 'home' || id === 'levels'; }
 function start(i) { show(null); loadLevel(i); }
 function restart() { start(lvIdx); }
 function next() { if (lvIdx + 1 < LEVELS.length) start(lvIdx + 1); else showLevels(); }
@@ -575,6 +859,8 @@ function finish(ok) {
   setTimeout(() => { if (state === 'end') show('end'); }, 250);
 }
 $('endBtns').onclick = e => { const a = e.target.closest('[data-a]'); if (!a) return; ({ levels: showLevels, restart, next })[a.dataset.a](); };
+const goreTxt = () => $('bGore').textContent = 'Sangre: ' + (gore() ? 'sí' : 'no');
+$('bGore').onclick = () => { save.gore = !gore(); persist(); goreTxt(); }; goreTxt();
 $('bPlay').onclick = () => { audio(); start(unlocked()); };
 $('bLevels').onclick = () => { audio(); showLevels(); };
 $('bBackHome').onclick = () => { state = 'menu'; show('home'); };
@@ -598,6 +884,7 @@ function draw() {
   if (!L) return;
   // obstáculos
   for (const R of rects) drawRect(R);
+  drawStains();
   for (const X of tnts) if (X.alive) drawTNT(X);
   // flechas clavadas (antes que los cuerpos: la punta queda “dentro”)
   for (const A of arrows) if (A.st === 'stuck') drawArrowStuck(A);
@@ -605,13 +892,14 @@ function draw() {
   drawPlayer();
   for (const A of arrows) if (A.st === 'fly') drawArrowFly(A);
   for (const p of parts) drawPart(p);
-  if (state === 'play' && arrowsLeft > 0) drawGuide();
+  if (state === 'play' && arrowsLeft > 0) drawAimUI();
   for (const p of pops) {
     const a = clamp(p.life / 0.4, 0, 1), up = (1.3 - p.life) * 30;
     cx.globalAlpha = a; cx.font = `900 ${p.size}px Rubik, sans-serif`; cx.textAlign = 'center';
     cx.lineWidth = 5; cx.strokeStyle = 'rgba(255,255,255,.85)'; cx.strokeText(p.t, p.x, p.y - up);
     cx.fillStyle = p.c; cx.fillText(p.t, p.x, p.y - up); cx.globalAlpha = 1;
   }
+  if (flash > 0) { cx.save(); cx.setTransform(1, 0, 0, 1, 0, 0); const g = cx.createRadialGradient(cv.width / 2, cv.height / 2, cv.height * .3, cv.width / 2, cv.height / 2, cv.width * .7); g.addColorStop(0, 'rgba(160,0,10,0)'); g.addColorStop(1, `rgba(160,0,10,${.35 * flash})`); cx.fillStyle = g; cx.fillRect(0, 0, cv.width, cv.height); cx.restore(); }
   if (xray) drawXray(xray);
 }
 function drawBack() {
@@ -687,7 +975,7 @@ function drawDoll(d) {
 }
 function drawPlayer() {
   const { x, y } = player, b = bowPos();
-  const a = aim.a, pull = aiming && aiming.moved || held['arrowright'] || held['arrowleft'] ? aim.p : (state === 'play' && arrowsLeft > 0 ? 0.25 : 0);
+  const a = aim.a, pull = charge ? powNow() : (state === 'play' && arrowsLeft > 0 ? 0.2 : 0);
   cx.strokeStyle = '#0d0d0f'; cx.lineCap = 'round'; cx.lineJoin = 'round'; cx.lineWidth = 8.5;
   const nk = { x: x, y: y - 100 }, pv = { x: x, y: y - 52 };
   cx.beginPath();
@@ -733,128 +1021,37 @@ function drawArrowStuck(A) {
     const t = A.att, [x, y, sa] = toWorld(t.pts[t.a], t.pts[t.b], t.u, t.v);
     if (y > H + 500) return;
     arrowShape(x, y, sa + t.ra);
-  } else if (A.rect) { arrowShape(A.rect.x + A.ox, A.rect.y + A.oy, A.ang); }
+  } else if (A.rect) { arrowShape(A.rect.x + A.ox, A.rect.y + A.oy, A.ang + (A.wob ? Math.sin(performance.now() / 22) * 0.09 * A.wob : 0)); }
 }
 function drawPart(p) {
   const a = clamp(p.life / p.max, 0, 1);
   if (p.ring) { cx.strokeStyle = `rgba(255,220,140,${a})`; cx.lineWidth = 6 * a; cx.beginPath(); cx.arc(p.x, p.y, p.r * (1 - a * a), 0, 7); cx.stroke(); return; }
   cx.globalAlpha = p.smoke ? a * 0.5 : a; cx.fillStyle = p.c; cx.beginPath(); cx.arc(p.x, p.y, p.r * (p.smoke ? 2 - a : 1), 0, 7); cx.fill(); cx.globalAlpha = 1;
 }
-function drawGuide() {
-  const o = bowPos(), v = 450 + 1080 * aim.p;
-  let x = o.x + Math.cos(aim.a) * 30, y = o.y + Math.sin(aim.a) * 30, vx = Math.cos(aim.a) * v, vy = Math.sin(aim.a) * v;
-  const steps = L.g || 18, alpha = aiming && aiming.moved ? .9 : .45;
-  for (let i = 0; i < steps * 2; i++) {
-    const dt = 1 / 60; vx += wind * dt; vy += G * dt; x += vx * dt; y += vy * dt;
-    if (i % 2) { cx.fillStyle = `rgba(30,30,34,${alpha * (1 - i / (steps * 2))})`; cx.beginPath(); cx.arc(x, y, 3.4 - i / steps, 0, 7); cx.fill(); }
+function drawAimUI() {
+  const { x, y } = player;
+  // último tiro (solo como recuerdo, no predice nada)
+  if (lastPath && lastPath.length > 1) {
+    cx.strokeStyle = 'rgba(30,30,34,.18)'; cx.lineWidth = 2; cx.setLineDash([3, 7]); cx.beginPath();
+    lastPath.forEach(([px, py], i) => i ? cx.lineTo(px, py) : cx.moveTo(px, py)); cx.stroke(); cx.setLineDash([]);
   }
-  if (aiming && aiming.moved) { // medidor de fuerza
-    const b = bowPos(); cx.fillStyle = 'rgba(20,20,22,.6)'; rr(b.x - 30, b.y - 70, 60, 8, 4); cx.fill();
-    cx.fillStyle = aim.p > .85 ? '#ff5a3c' : '#fff'; rr(b.x - 30, b.y - 70, 60 * aim.p, 8, 4); cx.fill();
-  }
-}
-
-/* ---- dibujo de los rayos X ---- */
-function drawXray(x) {
-  const d = x.d, P = d.pts, head = x.head;
-  const fx = head ? P[0].x : lerp(P[1].x, P[2].x, x.hy), fy = head ? P[0].y : lerp(P[1].y, P[2].y, x.hy);
-  const t = x.t, inS = t < 0.22 ? (1 - Math.pow(1 - t / 0.22, 3)) * (1 + 0.15 * Math.sin(t / 0.22 * Math.PI)) : 1, outS = t > 1.95 ? clamp(1 - (t - 1.95) / 0.3, 0, 1) : 1;
-  const k = inS * outS; if (k <= 0) return;
-  const R = 150;
-  let lx = fx - 240, ly = fy - 110; lx = clamp(lx, R + 20, W - R - 20); ly = clamp(ly, R + 20, H - R - 20);
-  if (Math.hypot(lx - fx, ly - fy) < R + 30) lx = clamp(fx + (fx > W / 2 ? -1 : 1) * (R + 60), R + 20, W - R - 20);
-  // oscurecer el resto
-  cx.save(); cx.setTransform(1, 0, 0, 1, 0, 0); cx.fillStyle = `rgba(5,10,18,${0.38 * k})`; cx.fillRect(0, 0, cv.width, cv.height); cx.restore();
-  // foco en el muñeco
-  cx.strokeStyle = `rgba(120,220,255,${0.9 * k})`; cx.lineWidth = 2.5; cx.beginPath(); cx.arc(fx, fy, 24, 0, 7); cx.stroke();
-  cx.setLineDash([6, 6]); cx.beginPath(); const ang = Math.atan2(fy - ly, fx - lx); cx.moveTo(lx + Math.cos(ang) * R * k, ly + Math.sin(ang) * R * k); cx.lineTo(fx - Math.cos(ang) * 24, fy - Math.sin(ang) * 24); cx.stroke(); cx.setLineDash([]);
-  cx.save(); cx.translate(lx, ly); cx.scale(k, k);
-  // lente
-  cx.beginPath(); cx.arc(0, 0, R, 0, 7);
-  const bg = cx.createRadialGradient(0, -20, 20, 0, 0, R); bg.addColorStop(0, '#13314a'); bg.addColorStop(1, '#050d18');
-  cx.fillStyle = bg; cx.fill(); cx.save(); cx.clip();
-  cx.globalAlpha = 0.08; cx.fillStyle = '#9fe0ff'; for (let y = -R; y < R; y += 4) cx.fillRect(-R, y, 2 * R, 1); cx.globalAlpha = 1;
-  const glow = c => { cx.shadowColor = c; cx.shadowBlur = 12; };
-  const shakeX = x.popped && t - x.popT < .35 ? Math.sin(t * 90) * 3 * (1 - (t - x.popT) / .35) : 0;
-  cx.translate(shakeX, 0);
-  if (!head) drawChest(x); else drawSkull(x);
-  // flecha entrando
-  const p = clamp((t - 0.25) / 0.5, 0, 1), e = 1 - Math.pow(1 - p, 3);
-  const tip = [lerp(x.start[0], x.end[0], e), lerp(x.start[1], x.end[1], e)];
-  glow('#fff6c2');
-  const a = Math.atan2(x.dir[1], x.dir[0]), c = Math.cos(a), s = Math.sin(a);
-  cx.strokeStyle = '#fff3b8'; cx.lineWidth = 6; cx.lineCap = 'butt'; cx.beginPath(); cx.moveTo(tip[0] - c * 16, tip[1] - s * 16); cx.lineTo(tip[0] - c * 300, tip[1] - s * 300); cx.stroke();
-  cx.fillStyle = '#ffffff'; cx.beginPath(); cx.moveTo(tip[0], tip[1]); cx.lineTo(tip[0] - c * 26 - s * 10, tip[1] - s * 26 + c * 10); cx.lineTo(tip[0] - c * 26 + s * 10, tip[1] - s * 26 - c * 10); cx.fill();
-  cx.shadowBlur = 0;
-  // esquirlas y burbujas
-  for (const sh of x.shards) { cx.save(); cx.translate(sh.x, sh.y); cx.rotate(sh.r); cx.fillStyle = '#eaf6ff'; cx.beginPath(); cx.moveTo(-sh.s, 0); cx.lineTo(0, -sh.s * .6); cx.lineTo(sh.s, sh.s * .4); cx.fill(); cx.restore(); }
-  for (const b of x.bubbles) if (b.l > 0) { cx.strokeStyle = `rgba(255,190,205,${clamp(b.l, 0, 1)})`; cx.lineWidth = 1.5; cx.beginPath(); cx.arc(b.x, b.y, b.r, 0, 7); cx.stroke(); }
+  // ángulo
+  const deg = Math.round(-aim.a * 180 / Math.PI);
+  cx.font = '800 15px Rubik, sans-serif'; cx.textAlign = 'center';
+  cx.fillStyle = 'rgba(20,20,22,.75)'; rr(x + 18, y - 182, 50, 22, 11); cx.fill();
+  cx.fillStyle = '#fff'; cx.fillText(deg + '°', x + 43, y - 166);
+  // barra de fuerza
+  const bx = x - 48, top = y - 168, hh = 132, bw = 16, p = charge ? powNow() : 0;
+  cx.fillStyle = 'rgba(20,20,22,.72)'; rr(bx - 4, top - 4, bw + 8, hh + 8, 10); cx.fill();
+  const g = cx.createLinearGradient(0, top + hh, 0, top);
+  g.addColorStop(0, '#3ddc84'); g.addColorStop(.55, '#ffd23a'); g.addColorStop(1, '#ff3b30');
+  cx.save(); rr(bx, top, bw, hh, 6); cx.clip();
+  cx.fillStyle = 'rgba(255,255,255,.08)'; cx.fillRect(bx, top, bw, hh);
+  cx.fillStyle = g; cx.fillRect(bx, top + hh * (1 - p), bw, hh * p);
+  for (let i = 1; i < 4; i++) { cx.fillStyle = 'rgba(0,0,0,.35)'; cx.fillRect(bx, top + hh * i / 4, bw, 1.5); }
   cx.restore();
-  // borde de la lente
-  cx.strokeStyle = '#9fe0ff'; cx.lineWidth = 5; cx.beginPath(); cx.arc(0, 0, R, 0, 7); cx.stroke();
-  cx.strokeStyle = 'rgba(159,224,255,.35)'; cx.lineWidth = 12; cx.beginPath(); cx.arc(0, 0, R + 8, 0, 7); cx.stroke();
-  cx.fillStyle = '#050d18'; rr(-40, -R - 12, 80, 22, 11); cx.fill(); cx.strokeStyle = '#9fe0ff'; cx.lineWidth = 2; cx.stroke(); cx.fillStyle = '#9fe0ff'; cx.font = '800 12px Rubik, sans-serif'; cx.textAlign = 'center'; cx.fillText('RAYOS X', 0, -R + 3);
-  if (x.label) { cx.font = '900 22px Rubik, sans-serif'; cx.lineWidth = 6; cx.strokeStyle = '#050d18'; cx.strokeText(x.label, 0, R + 34); cx.fillStyle = '#ffffff'; cx.fillText(x.label, 0, R + 34); }
-  cx.restore();
-}
-function drawChest(x) {
-  const t = x.t, glow = c => { cx.shadowColor = c; cx.shadowBlur = 10; };
-  // silueta
-  cx.fillStyle = 'rgba(120,200,255,.10)'; cx.strokeStyle = 'rgba(150,220,255,.45)'; cx.lineWidth = 2;
-  cx.beginPath(); cx.moveTo(-14, -150); cx.lineTo(-14, -112); cx.quadraticCurveTo(-70, -108, -64, -70); cx.lineTo(-52, 110); cx.lineTo(52, 110); cx.lineTo(64, -70); cx.quadraticCurveTo(70, -108, 14, -112); cx.lineTo(14, -150); cx.fill(); cx.stroke();
-  // pulmones
-  const def = x.popped && x.lung ? 1 - 0.38 * clamp((t - x.popT) / 0.6, 0, 1) : 1;
-  for (const sd of [-1, 1]) {
-    const f = x.lung === sd ? def : 1, wob = x.lung === sd && x.popped ? Math.sin(t * 30) * 2 * (1 - clamp((t - x.popT) / .8, 0, 1)) : 0;
-    cx.fillStyle = x.lung === sd && x.popped ? 'rgba(255,120,150,.42)' : 'rgba(255,150,175,.5)';
-    cx.beginPath(); cx.ellipse(sd * 22, -30 + (1 - f) * 18, 17 * f + wob, 40 * f, sd * 0.12, 0, 7); cx.fill();
-    cx.strokeStyle = 'rgba(255,200,215,.6)'; cx.lineWidth = 1.5; cx.stroke();
-  }
-  // corazón
-  const hb = 1 + 0.08 * Math.sin(t * (x.heart && x.popped ? 4 : 14));
-  cx.fillStyle = x.heart && x.popped ? 'rgba(200,60,80,.6)' : 'rgba(255,90,110,.55)'; cx.beginPath(); cx.ellipse(8, -4, 11 * hb, 14 * hb, -.4, 0, 7); cx.fill();
-  // columna
-  glow('#cfefff'); cx.fillStyle = '#e8f6ff';
-  for (let y = -140; y < 110; y += 14) { cx.fillRect(-5, y, 10, 10); }
-  // esternón
-  cx.fillRect(-5, -76, 10, 62);
-  // costillas
-  cx.strokeStyle = '#eef8ff'; cx.lineWidth = 4.5; cx.lineCap = 'round';
-  for (let i = 0; i < 7; i++) {
-    const y0 = -70 + i * 20, wd = 46 - Math.abs(i - 2) * 2.5;
-    for (const sd of [-1, 1]) {
-      const broken = x.cracked && x.rib === i && x.side === sd;
-      if (!broken) { cx.beginPath(); cx.moveTo(sd * 4, y0 - 6); cx.quadraticCurveTo(sd * (wd + 4), y0 - 10, sd * (wd - 6), y0 + 22); cx.stroke(); continue; }
-      // costilla rota: dos trozos separados
-      cx.beginPath(); cx.moveTo(sd * 4, y0 - 6); cx.quadraticCurveTo(sd * 22, y0 - 10, sd * 30, y0 - 6); cx.stroke();
-      cx.save(); cx.translate(sd * 40, y0 + 4); cx.rotate(sd * 0.35); cx.beginPath(); cx.moveTo(sd * -4, -8); cx.quadraticCurveTo(sd * 8, -4, sd * 2, 18); cx.stroke(); cx.restore();
-      cx.strokeStyle = '#ffd1d1'; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(sd * 30, y0 - 10); cx.lineTo(sd * 33, y0 - 3); cx.lineTo(sd * 30, y0 + 1); cx.lineTo(sd * 35, y0 + 6); cx.stroke();
-      cx.strokeStyle = '#eef8ff'; cx.lineWidth = 4.5;
-    }
-  }
-  // clavículas
-  cx.beginPath(); cx.moveTo(-6, -98); cx.quadraticCurveTo(-30, -104, -56, -96); cx.moveTo(6, -98); cx.quadraticCurveTo(30, -104, 56, -96); cx.stroke();
-  // pelvis
-  cx.beginPath(); cx.moveTo(-40, 88); cx.quadraticCurveTo(-46, 112, -14, 118); cx.moveTo(40, 88); cx.quadraticCurveTo(46, 112, 14, 118); cx.stroke();
-  cx.shadowBlur = 0;
-}
-function drawSkull(x) {
-  const glow = c => { cx.shadowColor = c; cx.shadowBlur = 10; };
-  cx.fillStyle = 'rgba(120,200,255,.10)'; cx.beginPath(); cx.arc(0, -6, 92, 0, 7); cx.fill();
-  cx.fillStyle = 'rgba(255,170,190,.25)'; cx.beginPath(); cx.ellipse(0, -22, 56, 42, 0, 0, 7); cx.fill(); // cerebro
-  glow('#cfefff'); cx.strokeStyle = '#eef8ff'; cx.lineWidth = 6;
-  cx.beginPath(); cx.arc(0, -10, 72, Math.PI * 0.82, Math.PI * 2.18); cx.quadraticCurveTo(58, 54, 30, 62); cx.lineTo(-30, 62); cx.quadraticCurveTo(-58, 54, -52, 40); cx.stroke();
-  cx.fillStyle = '#eef8ff';
-  for (const sd of [-1, 1]) { cx.beginPath(); cx.ellipse(sd * 26, 10, 17, 14, 0, 0, 7); cx.lineWidth = 4; cx.stroke(); }
-  cx.beginPath(); cx.moveTo(0, 26); cx.lineTo(-7, 40); cx.lineTo(7, 40); cx.closePath(); cx.stroke();
-  cx.lineWidth = 3; for (let i = -3; i <= 3; i++) { cx.beginPath(); cx.moveTo(i * 8, 54); cx.lineTo(i * 8, 66); cx.stroke(); }
-  cx.beginPath(); cx.moveTo(-34, 62); cx.quadraticCurveTo(0, 96, 34, 62); cx.lineWidth = 5; cx.stroke();
-  if (x.cracked) { // grietas
-    const cp = [lerp(x.start[0], x.end[0], x.ribP), lerp(x.start[1], x.end[1], x.ribP)];
-    cx.strokeStyle = '#ffd1d1'; cx.lineWidth = 2.5;
-    for (let i = 0; i < 5; i++) { const a = i * 1.26 + 0.3; cx.beginPath(); cx.moveTo(cp[0], cp[1]); let px = cp[0], py = cp[1]; for (let j = 1; j < 4; j++) { px += Math.cos(a + (j % 2 ? .4 : -.4)) * 9; py += Math.sin(a + (j % 2 ? .4 : -.4)) * 9; cx.lineTo(px, py); } cx.stroke(); }
-  }
-  cx.shadowBlur = 0;
+  if (lastPow != null) { const ly = top + hh * (1 - lastPow); cx.fillStyle = 'rgba(255,255,255,.75)'; cx.beginPath(); cx.moveTo(bx + bw + 4, ly); cx.lineTo(bx + bw + 11, ly - 5); cx.lineTo(bx + bw + 11, ly + 5); cx.fill(); }
+  if (charge) { const py = top + hh * (1 - p); cx.fillStyle = '#fff'; rr(bx - 6, py - 3, bw + 12, 6, 3); cx.fill(); }
 }
 
 /* ---------- sonido (sintetizado) ---------- */
@@ -873,7 +1070,8 @@ function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
 }
 function sfx(k) {
   if (!AC) return;
-  if (k === 'twang') { tone(320, 110, .18, .25, 'triangle'); noise(.08, 2400, 1, .25); }
+  if (k === 'draw') { noise(.35, 700, 4, .08); tone(90, 140, .35, .05, 'sawtooth'); }
+  else if (k === 'twang') { tone(320, 110, .18, .25, 'triangle'); noise(.08, 2400, 1, .25); }
   else if (k === 'thunk') { tone(160, 60, .14, .5); noise(.06, 900, 1, .4); }
   else if (k === 'wood') { tone(420, 200, .07, .25, 'square'); noise(.05, 1800, 2, .25); }
   else if (k === 'shield') { tone(260, 140, .1, .35, 'square'); noise(.07, 1200, 3, .3); }
