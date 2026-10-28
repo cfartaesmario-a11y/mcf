@@ -140,8 +140,8 @@ const SKY = new THREE.Color('#dcecf1');
 scene.background = SKY; scene.fog = new THREE.Fog(SKY, 26, 75);
 const cam = new THREE.PerspectiveCamera(74, 1, 0.04, 200);
 scene.add(cam);
-const hemi = new THREE.HemisphereLight('#ffffff', '#b4cdd6', 0.75); scene.add(hemi);
-const sun = new THREE.DirectionalLight('#fff6ec', 0.75);
+const hemi = new THREE.HemisphereLight('#ffffff', '#c7dde4', 1.0); scene.add(hemi);
+const sun = new THREE.DirectionalLight('#fff6ec', 0.45);
 sun.castShadow = true; sun.shadow.mapSize.set(1536, 1536);
 Object.assign(sun.shadow.camera, { left: -26, right: 26, top: 26, bottom: -26, near: 1, far: 70 });
 sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.02; scene.add(sun); scene.add(sun.target);
@@ -178,6 +178,33 @@ const GEO = { dodec: new THREE.DodecahedronGeometry(1, 0), ico: new THREE.Icosah
 function mesh(geo, mat, sx, sy, sz, x = 0, y = 0, z = 0, parent) { const m = new THREE.Mesh(geo, mat); m.scale.set(sx, sy, sz); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; if (parent) parent.add(m); return m; }
 const grp = (parent, x = 0, y = 0, z = 0) => { const g = new THREE.Group(); g.position.set(x, y, z); if (parent) parent.add(g); return g; };
 
+/* ---------- cristal: facetas irregulares con color por cara ---------- */
+const PAL = ['#c81a2b', '#e52b2c', '#ff4d2e', '#ff6f33', '#ff9240', '#ffb357', '#ffd27a'].map(c => new THREE.Color(c));
+const LDIR = V3(.35, .85, .4).normalize();
+function crystalGeo(seed, detail = 1, jit = .16, warm = 0) {
+  let r = mulberry(seed * 131 + 7);
+  const g = new THREE.IcosahedronGeometry(1, detail).toNonIndexed();
+  const pos = g.attributes.position, key = (x, y, z) => (x * 73.1 + y * 19.7 + z * 5.3).toFixed(3), off = {};
+  for (let i = 0; i < pos.count; i++) { const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i), k = key(x, y, z); if (!off[k]) off[k] = 1 + (r() * 2 - 1) * jit; pos.setXYZ(i, x * off[k], y * off[k], z * off[k]); }
+  const col = new Float32Array(pos.count * 3), a = V3(), b = V3(), c = V3(), n = V3();
+  for (let i = 0; i < pos.count; i += 3) {
+    a.fromBufferAttribute(pos, i); b.fromBufferAttribute(pos, i + 1); c.fromBufferAttribute(pos, i + 2);
+    n.subVectors(c, b).cross(a.clone().sub(b)).normalize();
+    let t = (n.dot(LDIR) * .5 + .5) * 6 + (r() - .5) * 2.2 + warm; t = clamp(Math.round(t), 0, 6);
+    const C = PAL[t]; for (let j = 0; j < 3; j++) col.set([C.r, C.g, C.b], (i + j) * 3);
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
+  return g;
+}
+const CRYS = Array.from({ length: 8 }, (_, i) => crystalGeo(i + 1, 1, .17, i % 3 === 0 ? .6 : 0));
+const CRYS_HEAD = [crystalGeo(91, 1, .1, .8), crystalGeo(92, 1, .1, .8)];
+const MCRYS = new THREE.MeshBasicMaterial({ vertexColors: true });
+// trozo plano y triangular para cuando se rompen
+const SHARD_GEO = (() => { const g = new THREE.BufferGeometry(), v = [0, .6, 0, -.5, -.4, 0, .55, -.35, 0, 0, .6, .18, -.5, -.4, .18, .55, -.35, .18];
+  const idx = [0, 1, 2, 3, 5, 4, 0, 3, 4, 0, 4, 1, 1, 4, 5, 1, 5, 2, 2, 5, 3, 2, 3, 0]; g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); g.setIndex(idx); g.computeVertexNormals(); return g; })();
+const SHARD_MATS = PAL.map(c => new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide }));
+const cry = (i, sx, sy, sz, x, y, z, parent, head) => { const m = new THREE.Mesh(head ? CRYS_HEAD[i % 2] : CRYS[i % CRYS.length], MCRYS); m.scale.set(sx, sy, sz); m.position.set(x, y, z); m.castShadow = true; m.userData.crys = true; parent.add(m); return m; };
+
 /* ---------- armas ---------- */
 const WEAP = {
   pistol: { name: 'Pistola', mag: 8, res: 16, rate: .3, reload: .9, spread: .006, pellets: 1, auto: false, speed: 75 },
@@ -187,12 +214,45 @@ const WEAP = {
   ball: { name: 'Bola de hierro', throwOnly: true },
 };
 function gunModel(type) {
-  const g = new THREE.Group(), B = (w, h, d, m, x, y, z, rx = 0) => { const o = mesh(GEO.box, m, w, h, d, x, y, z, g); o.rotation.x = rx; return o; };
-  if (type === 'pistol') { B(.055, .05, .25, M.gun2, 0, .02, -.07); B(.05, .04, .2, M.gun, 0, -.022, -.05); B(.05, .15, .07, M.gun, 0, -.1, .035, .3); B(.012, .022, .012, M.gun2, 0, .052, -.18); B(.03, .035, .03, M.gun, 0, -.06, -.03); }
-  else if (type === 'ak') { B(.06, .085, .5, M.gun, 0, 0, -.17); B(.035, .035, .34, M.gun2, 0, .015, -.58); B(.05, .07, .22, M.wood, 0, -.01, -.42); B(.045, .17, .07, M.gun2, 0, -.13, -.1, -.4); B(.045, .12, .06, M.gun, 0, -.08, .07, .35); B(.055, .1, .26, M.wood, 0, -.03, .22); }
-  else if (type === 'shotgun') { B(.065, .075, .78, M.gun, 0, 0, -.3); B(.045, .045, .46, M.wood, 0, -.06, -.36); B(.055, .13, .3, M.wood, 0, -.06, .22, .18); }
-  else if (type === 'axe') { mesh(GEO.cyl6, M.wood, .025, .75, .025, 0, 0, -.3, g).rotation.x = Math.PI / 2; const h = mesh(GEO.box, M.metal, .025, .2, .16, 0, .07, -.62, g); h.rotation.x = .1; }
-  else if (type === 'ball') { mesh(GEO.ico, M.ball, .14, .14, .14, 0, 0, -.1, g); }
+  const g = new THREE.Group();
+  const B = (w, h, d, m, x, y, z, rx = 0, ry = 0, rz = 0) => { const o = mesh(GEO.box, m, w, h, d, x, y, z, g); o.rotation.set(rx, ry, rz); return o; };
+  const C = (r, len, m, x, y, z, seg = 10) => { const o = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, seg), m); o.rotation.x = Math.PI / 2; o.position.set(x, y, z); o.castShadow = true; g.add(o); return o; };
+  if (type === 'pistol') {
+    B(.052, .046, .26, M.gun2, 0, .028, -.07);                     // corredera
+    for (let k = 0; k < 5; k++) B(.054, .03, .006, M.gun, 0, .03, .03 + k * .012); // estrías
+    B(.012, .016, .02, M.gun, 0, .057, .05); B(.006, .014, .01, M.gun, 0, .056, -.19); // miras
+    C(.011, .03, M.gun, 0, .028, -.205, 8);                         // boca del cañón
+    B(.048, .034, .2, M.gun, 0, -.012, -.06);                       // armazón
+    B(.046, .016, .07, M.gun, 0, -.03, -.13);                       // raíl
+    B(.008, .05, .008, M.gun, 0, -.05, -.06); B(.008, .008, .07, M.gun, 0, -.075, -.045); B(.008, .045, .008, M.gun, 0, -.055, -.01); // guardamonte
+    B(.01, .03, .01, M.gun2, 0, -.045, -.04, .3);                   // gatillo
+    B(.046, .14, .068, M.gun, 0, -.095, .04, .32); for (let k = 0; k < 4; k++) B(.048, .006, .06, M.gun2, 0, -.06 - k * .028, .025 + k * .009, .32); // empuñadura
+  } else if (type === 'ak') {
+    B(.058, .075, .36, M.gun, 0, 0, -.06); B(.052, .03, .3, M.gun2, 0, .05, -.05);          // cajón y tapa
+    C(.012, .5, M.gun, 0, .02, -.5, 8); C(.016, .07, M.gun2, 0, .02, -.76, 8);               // cañón y bocacha
+    B(.01, .05, .012, M.gun, 0, .055, -.72);                                                 // mira delantera
+    C(.014, .26, M.gun2, 0, .055, -.36, 8);                                                  // tubo de gases
+    B(.056, .06, .22, M.wood, 0, -.008, -.33); B(.048, .03, .2, M.wood, 0, .055, -.35);       // guardamanos
+    for (let k = 0; k < 4; k++) B(.044, .06, .055, M.gun2, 0, -.07 - k * .045, -.08 + k * .02, -.25 - k * .12); // cargador curvo
+    B(.04, .11, .055, M.gun, 0, -.08, .09, .35);                                             // empuñadura
+    B(.008, .008, .07, M.gun, 0, -.05, .01); B(.008, .04, .008, M.gun, 0, -.035, .045);       // guardamonte
+    B(.05, .07, .3, M.wood, 0, -.03, .27, .09); B(.052, .1, .02, M.gun2, 0, -.045, .42);      // culata
+    B(.016, .02, .03, M.gun, 0, .07, .04);                                                   // alza
+  } else if (type === 'shotgun') {
+    C(.017, .66, M.gun, 0, .025, -.38, 10); C(.015, .5, M.gun2, 0, -.012, -.33, 10);          // cañón y tubo
+    B(.05, .05, .15, M.wood, 0, -.012, -.33); for (let k = 0; k < 4; k++) B(.052, .006, .13, M.gun, 0, -.03 + k * .012, -.33); // corredera
+    B(.06, .075, .24, M.gun, 0, .01, -.02);                                                  // cajón
+    B(.008, .008, .07, M.gun, 0, -.045, .03); B(.008, .04, .008, M.gun, 0, -.03, .065);       // guardamonte
+    B(.05, .12, .06, M.wood, 0, -.06, .12, .5); B(.056, .1, .3, M.wood, 0, -.055, .27, .14); B(.058, .12, .02, M.gun2, 0, -.07, .42, .14); // culata
+    B(.008, .012, .01, M.metal, 0, .048, -.7);                                               // punto de mira
+  } else if (type === 'axe') {
+    const h = new THREE.Mesh(new THREE.CylinderGeometry(.018, .026, .78, 7), M.wood); h.rotation.x = Math.PI / 2; h.position.z = -.3; h.castShadow = true; g.add(h);
+    const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(.02, .05); sh.lineTo(.17, .11); sh.quadraticCurveTo(.21, 0, .17, -.11); sh.lineTo(.02, -.05); sh.lineTo(0, 0);
+    const hg = new THREE.ExtrudeGeometry(sh, { depth: .022, bevelEnabled: false }); hg.translate(0, 0, -.011);
+    const head = new THREE.Mesh(hg, M.metal); head.rotation.set(0, Math.PI / 2, Math.PI / 2); head.position.set(0, .0, -.64); head.castShadow = true; g.add(head);
+    B(.04, .045, .06, M.gun2, 0, 0, -.64);                                                   // ojo del hacha
+    B(.03, .03, .05, M.gun, 0, 0, .07);                                                      // pomo
+  } else if (type === 'ball') { const b = mesh(GEO.ico, M.ball, .14, .14, .14, 0, 0, -.1, g); b.geometry = new THREE.IcosahedronGeometry(1, 1); }
   return g;
 }
 
@@ -205,26 +265,29 @@ let state = 'menu', ts = .02, pulse = 0, winT = 0, deadT = 0, shake = 0, totalFo
 
 /* ---------- enemigos: cuerpo de cristal con articulaciones ---------- */
 function makeEnemy(x, z, kind) {
-  const root = grp(world, x, 0, z);
-  const hip = grp(root, 0, .96, 0);
-  mesh(GEO.dodec, M.enemyDark, .17, .11, .13, 0, 0, 0, hip);
+  const root = grp(world, x, 0, z), v = (Math.random() * 8) | 0;
+  const hip = grp(root, 0, .98, 0);
+  cry(v, .17, .12, .12, 0, 0, 0, hip);                                   // pelvis
   const spine = grp(hip, 0, .06, 0);
-  mesh(GEO.dodec, M.enemy, .15, .12, .11, 0, .09, 0, spine);
-  mesh(GEO.dodec, M.enemy2, .22, .2, .15, 0, .33, 0, spine);
-  const neck = grp(spine, 0, .55, 0);
-  const head = mesh(GEO.ico, M.enemy2, .14, .165, .15, 0, .14, 0, neck);
+  cry(v + 1, .14, .13, .1, 0, .1, 0, spine);                              // abdomen
+  cry(v + 2, .23, .22, .14, 0, .35, .005, spine);                         // pecho
+  cry(v + 3, .1, .06, .09, 0, .53, 0, spine);                             // hombros/cuello
+  const neck = grp(spine, 0, .58, 0);
+  cry(v + 4, .045, .06, .045, 0, .03, 0, neck);
+  const head = cry(v, .13, .17, .145, 0, .17, .01, neck, true);
   const sh = [], el = [], hip2 = [], kn = [];
   for (const s of [-1, 1]) {
-    const S = grp(spine, s * .25, .47, 0); sh.push(S);
-    mesh(GEO.dodec, M.enemy, .065, .16, .065, 0, -.14, 0, S);
-    const E = grp(S, 0, -.29, 0); el.push(E);
-    mesh(GEO.dodec, M.enemy2, .055, .15, .055, 0, -.14, 0, E);
-    mesh(GEO.ico, M.enemyDark, .05, .055, .05, 0, -.3, 0, E);
+    const S = grp(spine, s * .25, .48, 0); sh.push(S);
+    cry(v + 5, .075, .085, .075, 0, -.02, 0, S);                          // deltoides
+    cry(v + 6, .058, .16, .058, 0, -.15, 0, S);
+    const E = grp(S, 0, -.3, 0); el.push(E);
+    cry(v + 7, .05, .15, .05, 0, -.14, 0, E);
+    cry(v + 1, .048, .06, .035, 0, -.31, 0, E);                           // mano
     const Hh = grp(hip, s * .1, -.04, 0); hip2.push(Hh);
-    mesh(GEO.dodec, M.enemy, .085, .24, .085, 0, -.22, 0, Hh);
-    const K = grp(Hh, 0, -.44, 0); kn.push(K);
-    mesh(GEO.dodec, M.enemy2, .07, .23, .07, 0, -.21, 0, K);
-    mesh(GEO.dodec, M.enemyDark, .06, .04, .11, 0, -.45, .04, K);
+    cry(v + 2, .09, .25, .09, 0, -.22, 0, Hh);
+    const K = grp(Hh, 0, -.45, 0); kn.push(K);
+    cry(v + 3, .072, .23, .072, 0, -.21, 0, K);
+    cry(v + 4, .062, .045, .12, 0, -.46, .045, K);                         // pie
   }
   const handR = grp(el[1], 0, -.3, 0);
   const e = { root, hip, spine, neck, head, sh, el, hip2, kn, handR, x, z, yaw: Math.PI, kind, weapon: kind === 'axe' ? 'axe' : kind, ammo: kind === 'pistol' ? 8 : kind === 'ak' ? 20 : kind === 'shotgun' ? 5 : 0,
@@ -474,9 +537,9 @@ function stepBullets(dt) {
 function shatterMeshes(list, dir, power, keep = true) {
   for (const o of list) {
     o.updateMatrixWorld(true); const wp = V3(); o.getWorldPosition(wp); const sc = V3(); o.getWorldScale(sc);
-    const n = Math.max(2, Math.round((sc.x + sc.y + sc.z) * 9));
+    const n = Math.max(2, Math.round((sc.x + sc.y + sc.z) * (o.userData.crys ? 14 : 9)));
     for (let i = 0; i < n; i++) {
-      const s = new THREE.Mesh(Math.random() < .5 ? GEO.tetra : GEO.oct, o.material); const k = rnd(.35, .7) * Math.max(sc.x, sc.z, .05);
+      const s = o.userData.crys ? new THREE.Mesh(SHARD_GEO, SHARD_MATS[(Math.random() * 7) | 0]) : new THREE.Mesh(Math.random() < .5 ? GEO.tetra : GEO.oct, o.material); const k = (o.userData.crys ? rnd(.5, 1.05) : rnd(.35, .7)) * Math.max(sc.x, sc.z, .05);
       s.scale.set(k * rnd(.7, 1.4), k * rnd(.7, 1.4), k * rnd(.7, 1.4)); s.position.copy(wp).add(V3(rnd(-1, 1) * sc.x, rnd(-1, 1) * sc.y, rnd(-1, 1) * sc.z)); s.rotation.set(rnd(0, 6), rnd(0, 6), rnd(0, 6)); s.castShadow = true; world.add(s);
       const f = rnd(.4, 1) * power;
       shards.push({ m: s, vx: dir.x * f + rnd(-2, 2), vy: rnd(.5, 4) + dir.y * f * .5, vz: dir.z * f + rnd(-2, 2), rx: rnd(-12, 12), ry: rnd(-12, 12), life: keep ? rnd(10, 16) : rnd(1.5, 3), rest: false });
@@ -489,7 +552,7 @@ function killEnemy(e, dir) {
   e.alive = false; pulse = .4; shake = Math.max(shake, .05);
   if (e.weapon && e.weapon !== 'axe') { if (e.gun) e.handR.remove(e.gun); addPickup(e.weapon, e.x + rnd(-.5, .5), e.z + rnd(-.5, .5), .06, e.ammo, 0); }
   else if (e.weapon === 'axe') addPickup('axe', e.x + rnd(-.5, .5), e.z + rnd(-.5, .5));
-  const list = []; e.root.traverse(o => { if (o.isMesh && (o.material === M.enemy || o.material === M.enemy2 || o.material === M.enemyDark)) list.push(o); });
+  const list = []; e.root.traverse(o => { if (o.isMesh && o.userData.crys) list.push(o); });
   shatterMeshes(list, dir.clone().setY(Math.max(dir.y, .1)), 6);
   world.remove(e.root);
   sfx('shatter'); updHUD();
