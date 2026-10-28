@@ -129,7 +129,7 @@ label.lb{display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight
 <script>
 /* ===================== MCF Core: cuenta, datos y menú de apps ===================== */
 const MCF_BASE='https://cfartaesmario-a11y.github.io';
-const MCF_URLS={home:MCF_BASE+'/mcf/',calendar:MCF_BASE+'/2batx/',games:MCF_BASE+'/mcf/games/',focus:MCF_BASE+'/mcf/focus/',docs:MCF_BASE+'/mcf/docs/',dt:MCF_BASE+'/mcf/dt/',carpesano:MCF_BASE+'/mcf/carpesano/'};
+const MCF_URLS={home:MCF_BASE+'/mcf/',calendar:MCF_BASE+'/2batx/',games:MCF_BASE+'/mcf/games/',focus:MCF_BASE+'/mcf/focus/',docs:MCF_BASE+'/mcf/docs/',dt:MCF_BASE+'/mcf/dt/',carpesano:MCF_BASE+'/mcf/carpesano/',derivats:MCF_BASE+'/mcf/derivats/'};
 const MCF_LOGIN=MCF_URLS.calendar;
 const PLANE_D='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z';
 const MCF_APPS=[
@@ -138,6 +138,7 @@ const MCF_APPS=[
   {id:'docs',name:'MCF Docs',desc:'Documentos y apuntes con grabación de clase',g:'linear-gradient(145deg,#5b7fff,#2448c9)',ico:'<path d="M6 3h8l4 4v14H6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M14 3v4h4M9 12h6M9 16h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
   {id:'dt',name:'MCF dt',desc:'Mesa de dibujo técnico: compás, escuadra y cartabón',g:'linear-gradient(145deg,#ff6b6b,#b3121e)',ico:'<path d="M4 20L20 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 20V8l12 12z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>'},
   {id:'carpesano',name:'MCF Carpesano',desc:'Apuntes a mano con boli y fosforito, por separadores',g:'linear-gradient(145deg,#4b4b55,#18181b)',ico:'<path d="M8 3h10a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M4 7h4M4 12h4M4 17h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M11 9h5M11 13h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
+  {id:'derivats',name:'Derivats',desc:'Practica derivats de català: dossier, estil PAU i colors',g:'linear-gradient(145deg,#3fb8a0,#14705f)',ico:'<path d="M4 19L9.5 5l5.5 14M6.2 14h6.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 9h5M18.5 6.5v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
   {id:'games',name:'MCF Games',desc:'Juegos rápidos para los descansos',g:'linear-gradient(145deg,#ff5c63,#b36bff)',ico:'<path d="M7 9h10a4 4 0 0 1 3.9 4.9l-.6 2.6a2.3 2.3 0 0 1-3.9 1L14.6 15H9.4l-1.8 2.5a2.3 2.3 0 0 1-3.9-1l-.6-2.6A4 4 0 0 1 7 9z" fill="currentColor"/>'},
   {id:'home',name:'Inicio',desc:'Tu resumen de MCF Workspace',g:'linear-gradient(145deg,#ffffff,#9a9a9a)',ico:'<g transform="rotate(45 12 12)"><path fill="#000" d="'+PLANE_D+'"/></g>'}
 ];
@@ -185,7 +186,7 @@ const mcfDay=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart
 const mcfDaysTo=ds=>{if(!ds)return null;const [y,m,d]=ds.split('-').map(Number);const t=new Date();t.setHours(0,0,0,0);return Math.round((new Date(y,m-1,d)-t)/864e5)};
 
 const $=id=>document.getElementById(id);
-const GLOW={calendar:'rgba(255,255,255,.12)',focus:'rgba(76,201,255,.28)',docs:'rgba(91,127,255,.3)',dt:'rgba(255,90,100,.28)',games:'rgba(179,107,255,.3)'};
+const GLOW={calendar:'rgba(255,255,255,.12)',focus:'rgba(76,201,255,.28)',docs:'rgba(91,127,255,.3)',dt:'rgba(255,90,100,.28)',games:'rgba(179,107,255,.3)',derivats:'rgba(63,184,160,.3)'};
 async function render(){
   const n=MCF.user?mcfEsc(MCF.name()):'';const h=new Date().getHours();const saludo=h<13?'Buenos días':h<20?'Buenas tardes':'Buenas noches';
   $('hello').innerHTML=`<div class="kick">MCF Workspace</div><h1 style="margin-top:12px">${n?saludo+',<br><span>'+n+'.</span>':'Todo tu estudio,<br><span>en un sitio.</span>'}</h1><p>${n?'Una sola cuenta para todas tus apps. Lo que apuntas en una, lo saben las demás.':'Entra una vez con tu cuenta MCF y usa todas las apps sin volver a iniciar sesión.'}</p>${n?'':`<a class="btn pri" style="margin-top:20px" href="${MCF_LOGIN}">Entrar o crear cuenta</a>`}`;
