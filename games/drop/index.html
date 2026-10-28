@@ -1711,5 +1711,6 @@ function flipView(id){const F=FLIPS[id];if(!F)return;const r=flipResult(F);const
     const t0=performance.now(),D=3400;let lt=0;const st=()=>{if(!document.body.contains(c))return;const p=Math.min(1,(performance.now()-t0)/D),e=1-Math.pow(1-p,3.4);const a=end*e;c.style.transform=`rotateY(${a}deg) rotateX(${Math.sin(p*Math.PI)*18}deg) scale(${1+Math.sin(p*Math.PI)*.35})`;
       const k=Math.floor(a/180);if(k!==lt){lt=k;SND.tick()}if(p<1)requestAnimationFrame(st);else fin()};st()};go()}
 </script>
+<script src="/mcf/bloqueo.js"></script>
 </body>
 </html>

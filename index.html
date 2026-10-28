@@ -204,5 +204,6 @@ async function render(){
   $('apps').innerHTML=MCF_APPS.filter(a=>a.id!=='home').map(a=>`<a class="app" href="${MCF_URLS[a.id]}" style="--g:${a.g};--glow:${GLOW[a.id]}"><span class="ic"><svg viewBox="0 0 24 24">${a.ico}</svg></span><div><h3>${a.name}</h3><p>${a.desc}</p></div><span class="go">Abrir →</span></a>`).join('')}
 MCF.onChange(render);MCF.init('home');
 </script>
+<script src="/mcf/bloqueo.js"></script>
 </body>
 </html>
