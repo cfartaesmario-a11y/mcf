@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-YprF88Ig3PhaNzbyUVQOeDu8mgWVegIIq13NkBmWPbw=' https://www.gstatic.com https://apis.google.com https://www.google.com https://*.firebasedatabase.app https://*.firebaseio.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.googleusercontent.com; media-src 'self' blob:; connect-src 'self' https://*.googleapis.com https://*.firebasedatabase.app wss://*.firebasedatabase.app https://*.firebaseio.com wss://*.firebaseio.com https://www.google.com; frame-src blob: https://*.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-2oE74Yfi/w/ZhJgKzpy51MXPf0xHhl0rcfq8XvtC4fY=' https://www.gstatic.com https://apis.google.com https://www.google.com https://*.firebasedatabase.app https://*.firebaseio.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.googleusercontent.com; media-src 'self' blob:; connect-src 'self' https://*.googleapis.com https://*.firebasedatabase.app wss://*.firebasedatabase.app https://*.firebaseio.com wss://*.firebaseio.com https://www.google.com; frame-src blob: https://*.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'">
 <meta name="theme-color" content="#000000">
 <meta name="description" content="MCF Docs: documentos y apuntes con grabación de clase ilimitada, transcripción en directo y audio sincronizado.">
 <title>MCF Docs</title>
@@ -1722,7 +1722,6 @@ function bind() {
       { ico: '⏱️', label: 'MCF Focus', fn: () => location.href = MCFB + '/mcf/focus/' },
       { ico: '📐', label: 'MCF dt', fn: () => location.href = MCFB + '/mcf/dt/' },
       { ico: '🗂️', label: 'MCF Carpesano', fn: () => location.href = MCFB + '/mcf/carpesano/' },
-      ...(Date.now()<Date.UTC(2026,9,28,13,30) ? [{ ico: '✍️', label: 'Derivats', fn: () => location.href = MCFB + '/mcf/derivats/' }] : []),
       { ico: '🎮', label: 'MCF Games', fn: () => location.href = MCFB + '/mcf/games/' },
       { ico: '✈️', label: 'Inicio de MCF Workspace', fn: () => location.href = MCFB + '/mcf/' },
       { ico: '👤', label: USER ? 'Mi cuenta' : 'Iniciar sesión', fn: () => setTimeout(() => loginDialog(b), 0) }
