@@ -176,6 +176,50 @@ footer{grid-area:status;display:flex;align-items:center;gap:14px;padding:0 14px;
 }
 @media (max-width:520px){ #snapk{display:none} header .brand{display:none} }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ===== Exámenes de láminas ===== */
+#exams{position:fixed;inset:0;z-index:40;background:var(--paper);overflow:auto;padding:22px 16px 96px}
+#exams.hidden{display:none}
+#exams .exhead{display:flex;align-items:center;gap:12px;max-width:940px;margin:0 auto 16px;flex-wrap:wrap}
+#exams .exhead h2{font-family:var(--display);font-size:clamp(20px,3vw,26px);margin:0;flex:1;min-width:0}
+.exprog{color:var(--ink-2);font-size:14px;font-weight:600}
+.exbtn{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:11px;padding:9px 14px;cursor:pointer}
+.exbtn:hover{border-color:var(--ink-3)}
+.exbtn.primary{background:var(--pen);color:var(--on-pen);border-color:var(--pen)}
+.exlist{max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.exrow{display:flex;align-items:center;gap:14px;background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:13px 16px}
+.exrow .meta{flex:1;cursor:pointer;min-width:0}
+.exrow strong{font-family:var(--display);display:block}
+.exsub{color:var(--ink-2);font-size:13px}
+.exbar{height:6px;background:var(--pen-soft);border-radius:4px;margin-top:8px;overflow:hidden}
+.exbar i{display:block;height:100%;background:var(--ok)}
+.exdel{border:0;background:none;font-size:18px;cursor:pointer;opacity:.55;padding:6px}
+.exdel:hover{opacity:1}
+.exempty{text-align:center;color:var(--ink-2);max-width:520px;margin:44px auto;line-height:1.55}
+.exbar2{max-width:940px;margin:0 auto 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#exfilter{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+.exchip{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--sheet);border-radius:999px;padding:7px 14px;cursor:pointer;color:var(--ink-2)}
+.exchip[aria-pressed=true]{background:var(--pen);color:var(--on-pen);border-color:var(--pen)}
+.exgrid{max-width:940px;margin:0 auto;display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(138px,1fr))}
+.exlam{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;cursor:pointer;aspect-ratio:3/4}
+.exlam img{width:100%;height:100%;object-fit:contain;display:block}
+.exlam:hover{border-color:var(--ink-3)}
+.exlam.done{outline:3px solid var(--ok);outline-offset:-3px}
+.exnum{position:absolute;top:6px;left:6px;background:rgba(10,10,10,.78);color:#fff;font-weight:700;font-size:12px;border-radius:7px;padding:2px 8px}
+.exchk{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid var(--ink-3);color:transparent;font-weight:900;cursor:pointer;display:grid;place-items:center;line-height:1}
+.exlam.done .exchk{background:var(--ok);border-color:var(--ok);color:#fff}
+#expract{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);display:none;gap:10px;align-items:center;background:var(--ink);color:#fff;border-radius:14px;padding:9px 12px;z-index:60;box-shadow:var(--shadow);max-width:calc(100vw - 24px)}
+#expract.show{display:flex}
+#expract b{font-weight:700;padding:0 4px;white-space:nowrap}
+.exbtn2{font:inherit;font-weight:700;border:0;border-radius:10px;padding:9px 13px;cursor:pointer;background:#2a2a2a;color:#fff}
+.exbtn2.primary{background:#fff;color:#0a0a0a}
+.exbtn2.isdone{background:var(--ok);color:#fff}
+#exampwm{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:18px}
+#exampwm.show{display:flex}
+#exampwm .box{background:var(--sheet);border:1px solid var(--line);border-radius:18px;padding:22px;width:min(330px,100%);text-align:center}
+#exampwm strong{font-family:var(--display);font-size:20px}
+#exampwi{width:100%;font-size:20px;text-align:center;letter-spacing:6px;padding:11px;border:1px solid var(--line);border-radius:11px;margin:14px 0;background:var(--sheet-2);color:var(--ink)}
+.exrowb{display:flex;gap:10px;justify-content:center}
 </style>
 </head>
 <body>
@@ -197,6 +241,10 @@ footer{grid-area:status;display:flex;align-items:center;gap:14px;padding:0 14px;
       <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h7l2 2h9v10H3z"/></svg>
       <strong>Abrir proyecto</strong><span>Continúa un archivo <code>.mcfdt</code> guardado.</span>
     </button>
+    <button class="card" id="c-exam">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h10l4 4v14H5z"/><path d="M9 8h3M9 12h6M9 16h6"/></svg>
+      <strong>Exámenes de láminas</strong><span>Sube un PDF con muchas láminas y ve practicando y marcando las hechas.</span>
+    </button>
   </div>
   <div id="resume" class="hidden">
     <button class="card" id="c-resume">
@@ -215,6 +263,22 @@ footer{grid-area:status;display:flex;align-items:center;gap:14px;padding:0 14px;
   </div>
   <p class="foot">También puedes arrastrar un archivo aquí o pegar una imagen con <kbd>Ctrl</kbd> + <kbd>V</kbd>.<br>Tu trabajo se guarda automáticamente en este navegador y no sale de tu ordenador.</p>
 </section>
+
+<!-- ============ EXÁMENES ============ -->
+<section id="exams" class="hidden">
+  <div id="exlib">
+    <div class="exhead"><button class="exbtn" id="ex-back">‹ Inicio</button><h2>Exámenes de láminas</h2><button class="exbtn primary" id="ex-new">+ Crear nuevo examen</button></div>
+    <div id="exbody"></div>
+  </div>
+  <div id="exdetail" class="hidden">
+    <div class="exhead"><button class="exbtn" id="ex-dback">‹ Exámenes</button><h2 id="extitle"></h2><span class="exprog" id="exprog"></span></div>
+    <div class="exbar2"><div id="exfilter"><button class="exchip" data-f="all" aria-pressed="true">Todas</button><button class="exchip" data-f="pend" aria-pressed="false">Pendientes</button><button class="exchip" data-f="done" aria-pressed="false">Hechas</button></div><button class="exbtn primary" id="ex-next">Siguiente pendiente ›</button></div>
+    <div class="exgrid" id="exlamg"></div>
+  </div>
+</section>
+<div id="expract"><b id="exprlab"></b><button class="exbtn2" id="exprdone">Marcar hecha</button><button class="exbtn2 primary" id="exprback">Volver al examen</button></div>
+<div id="exampwm"><div class="box"><strong>Contraseña</strong><p class="exsub">Para crear o borrar exámenes.</p><input id="exampwi" type="password" inputmode="numeric" autocomplete="off"><div class="exrowb"><button class="exbtn" id="exampwx">Cancelar</button><button class="exbtn primary" id="exampwok">Entrar</button></div></div></div>
+<input type="file" id="exfile" accept=".pdf,application/pdf" hidden>
 
 <!-- ============ APP ============ -->
 <div id="app" class="hidden">
@@ -891,14 +955,14 @@ const IDB = {
   async set(k, v) { try { const db = await this.open(); await new Promise((res, rej) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); }); } catch (e) { /* sin almacenamiento */ } },
 };
 function serialize() { return JSON.stringify({ app: 'mcfdt', v: 1, ...S.doc, pi: S.pi, saved: Date.now() }); }
-function autosave() { if (S.doc) IDB.set('current', serialize()); }
+function autosave() { if (S.doc) IDB.set('current', serialize()); savePractDraw(); }
 
 /* ---------------- documentos y páginas ---------------- */
 function newDoc(name) { return { name, pages: [], layers: { draw: true, aux: true } }; }
 function blankPage(fmt = 'A4', ori = 'h', grid = '') { const [a, b] = FORMATS[fmt]; return { w: ori === 'h' ? b : a, h: ori === 'h' ? a : b, bg: null, grid, shapes: [] }; }
 function openDoc(doc, pi = 0) {
   S.doc = doc; S.pi = Math.min(pi, doc.pages.length - 1); S.undo = []; S.redo = []; S.sel.clear(); S.op = null; S.ref = null; S.measure = null;
-  $('#start').classList.add('hidden'); $('#app').classList.remove('hidden');
+  $('#start').classList.add('hidden'); $('#exams').classList.add('hidden'); $('#app').classList.remove('hidden');
   $('#docname').value = doc.name; resize(); updateUndo(); updatePages(); updateLayers(); fitPage(); changed();
 }
 function goPage(i) {
@@ -1455,7 +1519,7 @@ $('#blank-go').onclick = () => {
 $('#c-resume').onclick = async () => { const raw = await IDB.get('current'); if (!raw) return; const d = JSON.parse(raw); openDoc({ name: d.name, pages: d.pages, layers: d.layers || { draw: true, aux: true } }, d.pi || 0); };
 async function showStart() {
   if (S.doc) autosave();
-  $('#app').classList.add('hidden'); $('#start').classList.remove('hidden'); $('#blankopts').classList.add('hidden');
+  $('#app').classList.add('hidden'); $('#start').classList.remove('hidden'); $('#blankopts').classList.add('hidden'); $('#exams').classList.add('hidden'); if (typeof hidePract === 'function') hidePract();
   const raw = await IDB.get('current');
   if (raw) { try { const d = JSON.parse(raw); $('#resume-info').textContent = `${d.name} · ${d.pages.length} página(s) · ${new Date(d.saved).toLocaleString('es-ES')}`; $('#resume').classList.remove('hidden'); } catch (e) { /* ignorar */ } }
 }
@@ -1499,6 +1563,144 @@ window.addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth =
 window.addEventListener('dragover', e => e.preventDefault());
 window.addEventListener('drop', e => { e.preventDefault(); dragDepth = 0; $('#drop').classList.add('hidden'); openFiles(e.dataTransfer.files); });
 window.addEventListener('beforeunload', () => autosave());
+
+/* ================= Exámenes de láminas ================= */
+const EXAM_PW = '350900';
+let examUnlocked = false, CUR_EXAM = null, EXFILTER = 'all', PRACTICE = null;
+const exEsc = v => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+async function examIndex() { return (await IDB.get('exams.index')) || []; }
+async function setExamIndex(ix) { await IDB.set('exams.index', ix); }
+async function getExam(id) { return await IDB.get('exam:' + id); }
+async function saveExam(ex) { await IDB.set('exam:' + ex.id, ex); }
+async function syncIndexDone(ex) {
+  const ix = await examIndex(), e = ix.find(x => x.id === ex.id);
+  if (e) { e.done = ex.laminas.filter(l => l.done).length; e.n = ex.laminas.length; await setExamIndex(ix); }
+}
+function hidePract() { PRACTICE = null; const b = $('#expract'); if (b) b.classList.remove('show'); }
+function askExamPw() {
+  return new Promise(res => {
+    if (examUnlocked) return res(true);
+    const m = $('#exampwm'), inp = $('#exampwi'), ok = $('#exampwok'), x = $('#exampwx');
+    inp.value = ''; inp.placeholder = ''; m.classList.add('show'); setTimeout(() => inp.focus(), 40);
+    const close = v => { m.classList.remove('show'); ok.onclick = x.onclick = inp.onkeydown = null; res(v); };
+    ok.onclick = () => { if (inp.value.trim() === EXAM_PW) { examUnlocked = true; close(true); } else { inp.value = ''; inp.placeholder = 'Incorrecta'; } };
+    x.onclick = () => close(false);
+    inp.onkeydown = e => { if (e.key === 'Enter') ok.onclick(); else if (e.key === 'Escape') close(false); };
+  });
+}
+async function openExams() {
+  if (S.doc) autosave();
+  $('#start').classList.add('hidden'); $('#app').classList.add('hidden'); hidePract();
+  $('#exams').classList.remove('hidden'); $('#exdetail').classList.add('hidden'); $('#exlib').classList.remove('hidden');
+  await renderExams();
+}
+async function renderExams() {
+  const ix = await examIndex(), wrap = $('#exbody');
+  if (!ix.length) { wrap.innerHTML = '<p class="exempty">Todavía no hay exámenes.<br>Pulsa «Crear nuevo examen» y sube un PDF con tus láminas.</p>'; return; }
+  wrap.innerHTML = '<div class="exlist">' + ix.map(e => {
+    const pct = e.n ? Math.round(e.done / e.n * 100) : 0;
+    return '<div class="exrow"><div class="meta" data-open="' + e.id + '"><strong>' + exEsc(e.name) + '</strong><span class="exsub">' + e.done + ' de ' + e.n + ' láminas hechas</span><div class="exbar"><i style="width:' + pct + '%"></i></div></div><button class="exdel" data-del="' + e.id + '" title="Borrar examen">🗑</button></div>';
+  }).join('') + '</div>';
+}
+async function pdfToLaminas(file) {
+  await ensurePdfjs();
+  const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise, out = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    flash('Leyendo PDF · lámina ' + i + ' de ' + pdf.numPages, 0);
+    const pg = await pdf.getPage(i), vp1 = pg.getViewport({ scale: 1 });
+    const render = async (maxpx, q) => {
+      const sc = Math.min(maxpx / Math.max(vp1.width, vp1.height), 3), vp = pg.getViewport({ scale: sc });
+      const c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+      await pg.render({ canvasContext: x, viewport: vp }).promise; return c.toDataURL('image/jpeg', q);
+    };
+    const full = await render(1500, .82), thumb = await render(340, .72);
+    out.push({ full, thumb, w: vp1.width * 25.4 / 72, h: vp1.height * 25.4 / 72, done: false });
+  }
+  return out;
+}
+async function createExamFromFile(file) {
+  if (!file) return;
+  try {
+    flash('Leyendo PDF…', 0);
+    const laminas = await pdfToLaminas(file);
+    if (!laminas.length) { flash('El PDF no tiene páginas'); return; }
+    const id = 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const name = (file.name || 'Examen').replace(/\.[^.]+$/, '');
+    const ex = { id, name, created: Date.now(), laminas };
+    await saveExam(ex);
+    const ix = await examIndex(); ix.unshift({ id, name, created: ex.created, n: laminas.length, done: 0 }); await setExamIndex(ix);
+    flash('Examen creado · ' + laminas.length + ' láminas'); openExam(id);
+  } catch (e) { console.error(e); flash('No se pudo crear el examen: ' + e.message); }
+}
+async function openExam(id) {
+  const ex = await getExam(id); if (!ex) { flash('Examen no encontrado'); return; }
+  CUR_EXAM = ex; EXFILTER = 'all';
+  $('#start').classList.add('hidden'); $('#app').classList.add('hidden'); hidePract();
+  $('#exams').classList.remove('hidden'); $('#exlib').classList.add('hidden'); $('#exdetail').classList.remove('hidden');
+  $('#extitle').textContent = ex.name;
+  document.querySelectorAll('#exfilter .exchip').forEach(b => b.setAttribute('aria-pressed', b.dataset.f === 'all'));
+  renderLaminas();
+}
+function renderLaminas() {
+  const ex = CUR_EXAM; if (!ex) return;
+  $('#exprog').textContent = ex.laminas.filter(l => l.done).length + ' de ' + ex.laminas.length + ' hechas';
+  const cells = ex.laminas.map((l, i) => ({ l, i })).filter(o => EXFILTER === 'all' || (EXFILTER === 'pend' ? !o.l.done : o.l.done));
+  $('#exlamg').innerHTML = cells.length ? cells.map(o =>
+    '<div class="exlam ' + (o.l.done ? 'done' : '') + '" data-i="' + o.i + '"><img src="' + o.l.thumb + '" alt="Lámina ' + (o.i + 1) + '" loading="lazy"><span class="exnum">' + (o.i + 1) + '</span><button class="exchk" data-chk="' + o.i + '" title="Marcar hecha o pendiente">✓</button></div>'
+  ).join('') : '<p class="exempty">No hay láminas con este filtro.</p>';
+}
+async function toggleLamina(i) {
+  const ex = CUR_EXAM; if (!ex) return;
+  ex.laminas[i].done = !ex.laminas[i].done;
+  await saveExam(ex); await syncIndexDone(ex); renderLaminas();
+  if (PRACTICE && PRACTICE.idx === i) updatePractBar();
+}
+async function openLamina(i) {
+  const ex = CUR_EXAM, l = ex.laminas[i];
+  const draws = (await IDB.get('examdraw:' + ex.id)) || {};
+  const shapes = (draws[i] && draws[i].shapes) ? JSON.parse(JSON.stringify(draws[i].shapes)) : [];
+  const d = newDoc(ex.name + ' · lámina ' + (i + 1)); d.pages = [{ w: l.w, h: l.h, bg: { src: l.full }, grid: '', shapes }];
+  PRACTICE = { ex, idx: i, draws };
+  openDoc(d); updatePractBar(); $('#expract').classList.add('show');
+}
+function updatePractBar() {
+  if (!PRACTICE) return;
+  const l = PRACTICE.ex.laminas[PRACTICE.idx];
+  $('#exprlab').textContent = 'Lámina ' + (PRACTICE.idx + 1) + ' de ' + PRACTICE.ex.laminas.length;
+  const b = $('#exprdone'); b.textContent = l.done ? '✓ Hecha' : 'Marcar hecha'; b.classList.toggle('isdone', l.done);
+}
+function savePractDraw() {
+  if (!PRACTICE || !S.doc || !S.doc.pages[0]) return;
+  PRACTICE.draws[PRACTICE.idx] = { shapes: S.doc.pages[0].shapes };
+  IDB.set('examdraw:' + PRACTICE.ex.id, PRACTICE.draws);
+}
+async function delExam(id) {
+  if (!(await askExamPw())) return;
+  if (!confirm('¿Borrar este examen y todas sus láminas? No se puede deshacer.')) return;
+  await setExamIndex((await examIndex()).filter(e => e.id !== id));
+  await IDB.set('exam:' + id, null); await IDB.set('examdraw:' + id, null);
+  flash('Examen borrado'); renderExams();
+}
+$('#c-exam').onclick = openExams;
+$('#ex-back').onclick = showStart;
+$('#ex-dback').onclick = openExams;
+const exfi = $('#exfile');
+exfi.onchange = () => { const f = exfi.files[0]; exfi.value = ''; if (f) createExamFromFile(f); };
+$('#ex-new').onclick = async () => { if (await askExamPw()) exfi.click(); };
+$('#ex-next').onclick = () => { if (!CUR_EXAM) return; const i = CUR_EXAM.laminas.findIndex(l => !l.done); if (i < 0) { flash('¡Ya has hecho todas las láminas!'); return; } openLamina(i); };
+$('#exbody').onclick = e => {
+  const del = e.target.closest('[data-del]'); if (del) { delExam(del.dataset.del); return; }
+  const o = e.target.closest('[data-open]'); if (o) openExam(o.dataset.open);
+};
+$('#exlamg').onclick = e => {
+  const chk = e.target.closest('[data-chk]'); if (chk) { toggleLamina(+chk.dataset.chk); return; }
+  const lam = e.target.closest('[data-i]'); if (lam) openLamina(+lam.dataset.i);
+};
+$('#exfilter').onclick = e => { const b = e.target.closest('.exchip'); if (!b) return; EXFILTER = b.dataset.f; document.querySelectorAll('#exfilter .exchip').forEach(x => x.setAttribute('aria-pressed', x === b)); renderLaminas(); };
+$('#exprdone').onclick = () => { if (PRACTICE) toggleLamina(PRACTICE.idx); };
+$('#exprback').onclick = () => { savePractDraw(); const id = PRACTICE && PRACTICE.ex.id; hidePract(); if (id) openExam(id); else openExams(); };
+
 document.fonts && document.fonts.ready.then(invalidate);
 showStart();
 </script>
