@@ -208,12 +208,6 @@ footer{grid-area:status;display:flex;align-items:center;gap:14px;padding:0 14px;
 .exnum{position:absolute;top:6px;left:6px;background:rgba(10,10,10,.78);color:#fff;font-weight:700;font-size:12px;border-radius:7px;padding:2px 8px}
 .exchk{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid var(--ink-3);color:transparent;font-weight:900;cursor:pointer;display:grid;place-items:center;line-height:1}
 .exlam.done .exchk{background:var(--ok);border-color:var(--ok);color:#fff}
-#expract{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);display:none;gap:10px;align-items:center;background:var(--ink);color:#fff;border-radius:14px;padding:9px 12px;z-index:60;box-shadow:var(--shadow);max-width:calc(100vw - 24px)}
-#expract.show{display:flex}
-#expract b{font-weight:700;padding:0 4px;white-space:nowrap}
-.exbtn2{font:inherit;font-weight:700;border:0;border-radius:10px;padding:9px 13px;cursor:pointer;background:#2a2a2a;color:#fff}
-.exbtn2.primary{background:#fff;color:#0a0a0a}
-.exbtn2.isdone{background:var(--ok);color:#fff}
 #exampwm{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:18px}
 #exampwm.show{display:flex}
 #exampwm .box{background:var(--sheet);border:1px solid var(--line);border-radius:18px;padding:22px;width:min(330px,100%);text-align:center}
@@ -288,7 +282,6 @@ footer{grid-area:status;display:flex;align-items:center;gap:14px;padding:0 14px;
     <div class="exgrid" id="exlamg"></div>
   </div>
 </section>
-<div id="expract"><b id="exprlab"></b><button class="exbtn2" id="exprdone">Marcar hecha</button><button class="exbtn2 primary" id="exprback">Volver al examen</button></div>
 <div id="exampwm"><div class="box"><strong>Contraseña</strong><p class="exsub">Para crear o borrar exámenes.</p><input id="exampwi" type="password" inputmode="numeric" autocomplete="off"><div class="exrowb"><button class="exbtn" id="exampwx">Cancelar</button><button class="exbtn primary" id="exampwok">Entrar</button></div></div></div>
 <input type="file" id="exfile" accept=".pdf,application/pdf" hidden>
 
@@ -315,6 +308,8 @@ footer{grid-area:status;display:flex;align-items:center;gap:14px;padding:0 14px;
         <button data-a="png">Exportar página como PNG</button>
         <button data-a="pdf">Exportar todo como PDF<small>Ctrl E</small></button>
         <button data-a="home">Volver al inicio</button>
+        <button class="pract-only" data-a="markdone" hidden>Marcar lámina hecha</button>
+        <button class="pract-only" data-a="backexam" hidden>Volver al examen</button>
       </div>
     </div>
     <button class="hb icon" id="b-help" title="Atajos de teclado (?)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h1M10 10h1M14 10h1M18 10h0M7 14h10"/></svg></button>
@@ -1549,7 +1544,7 @@ $('#b-file').onclick = e => { e.stopPropagation(); $('#filepop').classList.toggl
 document.addEventListener('click', () => $('#filepop').classList.add('hidden'));
 $('#filepop').onclick = e => {
   const a = e.target.closest('button')?.dataset.a; if (!a) return;
-  ({ open: () => fi.click(), addpage: addPage, delpage: delPage, save: saveProject, png: exportPNG, pdf: exportPDF, home: showStart })[a]();
+  ({ open: () => fi.click(), addpage: addPage, delpage: delPage, save: saveProject, png: exportPNG, pdf: exportPDF, home: showStart, markdone: () => { if (PRACTICE) toggleLamina(PRACTICE.idx); }, backexam: () => { savePractDraw(); const id = PRACTICE && PRACTICE.ex.id; hidePract(); if (id) openExam(id); else openExams(); } })[a]();
 };
 $('#pg-prev').onclick = () => goPage(S.pi - 1);
 $('#pg-next').onclick = () => goPage(S.pi + 1);
@@ -1588,7 +1583,7 @@ async function syncIndexDone(ex) {
   const ix = await examIndex(), e = ix.find(x => x.id === ex.id);
   if (e) { e.done = ex.laminas.filter(l => l.done).length; e.n = ex.laminas.length; await setExamIndex(ix); }
 }
-function hidePract() { PRACTICE = null; const b = $('#expract'); if (b) b.classList.remove('show'); }
+function hidePract() { PRACTICE = null; document.querySelectorAll('.pract-only').forEach(b => b.hidden = true); }
 function askExamPw() {
   return new Promise(res => {
     if (examUnlocked) return res(true);
@@ -1666,7 +1661,7 @@ async function toggleLamina(i) {
   const ex = CUR_EXAM; if (!ex) return;
   ex.laminas[i].done = !ex.laminas[i].done;
   await saveExam(ex); await syncIndexDone(ex); renderLaminas();
-  if (PRACTICE && PRACTICE.idx === i) updatePractBar();
+  if (PRACTICE && PRACTICE.idx === i) updatePractLabel();
 }
 async function openLamina(i) {
   const ex = CUR_EXAM, l = ex.laminas[i];
@@ -1674,13 +1669,13 @@ async function openLamina(i) {
   const shapes = (draws[i] && draws[i].shapes) ? JSON.parse(JSON.stringify(draws[i].shapes)) : [];
   const d = newDoc(ex.name + ' · lámina ' + (i + 1)); d.pages = [{ w: l.w, h: l.h, bg: { src: l.full }, grid: '', shapes }];
   PRACTICE = { ex, idx: i, draws };
-  openDoc(d); updatePractBar(); $('#expract').classList.add('show');
+  openDoc(d); showPractMenu();
 }
-function updatePractBar() {
+function showPractMenu() { document.querySelectorAll('.pract-only').forEach(b => b.hidden = false); updatePractLabel(); }
+function updatePractLabel() {
   if (!PRACTICE) return;
-  const l = PRACTICE.ex.laminas[PRACTICE.idx];
-  $('#exprlab').textContent = 'Lámina ' + (PRACTICE.idx + 1) + ' de ' + PRACTICE.ex.laminas.length;
-  const b = $('#exprdone'); b.textContent = l.done ? '✓ Hecha' : 'Marcar hecha'; b.classList.toggle('isdone', l.done);
+  const l = PRACTICE.ex.laminas[PRACTICE.idx], b = document.querySelector('[data-a="markdone"]');
+  if (b) b.textContent = l.done ? 'Quitar «hecha» de la lámina' : 'Marcar lámina hecha';
 }
 function savePractDraw() {
   if (!PRACTICE || !S.doc || !S.doc.pages[0]) return;
@@ -1710,8 +1705,6 @@ $('#exlamg').onclick = e => {
   const lam = e.target.closest('[data-i]'); if (lam) openLamina(+lam.dataset.i);
 };
 $('#exfilter').onclick = e => { const b = e.target.closest('.exchip'); if (!b) return; EXFILTER = b.dataset.f; document.querySelectorAll('#exfilter .exchip').forEach(x => x.setAttribute('aria-pressed', x === b)); renderLaminas(); };
-$('#exprdone').onclick = () => { if (PRACTICE) toggleLamina(PRACTICE.idx); };
-$('#exprback').onclick = () => { savePractDraw(); const id = PRACTICE && PRACTICE.ex.id; hidePract(); if (id) openExam(id); else openExams(); };
 
 (function dtLock() {
   const lock = $('#dtlock'); if (!lock) return;
