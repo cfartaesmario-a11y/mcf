@@ -220,9 +220,21 @@ footer{grid-area:status;display:flex;align-items:center;gap:14px;padding:0 14px;
 #exampwm strong{font-family:var(--display);font-size:20px}
 #exampwi{width:100%;font-size:20px;text-align:center;letter-spacing:6px;padding:11px;border:1px solid var(--line);border-radius:11px;margin:14px 0;background:var(--sheet-2);color:var(--ink)}
 .exrowb{display:flex;gap:10px;justify-content:center}
+
+/* ===== Candado de entrada ===== */
+#dtlock{position:fixed;inset:0;z-index:100;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:22px}
+#dtlock.hidden{display:none}
+#dtlock .dtlbox{text-align:center;width:min(340px,100%)}
+#dtlock .dtlbrand{font-family:var(--display);font-weight:800;font-size:44px;line-height:1}
+#dtlock .dtlbrand i{color:var(--red);font-style:normal}
+.dtltag{color:var(--ink-2);margin:6px 0 20px}
+#dtlpw{width:100%;font-size:22px;text-align:center;letter-spacing:8px;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--sheet);color:var(--ink);margin-bottom:12px}
+#dtlgo{width:100%;font:inherit;font-weight:700;border:0;border-radius:12px;padding:13px;cursor:pointer;background:var(--pen);color:var(--on-pen)}
+.dtlerr{color:var(--red);min-height:20px;margin:12px 0 0;font-weight:600}
 </style>
 </head>
 <body>
+<div id="dtlock"><div class="dtlbox"><div class="dtlbrand">MCF<i>dt</i></div><p class="dtltag">Introduce la contraseña para entrar.</p><input id="dtlpw" type="password" inputmode="numeric" autocomplete="off" placeholder="Contraseña"><button id="dtlgo">Entrar</button><p class="dtlerr" id="dtlerr"></p></div></div>
 
 <!-- ============ START ============ -->
 <section id="start">
@@ -1700,6 +1712,20 @@ $('#exlamg').onclick = e => {
 $('#exfilter').onclick = e => { const b = e.target.closest('.exchip'); if (!b) return; EXFILTER = b.dataset.f; document.querySelectorAll('#exfilter .exchip').forEach(x => x.setAttribute('aria-pressed', x === b)); renderLaminas(); };
 $('#exprdone').onclick = () => { if (PRACTICE) toggleLamina(PRACTICE.idx); };
 $('#exprback').onclick = () => { savePractDraw(); const id = PRACTICE && PRACTICE.ex.id; hidePract(); if (id) openExam(id); else openExams(); };
+
+(function dtLock() {
+  const lock = $('#dtlock'); if (!lock) return;
+  let ok = false; try { ok = sessionStorage.getItem('mcfdt.ok') === '1'; } catch (e) {}
+  if (ok) { lock.classList.add('hidden'); examUnlocked = true; return; }
+  const inp = $('#dtlpw'), go = $('#dtlgo'), err = $('#dtlerr');
+  setTimeout(() => inp.focus(), 80);
+  const submit = () => {
+    if (inp.value.trim() === EXAM_PW) { try { sessionStorage.setItem('mcfdt.ok', '1'); } catch (e) {} examUnlocked = true; lock.classList.add('hidden'); }
+    else { err.textContent = 'Contraseña incorrecta'; inp.value = ''; inp.focus(); }
+  };
+  go.onclick = submit;
+  inp.onkeydown = e => { if (e.key === 'Enter') submit(); };
+})();
 
 document.fonts && document.fonts.ready.then(invalidate);
 showStart();
