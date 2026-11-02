@@ -344,7 +344,7 @@ footer{grid-area:status;display:flex;align-items:center;gap:14px;padding:0 14px;
     <div class="sec">
       <h4>Ayuda</h4>
       <button class="toggle" id="t-snap" role="switch" aria-checked="true">Imán a puntos y cruces <kbd>S</kbd><span class="sw2"></span></button>
-      <p class="sidehint"><b>Clic derecho</b> sobre un trazo lo borra · arrastrando borra varios.<br>Dos dedos en el panel táctil mueven la hoja · pellizca para zoom.</p>
+      <p class="sidehint"><b>Clic derecho</b> sobre un trazo lo borra (arrastrando, varios) · sobre la hoja vacía mueve la lámina.<br>Dos dedos en el panel táctil mueven la hoja · pellizca para zoom.</p>
     </div>
   </aside>
 
@@ -1172,7 +1172,8 @@ cv.addEventListener('pointerdown', e => {
       if (inTri(raw, instPoly(k))) { S.activeInst = k; S.op = { t: 'minst', k, start: raw, o0: { x: I.x, y: I.y } }; S.drag = true; cv.style.cursor = 'grabbing'; updateInstUI(); requestRender(); return; }
     }
     if (S.op && !S.drag) { cancelOp(); return; }
-    S.op = { t: 'erase', did: false, right: true, down: { sx, sy } }; S.drag = true; eraseAt(raw); requestRender(); return;
+    if (hitShape(raw, 10)) { S.op = { t: 'erase', did: false, right: true, down: { sx, sy } }; S.drag = true; eraseAt(raw); requestRender(); return; }
+    S.drag = { t: 'pan', sx, sy, vx: S.view.x, vy: S.view.y }; cv.style.cursor = 'grabbing'; return;
   }
   S.measure = S.tool === 'measure' && !S.op ? null : S.measure;
   const p = S.cur;
@@ -1285,9 +1286,9 @@ cv.addEventListener('pointermove', e => {
       if (op.ruler) op.pts[1] = onRuler(op.ruler, p);
       else { const l = op.pts[op.pts.length - 1]; if (V.dist(l, raw) * S.view.s > 1.5) op.pts.push(P(raw)); }
       break;
-    case 'line': op.b = op.ruler ? onRuler(op.ruler, p) : constrain(op.a, p, e); break;
-    case 'circle': op.b = P(p); break;
-    case 'two': op.b = P(p); break;
+    case 'line': op.b = op.ruler ? onRuler(op.ruler, p) : constrain(op.a, p, e); if (op.down && Math.hypot(evPos(e).sx - op.down.sx, evPos(e).sy - op.down.sy) > 6) op.dragged = true; break;
+    case 'circle': op.b = P(p); if (op.down && Math.hypot(evPos(e).sx - op.down.sx, evPos(e).sy - op.down.sy) > 6) op.dragged = true; break;
+    case 'two': op.b = P(p); if (op.down && Math.hypot(evPos(e).sx - op.down.sx, evPos(e).sy - op.down.sy) > 6) op.dragged = true; break;
     case 'arc': if (op.phase === 2) { const a = Math.atan2(p.y - op.c.y, p.x - op.c.x); let d = a - op.last; d = Math.atan2(Math.sin(d), Math.cos(d)); op.sw = Math.max(-TAU, Math.min(TAU, op.sw + d)); op.last = a; } break;
     case 'dim': if (op.phase === 2) { const u = V.norm(V.sub(op.b, op.a)); op.off = V.dot(V.sub(p, op.a), { x: -u.y, y: u.x }); } break;
     case 'erase': eraseAt(raw); break;
@@ -1323,9 +1324,9 @@ function endPointer(e) {
       if (op.ruler && op.pts.length > 1 && V.dist(op.pts[0], op.pts[1]) > .2) addShape({ t: 'line', a: op.pts[0], b: op.pts[1], st: curStyle() });
       else if (!op.ruler) addShape({ t: 'path', pts: op.pts, st: curStyle() });
       S.op = null; break;
-    case 'line': if (op.wait) break; if (movedPx > 6 && op.b) commitLine(op.b); else { op.wait = true; delete op.down; } break;
-    case 'circle': if (op.wait) break; if (movedPx > 6 && op.b) commitCircle(op.b); else { op.wait = true; delete op.down; } break;
-    case 'two': if (op.wait) break; if (movedPx > 6 && op.b) finishTwo(op.b); else { op.wait = true; delete op.down; } break;
+    case 'line': if (op.wait) break; if ((movedPx > 6 || op.dragged) && op.b) commitLine(op.b); else { op.wait = true; delete op.down; } break;
+    case 'circle': if (op.wait) break; if ((movedPx > 6 || op.dragged) && op.b) commitCircle(op.b); else { op.wait = true; delete op.down; } break;
+    case 'two': if (op.wait) break; if ((movedPx > 6 || op.dragged) && op.b) finishTwo(op.b); else { op.wait = true; delete op.down; } break;
     case 'erase': if (op.right && !op.did && movedPx < 6) { S.op = null; cancelOp(); } S.op = null; break;
     case 'compMove': case 'compAp': case 'compRot': case 'compSet': S.op = null; break;
     case 'compPaint': { const C = S.comp; S.op = null;
@@ -1464,7 +1465,7 @@ function setSwitch(id, v) { $(id).setAttribute('aria-checked', v); }
 function buildHelp() {
   const rows = [
     ['Herramientas'], ...TOOLS.filter(t => t !== '|').map(([, n, k]) => [n, k]),
-    ['Ratón'], ['Mover escuadra o cartabón', 'Clic derecho mantenido'], ['Girarlos', 'Clic derecho en el pomo'], ['Borrar un trazo', 'Clic derecho'], ['Mover la hoja', 'Dos dedos · Espacio'], ['Zoom', 'Pellizcar · Ctrl + rueda'],
+    ['Ratón'], ['Mover escuadra o cartabón', 'Clic derecho mantenido'], ['Girarlos', 'Clic derecho en el pomo'], ['Borrar un trazo', 'Clic derecho sobre él'], ['Mover la hoja', 'Clic derecho en vacío · Dos dedos · Espacio'], ['Zoom', 'Pellizcar · Ctrl + rueda'],
     ['Instrumentos'], ['Escuadra', 'Q'], ['Cartabón', 'W'], ['Voltear instrumento', 'F'], ['Girar ±15° (con Mayús ±1°)', '[ ]'],
     ['Compás'], ['Radio exacto', 'Doble clic'], ['Girar de 15 en 15°', 'Mayús'],
     ['Precisión'], ['Imán a puntos y cruces', 'S'], ['Ángulos de 15° al trazar', 'Mayús'],
