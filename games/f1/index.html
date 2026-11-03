@@ -506,7 +506,7 @@ function livDraw(x,w,h,m,kind){
   function T(str,u,y,f,r){x.save();x.translate(u*w,y);if(r)x.rotate(Math.PI);x.font='900 italic '+f+'px "Titillium Web",sans-serif';x.fillText(str,0,0);x.restore()}
   if(kind===0){T(''+m.num,.55,192,50,0);T(''+m.num,.55,64,50,1)}else{T('YKJ',.5,192,46,0);T('YKJ',.5,64,46,1)}
 }
-function livTex(m,kind){var t=tex(512,256,function(x,w,h){livDraw(x,w,h,m,kind)},1,1);t.userData.own=true;return t}
+function livTex(m,kind){var t=tex(512,256,function(x,w,h){livDraw(x,w,h,m,kind)},1,1);t.userData=t.userData||{};t.userData.own=true;return t}
 // carrocería por secciones: [x, medio ancho, y abajo, y arriba, desplazamiento lateral]
 function loft(st,mat,seg,sd,ghost){seg=seg||16;var pos=[],uv=[],ix=[],x0=st[st.length-1][0],x1=st[0][0],a,b,k,j;
   for(k=0;k<st.length;k++){var q=st[k],yc=(q[2]+q[3])/2,hh=(q[3]-q[2])/2,zc=(q[4]||0)*(sd||1);
@@ -614,7 +614,7 @@ function mkCar(m,ghost){
   if(!ghost){var shd=new THREE.Mesh(new THREE.PlaneGeometry(6.4,2.4),new THREE.MeshBasicMaterial({map:SHT,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1}));shd.rotation.x=-Math.PI/2;shd.position.set(-.1,.025,0);g.add(shd)}
   return {g:g,body:body,w:w,tl:tl,bm:bm,parts:parts,bob:0,ride:[.012,0,-.01][m.su==null?1:m.su]}}
 var pc=null,lastVK='',rbq=false;
-function disposeCar(o){o.traverse(function(n){if(n.geometry)n.geometry.dispose();var ms=n.material?(Array.isArray(n.material)?n.material:[n.material]):[];ms.forEach(function(mm){if(mm.map&&mm.map.userData.own)mm.map.dispose();mm.dispose()})})}
+function disposeCar(o){o.traverse(function(n){if(n.geometry)n.geometry.dispose();var ms=n.material?(Array.isArray(n.material)?n.material:[n.material]):[];ms.forEach(function(mm){if(mm.map&&mm.map.userData&&mm.map.userData.own)mm.map.dispose();mm.dispose()})})}
 function carDesign(){return Object.assign({},D,{fw:cfg.fw,rw:cfg.rw,sp:cfg.sp,su:cfg.su})}
 var gc=mkCar({c:[0xffffff,0x9ad1ff,0xffffff],pat:0,num:0,hel:0xffffff},true);gc.g.visible=false;sc.add(gc.g);
 function setModel(){var old=pc;pc=mkCar(carDesign());if(old){pc.g.position.copy(old.g.position);pc.g.rotation.copy(old.g.rotation);sc.remove(old.g);disposeCar(old.g)}sc.add(pc.g);if(cfg.ty!=null)paintTyre(cfg.ty)}
