@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>MCF Secrets</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23000'/%3E%3Ctext x='12' y='17' font-size='13' text-anchor='middle' fill='%23fff' font-family='monospace'%3E%3E_%3C/text%3E%3C/svg%3E">
+<style>
+:root{--ink:#f5f5f5;--ink2:#a3a3a3;--ink3:#5c5c5c;--line:#262626;--line2:#3a3a3a;--bg:#050505;--ok:#ffffff}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.55 "JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse at 50% 0,#000 30%,transparent 80%);-webkit-mask-image:radial-gradient(ellipse at 50% 0,#000 30%,transparent 80%)}
+#rain{position:fixed;inset:0;z-index:0;opacity:.07;pointer-events:none}
+.scan{position:fixed;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px)}
+header,main{position:relative;z-index:2}
+header{display:flex;align-items:center;gap:14px;padding:0 20px;height:56px;border-bottom:1px solid var(--line);background:rgba(5,5,5,.85);backdrop-filter:blur(10px)}
+header b{font-weight:700;letter-spacing:.28em;font-size:12px}header .sp{flex:1}
+.dot{width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 10px #fff;animation:pu 2s infinite}@keyframes pu{50%{opacity:.25}}
+.tag{font-size:11px;letter-spacing:.14em;color:var(--ink2);border:1px solid var(--line2);border-radius:4px;padding:3px 8px}
+a,button{font:inherit;color:inherit}
+.btn{border:1px solid var(--line2);background:transparent;border-radius:4px;padding:6px 11px;cursor:pointer;text-decoration:none;font-size:12px;letter-spacing:.08em}
+.btn:hover{border-color:#fff;background:#fff;color:#000}
+main{max-width:980px;margin:0 auto;padding:34px 18px 70px}
+h1{margin:0 0 4px;font-size:clamp(20px,4.6vw,30px);font-weight:700;letter-spacing:-.01em}
+.mu{color:var(--ink2)}
+.cur::after{content:"_";animation:bl 1s steps(1) infinite;margin-left:2px}@keyframes bl{50%{opacity:0}}
+.log{margin:22px 0 0;padding:14px 16px;border:1px solid var(--line);border-radius:6px;background:rgba(12,12,12,.85);font-size:12.5px;color:var(--ink2);min-height:120px}
+.log div{white-space:pre-wrap}.log .k{color:#fff;font-weight:700}
+.out{margin-top:22px;opacity:0;transition:opacity .5s}.out.on{opacity:1}
+.f{border:1px solid var(--line);background:rgba(12,12,12,.9);border-radius:6px;padding:18px 20px}
+.f h1{font-size:22px}
+.big{font-size:clamp(28px,7vw,58px);font-weight:800;letter-spacing:-.03em;text-align:center;padding:64px 12px}
+.big small{display:block;font-size:12px;font-weight:400;letter-spacing:.3em;color:var(--ink3);margin-top:14px}
+.pages{display:grid;gap:16px;justify-items:center;margin-top:16px}
+.pg{position:relative;width:100%;max-width:900px;background:#fff;border-radius:2px;outline:1px solid var(--line2);outline-offset:6px;overflow:hidden}
+.pg canvas{display:block;width:100%;height:auto;pointer-events:none}
+.pg .ld{position:absolute;inset:0;display:grid;place-items:center;color:#777;font-size:12px}
+#shield{position:fixed;inset:0;background:#050505;z-index:50;display:none;place-items:center;text-align:center;padding:20px;color:var(--ink2)}
+#shield.on{display:grid}
+@media print{body *{display:none!important}body::after{content:"ACCESS DENIED";display:block!important;font:24px monospace;padding:40px}}
+</style>
+</head>
+<body style="visibility:hidden" oncontextmenu="return false" ondragstart="return false">
+<canvas id="rain"></canvas><div class="scan"></div>
+<header><span class="dot"></span><b>MCF // SECRETS</b><span class="sp"></span><span class="tag">AES-256-GCM</span><a class="btn" href="../">SALIR</a></header>
+<main>
+  <h1 class="cur">root@mcf:~/secrets#</h1>
+  <p class="mu" id="st">sesión cifrada · solo lectura</p>
+  <div class="log" id="log"></div>
+  <div class="out" id="out"></div>
+</main>
+<div id="shield"><div><div style="font-size:46px">🔒</div><p>Contenido oculto mientras la ventana no está activa.</p><p>Haz clic aquí para seguir.</p></div></div>
+<script>
+(function(){
+'use strict';
+var $=function(s){return document.querySelector(s)};
+var b64=function(s){return Uint8Array.from(atob(s),function(c){return c.charCodeAt(0)})};
+var te=new TextEncoder(),open=null;
+
+/* lluvia matrix */
+(function(){var c=$('#rain'),x=c.getContext('2d'),cols,drops;function rs(){c.width=innerWidth;c.height=innerHeight;cols=Math.floor(c.width/16);drops=Array(cols).fill(0).map(function(){return Math.random()*c.height/16})}rs();addEventListener('resize',rs);
+setInterval(function(){x.fillStyle='rgba(0,0,0,.08)';x.fillRect(0,0,c.width,c.height);x.fillStyle='#ffffff';x.font='13px monospace';for(var i=0;i<cols;i++){x.fillText('0123456789abcdef'[Math.random()*16|0],i*16,drops[i]*16);if(drops[i]*16>c.height&&Math.random()>.975)drops[i]=0;drops[i]++}},55)})();
+
+async function derive(pw,f){var base=await crypto.subtle.importKey('raw',te.encode(pw),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(f.salt),iterations:f.it,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt'])}
+async function dec(key,buf,aad){buf=new Uint8Array(buf);return crypto.subtle.decrypt({name:'AES-GCM',iv:buf.slice(0,12),additionalData:te.encode(aad)},key,buf.slice(12))}
+
+function out(){location.replace('../')}
+var wait=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+async function log(t,k){var d=document.createElement('div');$('#log').appendChild(d);var pre=k?'[ <span class=k>OK</span> ] ':'    ';d.innerHTML=pre;for(var i=0;i<t.length;i++){d.innerHTML=pre+t.slice(0,i+1).replace(/</g,'&lt;');await wait(9)}await wait(90)}
+async function boot(){var p=null;try{p=JSON.parse(sessionStorage.getItem('mcf.pass'))}catch(e){}
+  try{sessionStorage.removeItem('mcf.pass')}catch(e){}
+  if(!p||!p.k)return out();
+  try{var j=await (await fetch('d/index.json',{cache:'no-store'})).json();var f=j.files.find(function(x){return x.id===p.id});
+    var key=await derive(p.k,f);var meta=JSON.parse(new TextDecoder().decode(await dec(key,b64(f.meta),f.id+'-meta')))}catch(e){return out()}
+  document.body.style.visibility='';
+  await log('> mount /secrets/pass_'+f.id+'.enc');await log('key file verified · sha256:'+Array.from(crypto.getRandomValues(new Uint8Array(8))).map(function(b){return b.toString(16).padStart(2,'0')}).join(''),1);
+  await log('PBKDF2-SHA256 · '+f.it+' iterations',1);await log('AES-256-GCM session established',1);await log('access granted · user '+f.id,1);
+  show(f.id,key,meta);$('#out').classList.add('on')}
+
+function show(id,key,meta){var o=$('#out');open=id;
+  if(!meta.pages){o.innerHTML='<div class="f big">'+meta.title.replace(/[<>&]/g,'')+'<small>ACCESS GRANTED</small></div>';return}
+  var h='<div class="f"><h1 style="font-size:24px">'+meta.title.replace(/[<>&]/g,'')+'</h1><p class="mu">solo lectura · '+meta.pages+' páginas</p></div><div class="pages">';
+  for(var i=1;i<=meta.pages;i++)h+='<div class="pg" style="aspect-ratio:210/297"><canvas id="c'+i+'"></canvas><div class="ld">descifrando '+i+'…</div></div>';
+  o.innerHTML=h+'</div>';
+  (async function(){for(var i=1;i<=meta.pages;i++){if(open!==id)return;try{
+    var r=await fetch('d/m'+String(i).padStart(2,'0')+'.bin',{cache:'no-store'});var img=await dec(key,await r.arrayBuffer(),'mario-'+i);
+    var bmp=await createImageBitmap(new Blob([img],{type:'image/jpeg'}));var c=$('#c'+i);c.width=bmp.width;c.height=bmp.height;var x=c.getContext('2d');x.drawImage(bmp,0,0);bmp.close&&bmp.close();
+    x.save();x.globalAlpha=.06;x.fillStyle='#000';x.font='bold 46px monospace';x.translate(c.width/2,c.height/2);x.rotate(-Math.PI/5);x.textAlign='center';x.fillText('MCF · '+new Date().toLocaleDateString(),0,0);x.restore();
+    c.parentNode.style.aspectRatio='';c.nextSibling.remove()}catch(e){var l=c&&c.nextSibling;if(l)l.textContent='error'}}})()}
+
+/* protecciones de visualización */
+var sh=$('#shield');
+addEventListener('blur',function(){if(open)sh.classList.add('on')});
+document.addEventListener('visibilitychange',function(){if(document.hidden&&open)sh.classList.add('on')});
+sh.onclick=function(){sh.classList.remove('on')};
+addEventListener('keydown',function(e){var k=(e.key||'').toLowerCase();if((e.ctrlKey||e.metaKey)&&['s','p','u','c'].indexOf(k)>=0||k==='printscreen'||k==='f12'){e.preventDefault();if(open)sh.classList.add('on')}});
+addEventListener('beforeprint',function(){document.getElementById('out').innerHTML=''});
+
+boot();
+})();
+</script>
+<script src="/mcf/bloqueo.js"></script>
+</body>
+</html>

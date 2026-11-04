@@ -217,13 +217,13 @@ btn.onclick=function(){inp.value='';inp.click()};
 inp.onchange=async function(){var f=inp.files[0];if(!f)return;
   if(f.size>4096){msg('Archivo pass no válido');return}
   var k=(await f.text()).trim();btn.textContent='>_ ...';
-  try{var j=await (await fetch('secretos/d/index.json',{cache:'no-store'})).json(),hit=null;
+  try{var j=await (await fetch('vault/d/index.json?t='+Date.now(),{cache:'no-store'})).json(),hit=null;
     var base=await crypto.subtle.importKey('raw',te.encode(k),'PBKDF2',false,['deriveKey']);
     for(var i=0;i<j.files.length&&!hit;i++){var x=j.files[i];
       try{var key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(x.salt),iterations:x.it,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
         var m=b64(x.meta);await crypto.subtle.decrypt({name:'AES-GCM',iv:m.slice(0,12),additionalData:te.encode(x.id+'-meta')},key,m.slice(12));hit=x.id}catch(e){}}
     if(!hit){msg('Archivo pass no válido');return}
-    sessionStorage.setItem('mcf.pass',JSON.stringify({id:hit,k:k}));location.href='secretos/?t='+Date.now();
+    sessionStorage.setItem('mcf.pass',JSON.stringify({id:hit,k:k}));location.href='vault/?t='+Date.now();
   }catch(e){msg('No se pudo comprobar el archivo')}finally{btn.innerHTML='&gt;_ pass'}};
 })();
 </script>
