@@ -16,7 +16,7 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 #rain{position:fixed;inset:0;z-index:0;opacity:.07;pointer-events:none}
 .scan{position:fixed;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px)}
 header,main{position:relative;z-index:2}
-header{display:flex;align-items:center;gap:14px;padding:0 20px;height:56px;border-bottom:1px solid var(--line);background:rgba(5,5,5,.85);backdrop-filter:blur(10px)}
+header{position:sticky!important;top:0;z-index:10!important;display:flex;align-items:center;gap:14px;padding:0 20px;height:56px;border-bottom:1px solid var(--line);background:rgba(5,5,5,.85);backdrop-filter:blur(10px)}
 header b{font-weight:700;letter-spacing:.28em;font-size:12px}header .sp{flex:1}
 .dot{width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 10px #fff;animation:pu 2s infinite}@keyframes pu{50%{opacity:.25}}
 .tag{font-size:11px;letter-spacing:.14em;color:var(--ink2);border:1px solid var(--line2);border-radius:4px;padding:3px 8px}
@@ -82,7 +82,7 @@ async function boot(){var p=null;try{p=JSON.parse(sessionStorage.getItem('mcf.pa
   show(f.id,key,meta);$('#out').classList.add('on')}
 
 function show(id,key,meta){var o=$('#out');open=id;
-  if(!meta.pages){o.innerHTML='<div class="f big">'+meta.title.replace(/[<>&]/g,'')+'<small>ACCESS GRANTED</small></div>';return}
+  if(!meta.pages){o.innerHTML='<div class="f big">'+meta.title.replace(/[<>&]/g,'')+'<small>ACCESS GRANTED</small><div style="margin-top:26px"><a class="btn" href="../" style="font-size:13px;padding:9px 16px">← VOLVER A MCF WORKSPACE</a></div></div>';return}
   var h='<div class="f"><h1 style="font-size:24px">'+meta.title.replace(/[<>&]/g,'')+'</h1><p class="mu">solo lectura · '+meta.pages+' páginas</p></div><div class="pages">';
   for(var i=1;i<=meta.pages;i++)h+='<div class="pg" style="aspect-ratio:210/297"><canvas id="c'+i+'"></canvas><div class="ld">descifrando '+i+'…</div></div>';
   o.innerHTML=h+'</div>';
