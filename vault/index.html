@@ -125,7 +125,7 @@ var b64=function(s){return Uint8Array.from(atob(s),function(c){return c.charCode
 function toB64(u8){var s='',n=0x8000;for(var i=0;i<u8.length;i+=n)s+=String.fromCharCode.apply(null,u8.subarray(i,i+n));return btoa(s)}
 var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
 var wait=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
-var CHUNK=512*1024,MAXF=25*1024*1024;
+var CHUNK=128*1024,TCH=170000,MAXF=25*1024*1024;
 var KEY=null,SYS=null,UID=null,REF=null,T={v:1,items:{}},CWD='',VIEW='grid',Q='',viewing=false;
 
 /* fondo */
@@ -139,6 +139,7 @@ async function dec(buf,aad){buf=new Uint8Array(buf);return new Uint8Array(await 
 async function enc(u8,aad){var iv=crypto.getRandomValues(new Uint8Array(12));var ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv:iv,additionalData:te.encode(aad)},KEY,u8));var o=new Uint8Array(12+ct.length);o.set(iv);o.set(ct,12);return o}
 
 /* utilidades UI */
+function emsg(e){var m=(e&&(e.code||e.message))||String(e);if(/permission|denied/i.test(m))return 'Permiso denegado por Firebase. Verifica el correo de tu cuenta MCF o entra con Google.';return (e&&e.message)||m}
 function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.remove()},2400)}
 function fmt(n){if(n<1024)return n+' B';if(n<1048576)return (n/1024).toFixed(0)+' KB';return (n/1048576).toFixed(1)+' MB'}
 function fdate(t){try{return new Date(t).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'})}catch(e){return ''}}
@@ -160,8 +161,14 @@ function kind(it){var m=it.m||'',n=(it.n||'').toLowerCase();
 function badge(it){if(it.t==='d')return IC.d;var e=(it.n.split('.').pop()||'').slice(0,4).toUpperCase();return esc(it.sys?'PDF':(e.length&&it.n.indexOf('.')>=0?e:'FILE'))}
 
 /* árbol cifrado en Firebase: mcf/{uid}/vault */
-async function loadTree(){var v=(await REF.child('tree').get()).val();if(!v){T={v:1,items:{}};return}T=JSON.parse(td.decode(await dec(b64(v),'vault-tree')))}
-async function saveTree(){await REF.child('tree').set(toB64(await enc(te.encode(JSON.stringify(T)),'vault-tree')))}
+var TN=0;
+async function loadTree(){var n=+((await REF.child('vlt_tn').get()).val()||0);TN=n;if(!n){T={v:1,items:{}};return}
+  var parts=await Promise.all(Array.from({length:n},function(_,i){return REF.child('vlt_t_'+i).get().then(function(x){return x.val()||''})}));
+  T=JSON.parse(td.decode(await dec(b64(parts.join('')),'vault-tree')))}
+async function saveTree(){var str=toB64(await enc(te.encode(JSON.stringify(T)),'vault-tree')),up={},n=0;
+  for(var i=0;i<str.length;i+=TCH)up['vlt_t_'+(n++)]=str.slice(i,i+TCH);
+  for(var j=n;j<TN;j++)up['vlt_t_'+j]=null;up['vlt_tn']=String(n);await REF.update(up);TN=n}
+function bkey(id,i){return 'vlt_b_'+id+'_'+i}
 function kids(p){return Object.values(T.items).filter(function(x){return x.p===p})}
 function desc(id){var r=[id];kids(id).forEach(function(k){r=r.concat(desc(k.id))});return r}
 function pathOf(id){var r=[];while(id&&T.items[id]){r.unshift(T.items[id]);id=T.items[id].p}return r}
@@ -228,20 +235,20 @@ async function moveTo(id,to){var it=T.items[id];if(!it||it.p===to||id===to)retur
   it.p=to;it.n=uniqName(it.n,to,id);await commit();toast('Movido')}
 async function remove(id){var it=T.items[id];var ids=desc(id);
   var ok=await dialog('Eliminar “'+it.n+'”','<p class="mu" style="margin:0">'+(it.t==='d'?'Se eliminará la carpeta y todo lo que contiene ('+(ids.length-1)+' elementos). ':'')+'No se puede deshacer.</p>','Eliminar',true);if(!ok)return;
-  var upd={};ids.forEach(function(x){if(T.items[x].t!=='d')upd['blobs/'+x]=null;delete T.items[x]});
-  try{await REF.update(upd);await commit();toast('Eliminado')}catch(e){toast('Error al eliminar: '+e.message)}}
-async function commit(){try{await saveTree()}catch(e){toast('No se pudo guardar: '+e.message)}render()}
+  var upd={};ids.forEach(function(x){var it2=T.items[x];if(it2.t!=='d')for(var j=0;j<(it2.c||0);j++)upd[bkey(x,j)]=null;delete T.items[x]});
+  try{await REF.update(upd);await commit();toast('Eliminado')}catch(e){toast('Error al eliminar: '+emsg(e))}}
+async function commit(){try{await saveTree()}catch(e){toast('No se pudo guardar: '+emsg(e))}render()}
 
 /* subida: se cifra en el navegador y se guarda por trozos */
 async function upload(fl,parent){parent=parent==null?CWD:parent;var arr=Array.from(fl);
   for(var k=0;k<arr.length;k++){var f=arr[k];var box=document.createElement('div');box.className='up';box.innerHTML='<div>↑ '+esc(f.name)+' <span class="mu3">'+fmt(f.size)+'</span></div><div class="tr"><b></b></div>';$('#ups').appendChild(box);
     if(f.size>MAXF){box.classList.add('err');box.firstChild.innerHTML='✕ '+esc(f.name)+': máximo 25 MB';setTimeout(function(b){b.remove()}.bind(null,box),5000);continue}
-    try{var id=uid(),buf=new Uint8Array(await f.arrayBuffer()),n=Math.max(1,Math.ceil(buf.length/CHUNK));
-      for(var i=0;i<n;i++){var c=await enc(buf.subarray(i*CHUNK,(i+1)*CHUNK),id+'-'+i);await REF.child('blobs/'+id+'/'+i).set(toB64(c));$('b',box).style.width=((i+1)/n*100)+'%'}
+    var done=0;try{var id=uid(),buf=new Uint8Array(await f.arrayBuffer()),n=Math.max(1,Math.ceil(buf.length/CHUNK));
+      for(var i=0;i<n;i++){var c=await enc(buf.subarray(i*CHUNK,(i+1)*CHUNK),id+'-'+i);await REF.child(bkey(id,i)).set(toB64(c));done=i+1;$('b',box).style.width=((i+1)/n*100)+'%'}
       T.items[id]={id:id,t:'f',n:uniqName(f.name,parent),p:parent,s:f.size,m:f.type||'',c:n,at:Date.now()};await saveTree();
       box.firstChild.innerHTML='✓ '+esc(f.name);setTimeout(function(b){b.remove()}.bind(null,box),1800);render()}
-    catch(e){box.classList.add('err');box.firstChild.innerHTML='✕ '+esc(f.name)+': '+esc(e.message||'error');try{REF.child('blobs/'+id).remove()}catch(x){}setTimeout(function(b){b.remove()}.bind(null,box),7000)}}}
-async function fetchFile(it){var parts=[],tot=0;for(var i=0;i<it.c;i++){var v=(await REF.child('blobs/'+it.id+'/'+i).get()).val();if(!v)throw new Error('trozo perdido');var p=await dec(b64(v),it.id+'-'+i);parts.push(p);tot+=p.length}
+    catch(e){box.classList.add('err');box.firstChild.innerHTML='✕ '+esc(f.name)+': '+esc(emsg(e));try{var cl={};for(var j=0;j<done;j++)cl[bkey(id,j)]=null;if(done)REF.update(cl)}catch(x){}setTimeout(function(b){b.remove()}.bind(null,box),7000)}}}
+async function fetchFile(it){var parts=[],tot=0;for(var i=0;i<it.c;i++){var v=(await REF.child(bkey(it.id,i)).get()).val();if(!v)throw new Error('trozo perdido');var p=await dec(b64(v),it.id+'-'+i);parts.push(p);tot+=p.length}
   var out=new Uint8Array(tot),o=0;parts.forEach(function(p){out.set(p,o);o+=p.length});return out}
 async function download(id){var it=T.items[id];toast('Descifrando…');try{var d=await fetchFile(it);var u=URL.createObjectURL(new Blob([d],{type:it.m||'application/octet-stream'}));var a=document.createElement('a');a.href=u;a.download=it.n;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000)}catch(e){toast('Error: '+e.message)}}
 
@@ -284,7 +291,7 @@ function loginView(){$('#out').innerHTML='<div class="card login"><h3 style="mar
   '<p style="text-align:center;margin:10px 0" class="mu3">o</p><button class="btn" id="lg" style="width:100%;justify-content:center">Continuar con Google</button><p class="msg" id="lm" style="color:var(--bad);font-size:12px;min-height:16px"></p></div>';
   $('#lf').onsubmit=async function(e){e.preventDefault();try{await firebase.auth().signInWithEmailAndPassword($('#le').value.trim(),$('#lp').value)}catch(x){$('#lm').textContent='No se pudo entrar ('+x.code+')'}};
   $('#lg').onclick=async function(){try{await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider())}catch(x){if(x.code!=='auth/popup-closed-by-user')$('#lm').textContent='No se pudo entrar ('+x.code+')'}}}
-async function startDrive(u){UID=u.uid;REF=firebase.database().ref('mcf/'+UID+'/vault');$('#who').textContent=u.email||u.displayName||'';
+async function startDrive(u){UID=u.uid;REF=firebase.database().ref('mcf/'+UID);$('#who').textContent=u.email||u.displayName||'';
   $('#out').innerHTML='<p class="mu" style="margin-top:20px">Cargando Drive…</p>';
   try{await loadTree()}catch(e){$('#out').innerHTML='<div class="card" style="margin-top:20px">No se pudo abrir tu Drive: '+esc(e.message||e)+'</div>';return}
   await log('drive mounted · '+Object.keys(T.items).length+' objects',1);render()}
