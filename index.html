@@ -40,8 +40,8 @@ a{color:inherit}
 .acct.login{padding:9px 15px}
 .wsbtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--sheet);display:grid;place-items:center;color:var(--ink-2);transition:transform .2s,color .15s}
 .wsbtn svg{width:17px;height:17px}
-.secbtn{height:40px;border-radius:99px;border:1px solid #0a9e45;background:#000;color:#00ff66;display:inline-flex;align-items:center;gap:6px;padding:0 13px;font:700 13px ui-monospace,Menlo,Consolas,monospace;text-decoration:none;white-space:nowrap}
-.secbtn:hover{box-shadow:0 0 12px rgba(0,255,102,.45)}
+.secbtn{height:40px;border-radius:99px;border:1px solid var(--line-2);background:var(--sheet);color:var(--ink);letter-spacing:.04em;display:inline-flex;align-items:center;gap:6px;padding:0 13px;font:700 13px ui-monospace,Menlo,Consolas,monospace;text-decoration:none;white-space:nowrap}
+.secbtn:hover{background:#fff;color:#000;border-color:#fff}
 .wsbtn:hover,.wsbtn[aria-expanded=true]{color:var(--ink)}
 .wsbtn[aria-expanded=true]{transform:rotate(45deg)}
 .wspanel{position:absolute;right:0;top:calc(100% + 6px);z-index:60;width:min(370px,calc(100vw - 24px));background:#0c0c0c;border:1px solid #2a2a2a;border-radius:26px;padding:16px;box-shadow:0 30px 80px -20px rgba(0,0,0,.95);animation:wsin .18s ease;transform-origin:top right}
