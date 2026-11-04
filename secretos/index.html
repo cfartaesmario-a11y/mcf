@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>MCF Secrets</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23000'/%3E%3Ctext x='12' y='17' font-size='13' text-anchor='middle' fill='%2300ff66' font-family='monospace'%3E%3E_%3C/text%3E%3C/svg%3E">
+<style>
+:root{--g:#00ff66;--g2:#0a9e45;--dim:#0b3d1f;--bg:#000;--bad:#ff3355}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--g);font:15px/1.5 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overflow-x:hidden}
+#rain{position:fixed;inset:0;z-index:0;opacity:.22;pointer-events:none}
+.scan{position:fixed;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0 1px,transparent 1px 3px)}
+header,main{position:relative;z-index:2}
+header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--dim);background:rgba(0,0,0,.85)}
+header b{letter-spacing:.12em;text-shadow:0 0 8px var(--g)}header .sp{flex:1}
+a,button,input{font:inherit;color:inherit}
+.btn{border:1px solid var(--g2);background:rgba(0,255,102,.06);border-radius:6px;padding:7px 12px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:rgba(0,255,102,.16);box-shadow:0 0 12px rgba(0,255,102,.35)}
+main{max-width:980px;margin:0 auto;padding:26px 16px 60px}
+h1{margin:0 0 6px;font-size:clamp(22px,5vw,34px);letter-spacing:.06em;text-shadow:0 0 10px var(--g)}
+.mu{color:var(--g2)}
+.cur::after{content:"█";animation:bl 1s steps(1) infinite}@keyframes bl{50%{opacity:0}}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-top:22px}
+.f{border:1px solid var(--dim);background:rgba(0,20,8,.75);border-radius:10px;padding:16px}
+.f .nm{font-size:17px;margin-bottom:10px}.f .nm span{color:var(--g2)}
+.f form{display:flex;gap:8px}
+input{flex:1;min-width:0;background:#000;border:1px solid var(--g2);border-radius:6px;padding:8px 10px;color:var(--g);-webkit-user-select:text;user-select:text;outline:none}
+input:focus{box-shadow:0 0 10px rgba(0,255,102,.4)}
+.msg{min-height:20px;font-size:13px;margin-top:8px}.msg.bad{color:var(--bad)}
+.out{margin-top:22px}
+.big{font-size:clamp(28px,7vw,56px);text-align:center;padding:50px 10px;text-shadow:0 0 18px var(--g)}
+.pages{display:grid;gap:14px;justify-items:center;margin-top:14px}
+.pg{position:relative;width:100%;max-width:900px;background:#fff;border-radius:4px;box-shadow:0 0 24px rgba(0,255,102,.25);overflow:hidden}
+.pg canvas{display:block;width:100%;height:auto;pointer-events:none}
+.pg .ld{position:absolute;inset:0;display:grid;place-items:center;color:#555;font-size:13px}
+#shield{position:fixed;inset:0;background:#000;z-index:50;display:none;place-items:center;text-align:center;padding:20px}
+#shield.on{display:grid}
+@media print{body *{display:none!important}body::after{content:"ACCESO DENEGADO";display:block!important;font:24px monospace;padding:40px}}
+</style>
+</head>
+<body oncontextmenu="return false" ondragstart="return false">
+<canvas id="rain"></canvas><div class="scan"></div>
+<header><a class="btn" href="../">← MCF</a><b>&gt;_ SECRETS</b><span class="sp"></span><span class="mu" style="font-size:12px">AES-256 · PBKDF2</span></header>
+<main>
+  <h1 class="cur">root@mcf:~/secrets# </h1>
+  <p class="mu">// zona restringida. introduce la clave de tu archivo.</p>
+  <div class="grid" id="grid"></div>
+  <div class="out" id="out"></div>
+</main>
+<div id="shield"><div><div style="font-size:46px">🔒</div><p>Contenido oculto mientras la ventana no está activa.</p><p class="mu">Haz clic aquí para seguir.</p></div></div>
+<script>
+(function(){
+'use strict';
+var $=function(s){return document.querySelector(s)};
+var b64=function(s){return Uint8Array.from(atob(s),function(c){return c.charCodeAt(0)})};
+var te=new TextEncoder(),FILES=[],open=null;
+
+/* lluvia matrix */
+(function(){var c=$('#rain'),x=c.getContext('2d'),cols,drops;function rs(){c.width=innerWidth;c.height=innerHeight;cols=Math.floor(c.width/16);drops=Array(cols).fill(0).map(function(){return Math.random()*c.height/16})}rs();addEventListener('resize',rs);
+setInterval(function(){x.fillStyle='rgba(0,0,0,.08)';x.fillRect(0,0,c.width,c.height);x.fillStyle='#00ff66';x.font='14px monospace';for(var i=0;i<cols;i++){x.fillText(String.fromCharCode(0x30A0+Math.random()*96),i*16,drops[i]*16);if(drops[i]*16>c.height&&Math.random()>.975)drops[i]=0;drops[i]++}},55)})();
+
+async function derive(pw,f){var base=await crypto.subtle.importKey('raw',te.encode(pw),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(f.salt),iterations:f.it,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt'])}
+async function dec(key,buf,aad){buf=new Uint8Array(buf);return crypto.subtle.decrypt({name:'AES-GCM',iv:buf.slice(0,12),additionalData:te.encode(aad)},key,buf.slice(12))}
+
+function grid(){$('#grid').innerHTML=FILES.map(function(f){return '<div class="f"><div class="nm">📁 pass_<span>'+f.id+'</span>.enc</div><form data-id="'+f.id+'"><input type="password" autocomplete="off" placeholder="contraseña"><button class="btn">entrar</button></form><div class="msg" id="m_'+f.id+'"></div></div>'}).join('');
+  document.querySelectorAll('form[data-id]').forEach(function(fm){fm.onsubmit=async function(e){e.preventDefault();var id=fm.dataset.id,f=FILES.find(function(x){return x.id===id}),m=$('#m_'+id),pw=fm.querySelector('input').value;
+    m.className='msg';m.textContent='> descifrando...';
+    try{var key=await derive(pw,f);var meta=JSON.parse(new TextDecoder().decode(await dec(key,b64(f.meta),id+'-meta')))}
+    catch(err){m.className='msg bad';m.textContent='> ACCESO DENEGADO';fm.querySelector('input').value='';return}
+    m.textContent='> acceso concedido';fm.querySelector('input').value='';show(id,key,meta)}})}
+
+function show(id,key,meta){var o=$('#out');open=id;
+  if(!meta.pages){o.innerHTML='<div class="f big">'+meta.title.replace(/[<>&]/g,'')+'</div>';o.scrollIntoView({behavior:'smooth'});return}
+  var h='<div class="f"><h1 style="font-size:24px">'+meta.title.replace(/[<>&]/g,'')+'</h1><p class="mu">// solo lectura · '+meta.pages+' páginas</p></div><div class="pages">';
+  for(var i=1;i<=meta.pages;i++)h+='<div class="pg" style="aspect-ratio:210/297"><canvas id="c'+i+'"></canvas><div class="ld">descifrando '+i+'…</div></div>';
+  o.innerHTML=h+'</div>';o.scrollIntoView({behavior:'smooth'});
+  (async function(){for(var i=1;i<=meta.pages;i++){if(open!==id)return;try{
+    var r=await fetch('d/m'+String(i).padStart(2,'0')+'.bin',{cache:'no-store'});var img=await dec(key,await r.arrayBuffer(),'mario-'+i);
+    var bmp=await createImageBitmap(new Blob([img],{type:'image/jpeg'}));var c=$('#c'+i);c.width=bmp.width;c.height=bmp.height;var x=c.getContext('2d');x.drawImage(bmp,0,0);bmp.close&&bmp.close();
+    x.save();x.globalAlpha=.06;x.fillStyle='#000';x.font='bold 46px monospace';x.translate(c.width/2,c.height/2);x.rotate(-Math.PI/5);x.textAlign='center';x.fillText('MCF · '+new Date().toLocaleDateString(),0,0);x.restore();
+    c.parentNode.style.aspectRatio='';c.nextSibling.remove()}catch(e){var l=c&&c.nextSibling;if(l)l.textContent='error'}}})()}
+
+/* protecciones de visualización */
+var sh=$('#shield');
+addEventListener('blur',function(){if(open)sh.classList.add('on')});
+document.addEventListener('visibilitychange',function(){if(document.hidden&&open)sh.classList.add('on')});
+sh.onclick=function(){sh.classList.remove('on')};
+addEventListener('keydown',function(e){var k=(e.key||'').toLowerCase();if((e.ctrlKey||e.metaKey)&&['s','p','u','c'].indexOf(k)>=0||k==='printscreen'||k==='f12'){e.preventDefault();if(open)sh.classList.add('on')}});
+addEventListener('beforeprint',function(){document.getElementById('out').innerHTML=''});
+
+fetch('d/index.json',{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){FILES=j.files;grid()}).catch(function(){$('#grid').textContent='> error cargando archivos'});
+})();
+</script>
+<script src="/mcf/bloqueo.js"></script>
+</body>
+</html>

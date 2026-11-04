@@ -40,6 +40,8 @@ a{color:inherit}
 .acct.login{padding:9px 15px}
 .wsbtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--sheet);display:grid;place-items:center;color:var(--ink-2);transition:transform .2s,color .15s}
 .wsbtn svg{width:17px;height:17px}
+.secbtn{height:40px;border-radius:99px;border:1px solid #0a9e45;background:#000;color:#00ff66;display:inline-flex;align-items:center;gap:6px;padding:0 13px;font:700 13px ui-monospace,Menlo,Consolas,monospace;text-decoration:none;white-space:nowrap}
+.secbtn:hover{box-shadow:0 0 12px rgba(0,255,102,.45)}
 .wsbtn:hover,.wsbtn[aria-expanded=true]{color:var(--ink)}
 .wsbtn[aria-expanded=true]{transform:rotate(45deg)}
 .wspanel{position:absolute;right:0;top:calc(100% + 6px);z-index:60;width:min(370px,calc(100vw - 24px));background:#0c0c0c;border:1px solid #2a2a2a;border-radius:26px;padding:16px;box-shadow:0 30px 80px -20px rgba(0,0,0,.95);animation:wsin .18s ease;transform-origin:top right}
@@ -117,7 +119,7 @@ label.lb{display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight
 <body>
 <header class="top"><div class="wrap topin">
   <a class="brand" href="#"><span class="bi" style="background:#fff;color:#000"><svg viewBox="0 0 24 24"><g transform="rotate(45 12 12)"><path fill="currentColor" d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></g></svg></span><span class="bn">MCF Workspace</span></a>
-  <div class="tools"><button class="wsbtn" id="wsBtn" aria-label="MCF Workspace" aria-expanded="false"><svg viewBox="0 0 24 24"><g fill="currentColor"><circle cx="5" cy="5" r="2.2"/><circle cx="12" cy="5" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="12" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/></g></svg></button><div id="acct"></div></div>
+  <div class="tools"><a class="secbtn" href="secretos/" title="Secrets">&gt;_ pass</a><button class="wsbtn" id="wsBtn" aria-label="MCF Workspace" aria-expanded="false"><svg viewBox="0 0 24 24"><g fill="currentColor"><circle cx="5" cy="5" r="2.2"/><circle cx="12" cy="5" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="12" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/></g></svg></button><div id="acct"></div></div>
   <div class="wspanel" id="wsPanel" hidden></div>
 </div></header>
 <main class="wrap">
