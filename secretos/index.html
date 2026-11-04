@@ -41,13 +41,12 @@ input:focus{box-shadow:0 0 10px rgba(0,255,102,.4)}
 @media print{body *{display:none!important}body::after{content:"ACCESO DENEGADO";display:block!important;font:24px monospace;padding:40px}}
 </style>
 </head>
-<body oncontextmenu="return false" ondragstart="return false">
+<body style="visibility:hidden" oncontextmenu="return false" ondragstart="return false">
 <canvas id="rain"></canvas><div class="scan"></div>
 <header><a class="btn" href="../">← MCF</a><b>&gt;_ SECRETS</b><span class="sp"></span><span class="mu" style="font-size:12px">AES-256 · PBKDF2</span></header>
 <main>
   <h1 class="cur">root@mcf:~/secrets# </h1>
-  <p class="mu">// zona restringida. introduce la clave de tu archivo.</p>
-  <div class="grid" id="grid"></div>
+  <p class="mu" id="st">// verificando archivo pass...</p>
   <div class="out" id="out"></div>
 </main>
 <div id="shield"><div><div style="font-size:46px">🔒</div><p>Contenido oculto mientras la ventana no está activa.</p><p class="mu">Haz clic aquí para seguir.</p></div></div>
@@ -56,7 +55,7 @@ input:focus{box-shadow:0 0 10px rgba(0,255,102,.4)}
 'use strict';
 var $=function(s){return document.querySelector(s)};
 var b64=function(s){return Uint8Array.from(atob(s),function(c){return c.charCodeAt(0)})};
-var te=new TextEncoder(),FILES=[],open=null;
+var te=new TextEncoder(),open=null;
 
 /* lluvia matrix */
 (function(){var c=$('#rain'),x=c.getContext('2d'),cols,drops;function rs(){c.width=innerWidth;c.height=innerHeight;cols=Math.floor(c.width/16);drops=Array(cols).fill(0).map(function(){return Math.random()*c.height/16})}rs();addEventListener('resize',rs);
@@ -66,12 +65,13 @@ async function derive(pw,f){var base=await crypto.subtle.importKey('raw',te.enco
   return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(f.salt),iterations:f.it,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt'])}
 async function dec(key,buf,aad){buf=new Uint8Array(buf);return crypto.subtle.decrypt({name:'AES-GCM',iv:buf.slice(0,12),additionalData:te.encode(aad)},key,buf.slice(12))}
 
-function grid(){$('#grid').innerHTML=FILES.map(function(f){return '<div class="f"><div class="nm">📁 pass_<span>'+f.id+'</span>.enc</div><form data-id="'+f.id+'"><input type="password" autocomplete="off" placeholder="contraseña"><button class="btn">entrar</button></form><div class="msg" id="m_'+f.id+'"></div></div>'}).join('');
-  document.querySelectorAll('form[data-id]').forEach(function(fm){fm.onsubmit=async function(e){e.preventDefault();var id=fm.dataset.id,f=FILES.find(function(x){return x.id===id}),m=$('#m_'+id),pw=fm.querySelector('input').value;
-    m.className='msg';m.textContent='> descifrando...';
-    try{var key=await derive(pw,f);var meta=JSON.parse(new TextDecoder().decode(await dec(key,b64(f.meta),id+'-meta')))}
-    catch(err){m.className='msg bad';m.textContent='> ACCESO DENEGADO';fm.querySelector('input').value='';return}
-    m.textContent='> acceso concedido';fm.querySelector('input').value='';show(id,key,meta)}})}
+function out(){location.replace('../')}
+async function boot(){var p=null;try{p=JSON.parse(sessionStorage.getItem('mcf.pass'))}catch(e){}
+  try{sessionStorage.removeItem('mcf.pass')}catch(e){}
+  if(!p||!p.k)return out();
+  try{var j=await (await fetch('d/index.json',{cache:'no-store'})).json();var f=j.files.find(function(x){return x.id===p.id});
+    var key=await derive(p.k,f);var meta=JSON.parse(new TextDecoder().decode(await dec(key,b64(f.meta),f.id+'-meta')))}catch(e){return out()}
+  document.body.style.visibility='';$('#st').textContent='// acceso concedido: pass_'+f.id;show(f.id,key,meta)}
 
 function show(id,key,meta){var o=$('#out');open=id;
   if(!meta.pages){o.innerHTML='<div class="f big">'+meta.title.replace(/[<>&]/g,'')+'</div>';o.scrollIntoView({behavior:'smooth'});return}
@@ -92,7 +92,7 @@ sh.onclick=function(){sh.classList.remove('on')};
 addEventListener('keydown',function(e){var k=(e.key||'').toLowerCase();if((e.ctrlKey||e.metaKey)&&['s','p','u','c'].indexOf(k)>=0||k==='printscreen'||k==='f12'){e.preventDefault();if(open)sh.classList.add('on')}});
 addEventListener('beforeprint',function(){document.getElementById('out').innerHTML=''});
 
-fetch('d/index.json',{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){FILES=j.files;grid()}).catch(function(){$('#grid').textContent='> error cargando archivos'});
+boot();
 })();
 </script>
 <script src="/mcf/bloqueo.js"></script>

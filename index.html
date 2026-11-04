@@ -119,7 +119,7 @@ label.lb{display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight
 <body>
 <header class="top"><div class="wrap topin">
   <a class="brand" href="#"><span class="bi" style="background:#fff;color:#000"><svg viewBox="0 0 24 24"><g transform="rotate(45 12 12)"><path fill="currentColor" d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></g></svg></span><span class="bn">MCF Workspace</span></a>
-  <div class="tools"><a class="secbtn" href="secretos/" title="Secrets">&gt;_ pass</a><button class="wsbtn" id="wsBtn" aria-label="MCF Workspace" aria-expanded="false"><svg viewBox="0 0 24 24"><g fill="currentColor"><circle cx="5" cy="5" r="2.2"/><circle cx="12" cy="5" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="12" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/></g></svg></button><div id="acct"></div></div>
+  <div class="tools"><button class="secbtn" id="secBtn" title="Abrir con archivo pass">&gt;_ pass</button><input type="file" id="secFile" hidden><button class="wsbtn" id="wsBtn" aria-label="MCF Workspace" aria-expanded="false"><svg viewBox="0 0 24 24"><g fill="currentColor"><circle cx="5" cy="5" r="2.2"/><circle cx="12" cy="5" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="12" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/></g></svg></button><div id="acct"></div></div>
   <div class="wspanel" id="wsPanel" hidden></div>
 </div></header>
 <main class="wrap">
@@ -207,5 +207,25 @@ async function render(){
 MCF.onChange(render);MCF.init('home');
 </script>
 <script src="/mcf/bloqueo.js"></script>
+<script>
+/* >_ pass: solo se entra a Secrets con un archivo de llave válido */
+(function(){
+var btn=document.getElementById('secBtn'),inp=document.getElementById('secFile');if(!btn||!inp)return;
+var te=new TextEncoder(),b64=function(s){return Uint8Array.from(atob(s),function(c){return c.charCodeAt(0)})};
+function msg(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.remove()},2600)}
+btn.onclick=function(){inp.value='';inp.click()};
+inp.onchange=async function(){var f=inp.files[0];if(!f)return;
+  if(f.size>4096){msg('Archivo pass no válido');return}
+  var k=(await f.text()).trim();btn.textContent='>_ ...';
+  try{var j=await (await fetch('secretos/d/index.json',{cache:'no-store'})).json(),hit=null;
+    var base=await crypto.subtle.importKey('raw',te.encode(k),'PBKDF2',false,['deriveKey']);
+    for(var i=0;i<j.files.length&&!hit;i++){var x=j.files[i];
+      try{var key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(x.salt),iterations:x.it,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
+        var m=b64(x.meta);await crypto.subtle.decrypt({name:'AES-GCM',iv:m.slice(0,12),additionalData:te.encode(x.id+'-meta')},key,m.slice(12));hit=x.id}catch(e){}}
+    if(!hit){msg('Archivo pass no válido');return}
+    sessionStorage.setItem('mcf.pass',JSON.stringify({id:hit,k:k}));location.href='secretos/';
+  }catch(e){msg('No se pudo comprobar el archivo')}finally{btn.innerHTML='&gt;_ pass'}};
+})();
+</script>
 </body>
 </html>
