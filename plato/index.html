@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Plató · vídeo explicatiu</title>
+<meta name="theme-color" content="#0a0a0a">
+<script>
+/* temporal: es borra a les 24 h de publicar-lo: 10/11/2026 a les 21:37 */
+if (!(Date.now() < Date.UTC(2026,10,10,20,37))) location.replace('/mcf/');
+</script>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#0a0a0a;color:#f2f2f3;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.bar{display:flex;align-items:center;gap:12px;padding:14px 18px;max-width:1100px;margin:0 auto}
+.bar a{color:#cfcfd3;text-decoration:none;font-weight:700;font-size:14px;border:1px solid #2a2a2e;border-radius:10px;padding:8px 12px}
+.bar a:hover{border-color:#555}
+.bar h1{font-size:clamp(17px,2.4vw,22px);margin:0;flex:1;min-width:0}
+.wrap{max-width:1100px;margin:0 auto;padding:0 18px 40px}
+video{width:100%;border-radius:14px;background:#000;display:block;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.note{color:#8a8a90;font-size:13px;margin:14px 2px 0;line-height:1.5}
+h2{font-size:15px;color:#cfcfd3;margin:22px 2px 10px}
+.ch{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.ch button{display:flex;gap:10px;align-items:baseline;text-align:left;background:#141416;border:1px solid #2a2a2e;color:#f2f2f3;border-radius:10px;padding:10px 12px;font-size:14px;cursor:pointer}
+.ch button:hover{border-color:#3d6b52}
+.ch b{color:#ffe27a;font-variant-numeric:tabular-nums;font-weight:700;min-width:44px}
+</style>
+</head>
+<body>
+<div class="bar"><a href="/mcf/">‹ MCF Workspace</a><h1>Plató · Història de la Filosofia</h1></div>
+<div class="wrap">
+  <video id="vid" controls playsinline preload="metadata" src="plato.mp4"></video>
+  <h2>Apartats</h2>
+  <div class="ch" id="ch"></div>
+  <p class="note">Vídeo temporal: s'esborrarà sol a les 24 hores d'haver-lo publicat (10/11/2026 a les 21:37).</p>
+</div>
+<script>
+(function(){
+  var C=[[0,'Context: qui era Plató'],[119,'1. Dualisme ontològic'],[299,'2. La línia (epistemologia)'],[418,'3. Cos, ànima i reminiscència'],[515,'4. Les tres parts de l\'ànima'],[591,'5. El carro alat'],[649,'6. La ciutat justa'],[750,'7. Formació i dialèctica'],[823,'Taula de correspondències'],[888,'Vocabulari clau']];
+  var v=document.getElementById('vid'), box=document.getElementById('ch');
+  C.forEach(function(c){
+    var b=document.createElement('button'), m=Math.floor(c[0]/60), s=('0'+c[0]%60).slice(-2);
+    b.innerHTML='<b>'+m+':'+s+'</b><span></span>'; b.lastChild.textContent=c[1];
+    b.onclick=function(){ v.currentTime=c[0]; v.play(); window.scrollTo({top:0,behavior:'smooth'}); };
+    box.appendChild(b);
+  });
+})();
+</script>
+</body>
+</html>
