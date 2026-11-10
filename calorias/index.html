@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Contador de calorías</title>
+<meta name="theme-color" content="#0f1115">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#0f1115;color:#eef0f3;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:560px;margin:0 auto;padding:22px 16px 60px}
+h1{font-size:15px;font-weight:600;color:#8d94a1;margin:0 0 18px;letter-spacing:.02em}
+.hero{background:#171a21;border-radius:20px;padding:24px 20px}
+.hero .lbl{color:#8d94a1;font-size:14px}
+.hero .num{font-size:64px;font-weight:800;line-height:1.05;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.hero .num small{font-size:20px;font-weight:600;color:#8d94a1;margin-left:6px}
+.hero .sub{color:#8d94a1;font-size:14px}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px}
+.stat{background:#171a21;border-radius:16px;padding:14px 12px}
+.stat b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.stat span{color:#8d94a1;font-size:12px}
+h2{font-size:14px;color:#8d94a1;font-weight:600;margin:28px 4px 10px}
+.chart{background:#171a21;border-radius:16px;padding:16px 12px 10px;display:flex;align-items:flex-end;gap:6px;height:170px}
+.col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0;cursor:pointer}
+.bar{width:100%;max-width:26px;background:#3b4252;border-radius:6px 6px 2px 2px;min-height:3px}
+.col.on .bar{background:#ff7a45}
+.col i{font-style:normal;font-size:10px;color:#8d94a1;margin-top:6px}
+.col.on i{color:#eef0f3}
+.day{background:#171a21;border-radius:16px;margin-bottom:10px;overflow:hidden}
+.day summary{list-style:none;display:flex;justify-content:space-between;align-items:center;padding:16px;cursor:pointer;font-weight:600}
+.day summary::-webkit-details-marker{display:none}
+.day summary em{font-style:normal;color:#ff7a45;font-variant-numeric:tabular-nums}
+.meal{padding:0 16px 12px}
+.meal h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#8d94a1;margin:6px 0 6px;display:flex;justify-content:space-between}
+.item{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid #232733;font-size:15px}
+.item div{min-width:0}
+.item small{display:block;color:#8d94a1;font-size:12px;margin-top:2px}
+.item b{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.empty{background:#171a21;border-radius:16px;padding:26px 18px;color:#8d94a1;text-align:center;font-size:15px;line-height:1.5}
+.foot{color:#5d6471;font-size:12px;text-align:center;margin-top:26px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>CONTADOR DE CALORÍAS</h1>
+  <div class="hero">
+    <div class="lbl" id="heroLbl">Hoy</div>
+    <div class="num"><span id="heroNum">0</span><small>kcal</small></div>
+    <div class="sub" id="heroSub">Sin registros todavía</div>
+  </div>
+  <div class="stats">
+    <div class="stat"><b id="sAvg">–</b><span>media 7 días</span></div>
+    <div class="stat"><b id="sMax">–</b><span>día más alto</span></div>
+    <div class="stat"><b id="sDays">0</b><span>días apuntados</span></div>
+  </div>
+
+  <h2>Últimos 14 días</h2>
+  <div class="chart" id="chart"></div>
+
+  <h2>Historial</h2>
+  <div id="list"></div>
+
+  <div class="foot">Gramos y calorías aproximados a partir de fotos.<br>Son estimaciones, no medidas exactas.</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+const fmt = n => Math.round(n).toLocaleString('es-ES');
+const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const largo = s => parse(s).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+const kcalComida = c => (c.items || []).reduce((a, i) => a + (Number(i.kcal) || 0), 0);
+const kcalDia = d => (d.comidas || []).reduce((a, c) => a + kcalComida(c), 0);
+
+function pintar(data) {
+  const dias = (data.dias || []).slice().sort((a, b) => b.fecha.localeCompare(a.fecha));
+  const porFecha = Object.fromEntries(dias.map(d => [d.fecha, d]));
+  const hoy = iso(new Date());
+
+  // Cabecera: hoy si hay datos, si no el último día apuntado
+  const foco = porFecha[hoy] || dias[0];
+  if (foco) {
+    $('heroLbl').textContent = foco.fecha === hoy ? 'Hoy' : 'Último día · ' + largo(foco.fecha);
+    $('heroNum').textContent = fmt(kcalDia(foco));
+    const n = (foco.comidas || []).length;
+    $('heroSub').textContent = n + (n === 1 ? ' comida apuntada' : ' comidas apuntadas');
+  }
+
+  // Estadísticas
+  if (dias.length) {
+    const ult7 = dias.slice(0, 7).map(kcalDia);
+    $('sAvg').textContent = fmt(ult7.reduce((a, b) => a + b, 0) / ult7.length);
+    $('sMax').textContent = fmt(Math.max(...dias.map(kcalDia)));
+  }
+  $('sDays').textContent = dias.length;
+
+  // Gráfico de 14 días
+  const chart = $('chart'); chart.textContent = '';
+  const serie = [];
+  for (let i = 13; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const f = iso(d); serie.push({ f, k: porFecha[f] ? kcalDia(porFecha[f]) : 0 }); }
+  const max = Math.max(1, ...serie.map(s => s.k));
+  serie.forEach(s => {
+    const col = el('div', 'col' + (foco && s.f === foco.fecha ? ' on' : ''));
+    col.title = largo(s.f) + ': ' + fmt(s.k) + ' kcal';
+    const bar = el('div', 'bar'); bar.style.height = (s.k / max * 100) + '%';
+    col.append(bar, el('i', '', String(parse(s.f).getDate())));
+    col.onclick = () => { const t = document.getElementById('d-' + s.f); if (t) { t.open = true; t.scrollIntoView({ behavior: 'smooth', block: 'start' }); } };
+    chart.append(col);
+  });
+
+  // Historial
+  const list = $('list'); list.textContent = '';
+  if (!dias.length) { list.append(el('div', 'empty', 'Aún no hay ningún día apuntado. En cuanto mandes las fotos de hoy aparecerán aquí.')); return; }
+  dias.forEach((d, idx) => {
+    const det = el('details', 'day'); det.id = 'd-' + d.fecha; if (idx === 0) det.open = true;
+    const sum = el('summary');
+    const t = largo(d.fecha);
+    sum.append(el('span', '', t.charAt(0).toUpperCase() + t.slice(1)), el('em', '', fmt(kcalDia(d)) + ' kcal'));
+    det.append(sum);
+    (d.comidas || []).forEach(c => {
+      const m = el('div', 'meal');
+      const h = el('h3'); h.append(el('span', '', c.momento || 'Comida'), el('span', '', fmt(kcalComida(c)) + ' kcal'));
+      m.append(h);
+      (c.items || []).forEach(i => {
+        const row = el('div', 'item');
+        const left = el('div'); left.append(document.createTextNode(i.nombre || ''));
+        const extra = [i.gramos ? '~' + fmt(i.gramos) + ' ' + (i.unidad || 'g') : '', i.nota || ''].filter(Boolean).join(' · ');
+        if (extra) left.append(el('small', '', extra));
+        row.append(left, el('b', '', fmt(i.kcal || 0) + ' kcal'));
+        m.append(row);
+      });
+      det.append(m);
+    });
+    list.append(det);
+  });
+}
+
+fetch('data.json?t=' + Date.now(), { cache: 'no-store' })
+  .then(r => r.json()).then(pintar)
+  .catch(() => pintar({ dias: [] }));
+</script>
+</body>
+</html>
