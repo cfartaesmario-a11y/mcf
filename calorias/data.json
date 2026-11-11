@@ -6,8 +6,59 @@
         {
           "momento": "Desayuno",
           "items": [
-            { "nombre": "Cereales Chocapic", "gramos": 40, "kcal": 152, "nota": "Nestlé" },
-            { "nombre": "Leche entera", "gramos": 150, "unidad": "ml", "kcal": 95, "nota": "Central Lechera Asturiana" }
+            {
+              "nombre": "Cereales Chocapic",
+              "gramos": 40,
+              "kcal": 152,
+              "nota": "Nestlé"
+            },
+            {
+              "nombre": "Leche entera",
+              "gramos": 150,
+              "unidad": "ml",
+              "kcal": 95,
+              "nota": "Central Lechera Asturiana"
+            }
+          ]
+        },
+        {
+          "momento": "Comida",
+          "items": [
+            {
+              "nombre": "Mămăligă (polenta)",
+              "gramos": 200,
+              "kcal": 140
+            },
+            {
+              "nombre": "Queso maduro en salmuera (brânză)",
+              "gramos": 50,
+              "kcal": 125,
+              "nota": "Milsani (Lidl)"
+            },
+            {
+              "nombre": "Smântână / crème fraîche 30%",
+              "gramos": 40,
+              "kcal": 116,
+              "nota": "Envia (Lidl)"
+            },
+            {
+              "nombre": "Huevo frito (ou ochi) con aceite",
+              "gramos": 60,
+              "kcal": 120,
+              "nota": "~1 cdta de aceite"
+            },
+            {
+              "nombre": "Bacon en airfryer",
+              "gramos": 40,
+              "kcal": 120,
+              "nota": "3 tiras, sin aceite"
+            },
+            {
+              "nombre": "Pan blanco",
+              "gramos": 50,
+              "kcal": 130,
+              "nota": "1 rebanada"
+            }
           ]
         }
       ]
