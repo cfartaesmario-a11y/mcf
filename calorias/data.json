@@ -1,3 +1,16 @@
 {
-  "dias": []
+  "dias": [
+    {
+      "fecha": "2026-11-11",
+      "comidas": [
+        {
+          "momento": "Desayuno",
+          "items": [
+            { "nombre": "Cereales Chocapic", "gramos": 40, "kcal": 152, "nota": "Nestlé" },
+            { "nombre": "Leche entera", "gramos": 150, "unidad": "ml", "kcal": 95, "nota": "Central Lechera Asturiana" }
+          ]
+        }
+      ]
+    }
+  ]
 }
