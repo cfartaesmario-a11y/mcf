@@ -71,6 +71,17 @@
               "nota": "Choceur Nutcracker (Aldi) · 8 onzas"
             }
           ]
+        },
+        {
+          "momento": "Picoteo",
+          "items": [
+            {
+              "nombre": "Chocolate con leche y avellanas",
+              "gramos": 17,
+              "kcal": 93,
+              "nota": "Choceur Nutcracker (Aldi) · 4 onzas"
+            }
+          ]
         }
       ]
     }
