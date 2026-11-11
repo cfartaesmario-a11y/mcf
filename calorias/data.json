@@ -82,6 +82,33 @@
               "nota": "Choceur Nutcracker (Aldi) · 4 onzas"
             }
           ]
+        },
+        {
+          "momento": "Cena",
+          "items": [
+            {
+              "nombre": "Tortilla de trigo (wrap)",
+              "gramos": 60,
+              "kcal": 180
+            },
+            {
+              "nombre": "Huevos",
+              "gramos": 110,
+              "kcal": 155,
+              "nota": "2 huevos"
+            },
+            {
+              "nombre": "Atún en aceite de girasol, escurrido",
+              "gramos": 55,
+              "kcal": 110,
+              "nota": "1 lata pequeña"
+            },
+            {
+              "nombre": "Mozzarella",
+              "gramos": 30,
+              "kcal": 85
+            }
+          ]
         }
       ]
     }
