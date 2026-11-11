@@ -60,6 +60,17 @@
               "nota": "1 rebanada"
             }
           ]
+        },
+        {
+          "momento": "Postre",
+          "items": [
+            {
+              "nombre": "Chocolate con leche y avellanas",
+              "gramos": 33,
+              "kcal": 185,
+              "nota": "Choceur Nutcracker (Aldi) · 8 onzas"
+            }
+          ]
         }
       ]
     }
