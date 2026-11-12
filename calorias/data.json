@@ -148,19 +148,20 @@
             },
             {
               "nombre": "Salsa burger",
-              "gramos": 20,
-              "kcal": 80,
+              "gramos": 40,
+              "kcal": 120,
               "nota": "Hellmann's"
             },
             {
               "nombre": "Ketchup",
-              "gramos": 15,
-              "kcal": 15
+              "gramos": 40,
+              "kcal": 40
             },
             {
               "nombre": "Cebolla crujiente",
-              "gramos": 10,
-              "kcal": 60
+              "gramos": 20,
+              "kcal": 118,
+              "nota": "Mercadona · 590 kcal/100 g"
             },
             {
               "nombre": "Huevos de codorniz a la plancha",
