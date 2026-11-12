@@ -124,6 +124,51 @@
               "nota": "mitad de un producto de 172 kcal"
             }
           ]
+        },
+        {
+          "momento": "Comida",
+          "items": [
+            {
+              "nombre": "Pan de hamburguesa Maxi Burger",
+              "gramos": 85,
+              "kcal": 240,
+              "nota": "Consum"
+            },
+            {
+              "nombre": "Burger de entrecot de aguja",
+              "gramos": 120,
+              "kcal": 275,
+              "nota": "Roler · peso en crudo"
+            },
+            {
+              "nombre": "Queso cheddar en lonchas",
+              "gramos": 35,
+              "kcal": 100,
+              "nota": "Tranchettes · 2 lonchas"
+            },
+            {
+              "nombre": "Salsa burger",
+              "gramos": 20,
+              "kcal": 80,
+              "nota": "Hellmann's"
+            },
+            {
+              "nombre": "Ketchup",
+              "gramos": 15,
+              "kcal": 15
+            },
+            {
+              "nombre": "Cebolla crujiente",
+              "gramos": 10,
+              "kcal": 60
+            },
+            {
+              "nombre": "Huevos de codorniz a la plancha",
+              "gramos": 40,
+              "kcal": 60,
+              "nota": "4 huevos"
+            }
+          ]
         }
       ]
     }
