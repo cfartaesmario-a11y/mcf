@@ -111,6 +111,21 @@
           ]
         }
       ]
+    },
+    {
+      "fecha": "2026-11-12",
+      "comidas": [
+        {
+          "momento": "Picoteo",
+          "items": [
+            {
+              "nombre": "Snack (media ración)",
+              "kcal": 86,
+              "nota": "mitad de un producto de 172 kcal"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
