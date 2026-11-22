@@ -181,15 +181,15 @@
           "items": [
             {
               "nombre": "Galletas Chocoflakes",
-              "gramos": 25,
-              "kcal": 120,
-              "nota": "5 piezas"
+              "gramos": 100,
+              "kcal": 480,
+              "nota": "~100 g"
             },
             {
               "nombre": "Leche entera",
-              "gramos": 300,
+              "gramos": 200,
               "unidad": "ml",
-              "kcal": 195
+              "kcal": 130
             }
           ]
         }
