@@ -172,6 +172,28 @@
           ]
         }
       ]
+    },
+    {
+      "fecha": "2026-11-22",
+      "comidas": [
+        {
+          "momento": "Desayuno",
+          "items": [
+            {
+              "nombre": "Galletas Chocoflakes",
+              "gramos": 25,
+              "kcal": 120,
+              "nota": "5 piezas"
+            },
+            {
+              "nombre": "Leche entera",
+              "gramos": 200,
+              "unidad": "ml",
+              "kcal": 130
+            }
+          ]
+        }
+      ]
     }
   ]
 }
