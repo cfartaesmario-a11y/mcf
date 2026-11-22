@@ -187,9 +187,9 @@
             },
             {
               "nombre": "Leche entera",
-              "gramos": 200,
+              "gramos": 300,
               "unidad": "ml",
-              "kcal": 130
+              "kcal": 195
             }
           ]
         }
