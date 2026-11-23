@@ -112,7 +112,7 @@ input:focus,select:focus{border-color:#6d5bff}
 var CFG={apiKey:"AIzaSyAS2sEiZ3vh3DpvG-Vx85w73zoAOdaFCNs",authDomain:"marela-8d4e5.firebaseapp.com",databaseURL:"https://marela-8d4e5-default-rtdb.europe-west1.firebasedatabase.app",projectId:"marela-8d4e5",storageBucket:"marela-8d4e5.firebasestorage.app"};
 firebase.initializeApp(CFG);
 var DB=firebase.database();
-var SALAS=DB.ref('salas');                 // nodo público read/write
+var SALAS=DB.ref('salas/arcade');          // todas las salas bajo UNA clave $sala (se puede listar); /salas padre no es legible
 var netdot=document.getElementById('netdot');
 DB.ref('.info/connected').on('value',function(s){
   var on=s.val()===true; netdot.className='dot '+(on?'on':'off');
