@@ -78,7 +78,7 @@ input:focus,select:focus{border-color:#6d5bff}
 .sq.cap{box-shadow:inset 0 0 0 4px rgba(220,60,60,.8)}
 .sq.chk{box-shadow:inset 0 0 0 4px rgba(220,60,60,.9)}
 .pc{line-height:1}
-.pc.w{color:#fff;-webkit-text-stroke:1.4px #222;text-shadow:0 1px 2px rgba(0,0,0,.55)}
+.pc.w{color:#fff;-webkit-text-stroke:1.7px #1a1a1a;text-shadow:0 1px 2px rgba(0,0,0,.6)}
 .pc.b{color:#111;-webkit-text-stroke:1.2px rgba(255,255,255,.5);text-shadow:0 1px 2px rgba(0,0,0,.35)}
 .man{width:68%;height:68%;border-radius:50%;display:grid;place-items:center}
 .man.k::after{content:"♛";color:rgba(255,255,255,.9);font-size:60%}
@@ -344,7 +344,8 @@ function openCreate(gkey){
 function renderRoom(r){
   var g=GAMES[r.g]; var v=$('view'); v.innerHTML='';
   var mySeat=seatOf(r,CID);
-  var cols=pcolors(r.max);
+  var cols=g.seatColors||pcolors(r.max);
+  var slabels=g.seatLabels;
 
   var head=el('div','row'); head.style.justifyContent='space-between'; head.style.marginBottom='8px';
   var title=el('div',null); title.innerHTML='<div style="font-weight:800;font-size:18px">'+esc(r.name)+'</div><div class="muted" style="font-size:12.5px">'+esc(g.label)+' · sala '+esc(r._key.slice(-5))+'</div>';
@@ -357,7 +358,9 @@ function renderRoom(r){
     var s=r.seats&&r.seats[i];
     var seat=el('div','seat'+(r.turn===i&&r.status==='playing'?' turn':'')+(s&&s.id===CID?' me':''));
     var sw=el('span','sw'); sw.style.background=cols[i]; seat.appendChild(sw);
-    seat.appendChild(el('span',null, s?esc(s.name):'libre'));
+    var nm=el('span',null, s?esc(s.name):'libre');
+    if(slabels){ var lb=el('span',null,' · '+slabels[i]); lb.style.cssText='color:#8a8a90;font-weight:500'; nm.appendChild(lb); }
+    seat.appendChild(nm);
     pl.appendChild(seat);
   }
   v.appendChild(pl);
@@ -611,6 +614,7 @@ function ckApply(b,path){
 var SOLID={K:'♚',Q:'♛',R:'♜',B:'♝',N:'♞',P:'♟'}; // glifos sólidos para ambos colores (se colorean por CSS)
 GAMES.chess={
   label:'Ajedrez',desc:'Reglas completas: enroque, al paso, coronación y jaque mate.',grad:'linear-gradient(145deg,#1f2937,#000)',minP:2,maxP:2,
+  seatColors:['#f3f3f3','#1b1b1b'], seatLabels:['Blancas','Negras'],
   init:function(){
     var back=['R','N','B','Q','K','B','N','R'];
     var b=Array(64).fill(null);
@@ -639,6 +643,10 @@ GAMES.chess={
     var order=[]; for(var i=0;i<64;i++) order.push(i); if(me===1) order.reverse();
     // rey en jaque
     var chkSq=-1; var myInCheck=chInCheck(st,col); if(myInCheck){ chkSq=chFindKing(st.b,col); }
+    if(me>=0){ var cm=el('div'); cm.style.cssText='text-align:center;font-size:13px;margin-bottom:8px;font-weight:700';
+      cm.innerHTML='Juegas con <span style="padding:2px 8px;border-radius:6px;background:'+(me===0?'#f3f3f3;color:#111':'#1b1b1b;color:#fff;border:1px solid #444')+'">'+(me===0?'Blancas':'Negras')+'</span>';
+      root.appendChild(cm);
+    }
     var board=el('div','b64');
     order.forEach(function(i){
       var r=Math.floor(i/8),c=i%8;
