@@ -194,6 +194,65 @@
           ]
         }
       ]
+    },
+    {
+      "fecha": "2026-11-23",
+      "comidas": [
+        {
+          "momento": "Comida",
+          "items": [
+            {
+              "nombre": "Filete fino de ternera a la plancha",
+              "gramos": 120,
+              "kcal": 180
+            },
+            {
+              "nombre": "Patatas cocidas",
+              "gramos": 300,
+              "kcal": 230,
+              "nota": "2 patatas"
+            },
+            {
+              "nombre": "Mantequilla",
+              "gramos": 15,
+              "kcal": 110
+            },
+            {
+              "nombre": "Queso",
+              "gramos": 30,
+              "kcal": 110
+            }
+          ]
+        },
+        {
+          "momento": "Picoteo",
+          "items": [
+            {
+              "nombre": "Palitos con aceite de girasol y sal",
+              "gramos": 40,
+              "kcal": 190,
+              "nota": "Mercadona · 2 puñados"
+            },
+            {
+              "nombre": "Bake Rolls sabor pizza",
+              "gramos": 80,
+              "kcal": 360,
+              "nota": "1 paquete (Rumanía)"
+            }
+          ]
+        },
+        {
+          "momento": "Cena",
+          "items": [
+            {
+              "nombre": "Pizza casera de masa gruesa",
+              "gramos": 170,
+              "kcal": 440,
+              "nota": "básica"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
