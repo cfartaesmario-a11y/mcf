@@ -284,9 +284,9 @@
           "items": [
             {
               "nombre": "Galletas caseras de mantequilla",
-              "gramos": 120,
-              "kcal": 580,
-              "nota": "3,5 grandes (casi como la mano)"
+              "gramos": 200,
+              "kcal": 960,
+              "nota": "3,5 grandes"
             },
             {
               "nombre": "Palitos con aceite de girasol y sal",
