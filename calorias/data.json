@@ -253,6 +253,50 @@
           ]
         }
       ]
+    },
+    {
+      "fecha": "2026-11-24",
+      "comidas": [
+        {
+          "momento": "Comida",
+          "items": [
+            {
+              "nombre": "Espaguetis (en seco)",
+              "gramos": 100,
+              "kcal": 355
+            },
+            {
+              "nombre": "Bacon",
+              "gramos": 50,
+              "kcal": 200
+            },
+            {
+              "nombre": "Nata para montar",
+              "gramos": 60,
+              "unidad": "ml",
+              "kcal": 200,
+              "nota": "Président"
+            }
+          ]
+        },
+        {
+          "momento": "Picoteo",
+          "items": [
+            {
+              "nombre": "Galletas caseras de mantequilla",
+              "gramos": 52,
+              "kcal": 250,
+              "nota": "3,5 medianas"
+            },
+            {
+              "nombre": "Palitos con aceite de girasol y sal",
+              "gramos": 100,
+              "kcal": 475,
+              "nota": "Mercadona"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
