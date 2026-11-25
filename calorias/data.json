@@ -297,6 +297,38 @@
           ]
         }
       ]
+    },
+    {
+      "fecha": "2026-11-25",
+      "comidas": [
+        {
+          "momento": "Comida",
+          "items": [
+            {
+              "nombre": "Huevos cocidos",
+              "gramos": 150,
+              "kcal": 225,
+              "nota": "3 huevos"
+            },
+            {
+              "nombre": "Queso en salmuera (brânză)",
+              "gramos": 90,
+              "kcal": 225
+            },
+            {
+              "nombre": "Salchichas frescas",
+              "gramos": 150,
+              "kcal": 450,
+              "nota": "~2 piezas"
+            },
+            {
+              "nombre": "Mostaza",
+              "gramos": 40,
+              "kcal": 40
+            }
+          ]
+        }
+      ]
     }
   ]
 }
