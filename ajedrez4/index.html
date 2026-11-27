@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Escacs 4 jugadors · MCF</title>
+<meta name="theme-color" content="#0b0d12">
+<style>
+:root{
+  --c0:#d8463f; --c1:#3f7fd6; --c2:#e3b53a; --c3:#43ad64;   /* vermell blau groc verd */
+  --bg:#0b0d12; --panel:#13161d; --line:#242a35; --ink:#eef0f3; --soft:#9aa2ad;
+  --lsq:#e9e4d6; --dsq:#8b94a0;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:inherit;text-decoration:none}
+.top{display:flex;align-items:center;gap:12px;max-width:1120px;margin:0 auto;padding:14px 18px}
+.top a.back{font-size:14px;font-weight:700;color:#cfd4db;border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.top h1{font-size:clamp(17px,2.4vw,21px);margin:0;flex:1}
+.top .btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#1b2029;color:#eef0f3;border-radius:10px;padding:9px 14px;cursor:pointer}
+.top .btn:hover{border-color:#39414f}
+.wrap{max-width:1120px;margin:0 auto;padding:0 18px 40px;display:grid;grid-template-columns:1fr 320px;gap:22px;align-items:start}
+@media(max-width:860px){.wrap{grid-template-columns:1fr}}
+
+.turnbar{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:14px}
+.turnbar .chip{display:flex;align-items:center;gap:9px;font-weight:800;font-size:17px}
+.turnbar .sw{width:16px;height:16px;border-radius:5px;border:1px solid rgba(255,255,255,.3)}
+.turnbar .warn{margin-left:auto;color:#ffd0d0;background:#5b1f23;border:1px solid #7a2a2f;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:700;display:none}
+.turnbar .warn.on{display:inline-block}
+
+.boardwrap{display:flex;justify-content:center}
+.board{display:grid;grid-template-columns:repeat(14,1fr);width:min(94vw,640px);aspect-ratio:1;border-radius:10px;overflow:hidden;background:transparent;border:3px solid #1b2029;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.cell{position:relative;aspect-ratio:1;display:grid;place-items:center}
+.cell.void{background:transparent;visibility:hidden}
+.cell.l{background:var(--lsq)} .cell.d{background:var(--dsq)}
+.cell.z0{box-shadow:inset 0 0 0 999px rgba(216,70,63,.10)}
+.cell.z1{box-shadow:inset 0 0 0 999px rgba(63,127,214,.10)}
+.cell.z2{box-shadow:inset 0 0 0 999px rgba(227,181,58,.12)}
+.cell.z3{box-shadow:inset 0 0 0 999px rgba(67,173,100,.10)}
+.cell.sel{box-shadow:inset 0 0 0 4px #f5c84b}
+.cell.chk{box-shadow:inset 0 0 0 4px #ff4d4d}
+.cell svg{width:86%;height:86%;display:block;pointer-events:none}
+.cell svg *{stroke:#15181c;stroke-width:1.5;stroke-linejoin:round}
+.dot{position:absolute;width:30%;height:30%;border-radius:50%;background:rgba(30,150,80,.85);pointer-events:none}
+.cell.cap::after{content:"";position:absolute;inset:8%;border:4px solid rgba(220,60,60,.8);border-radius:50%;pointer-events:none}
+.dead{opacity:.34;filter:grayscale(.7)}
+
+.side .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-bottom:14px;overflow:hidden}
+.side .box h3{margin:0;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--soft);padding:12px 15px;border-bottom:1px solid var(--line)}
+.players{padding:8px}
+.pl{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:10px}
+.pl.turn{background:#1b2230;outline:1px solid #2c3647}
+.pl .sw{width:14px;height:14px;border-radius:4px;flex:0 0 auto;border:1px solid rgba(255,255,255,.25)}
+.pl .nm{flex:1;font-weight:700;font-size:14.5px}
+.pl .nm small{display:block;font-weight:600;font-size:11.5px;color:var(--soft)}
+.pl .pts{font-weight:800;font-variant-numeric:tabular-nums}
+.pl.out .nm{color:var(--soft)} .pl.out{opacity:.7}
+.log{padding:10px 14px;max-height:240px;overflow:auto;font-size:13px;line-height:1.7;color:var(--soft)}
+.log b{color:var(--ink)}
+.help{padding:12px 15px;font-size:12.5px;color:var(--soft);line-height:1.5}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:40}
+.overlay.on{display:flex}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:380px;width:100%;padding:22px;text-align:center}
+.modal h2{margin:0 0 6px}
+.modal p{color:var(--soft);margin:0 0 16px}
+.modal .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.modal .pc{width:60px;height:60px;border:1px solid var(--line);border-radius:12px;background:#1b2029;cursor:pointer;display:grid;place-items:center}
+.modal .pc svg{width:80%;height:80%}
+.modal .pc svg *{stroke:#15181c;stroke-width:1.5}
+.modal .btn{font:inherit;font-weight:700;border:0;border-radius:10px;padding:11px 18px;cursor:pointer;background:#2a64c6;color:#fff}
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="back" href="/mcf/games/">‹ MCF Games</a>
+  <h1>Escacs · 4 jugadors</h1>
+  <button class="btn" id="newBtn">Nova partida</button>
+</div>
+
+<div class="wrap">
+  <div>
+    <div class="turnbar">
+      <div class="chip"><span class="sw" id="turnSw"></span><span id="turnName">Vermell</span></div>
+      <span class="warn" id="checkWarn">Escac!</span>
+    </div>
+    <div class="boardwrap"><div class="board" id="board"></div></div>
+  </div>
+  <aside class="side">
+    <div class="box"><h3>Jugadors i punts</h3><div class="players" id="players"></div></div>
+    <div class="box"><h3>Moviments</h3><div class="log" id="log"></div></div>
+    <div class="box"><h3>Com es juga</h3><div class="help">
+      Per torns: Vermell → Blau → Groc → Verd. Els peons avancen cap al centre. Si et fan <b>escac i mat</b> quedes eliminat i les teves peces es congelen (es poden capturar). Si no pots moure sense estar en escac, és <b>ofegat</b>. Guanya l'últim que queda. Punts: peó 1 · cavall 3 · alfil/torre 5 · dama 9 · mat +20.
+    </div></div>
+  </aside>
+</div>
+
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+
+<script id="engine">/* ============================================================
+   MOTOR AJEDREZ 4 JUGADORES  (FFA)  — lógica pura
+   Colores: 0=Vermell(abajo,↑) 1=Blau(izq,→) 2=Groc(arriba,↓) 3=Verd(der,←)
+   Tablero 14x14 en cruz (esquinas 3x3 fuera). Pieza={p,c,dead?,moved?}
+   ============================================================ */
+(function(G){
+"use strict";
+var N=14;
+var FWD=[[-1,0],[0,1],[1,0],[0,-1]];          // dirección de avance del peón por color
+var VAL={P:1,N:3,B:5,R:5,Q:9,K:0};
+var MATE_BONUS=20, STALE_BONUS=10;
+
+function playable(r,c){ if(r<0||c<0||r>=N||c>=N) return false; var cr=(r<3||r>=11), cc=(c<3||c>=11); return !(cr&&cc); }
+function inB(r,c){return r>=0&&c>=0&&r<N&&c<N;}
+function pawnStart(col,r,c){ return col===0?r===12:col===1?c===1:col===2?r===1:c===12; }
+function promoRank(col,r,c){ return col===0?r===3:col===1?c===10:col===2?r===10:c===3; }
+
+function newGame(){
+  var b=[]; for(var r=0;r<N;r++){ b.push(new Array(N).fill(null)); }
+  var back=['R','N','B','Q','K','B','N','R'];
+  // Vermell (0): fila 13 back, fila 12 peones, col 3..10
+  for(var i=0;i<8;i++){ b[13][3+i]={p:back[i],c:0}; b[12][3+i]={p:'P',c:0}; }
+  // Groc (2): fila 0 back, fila 1 peones
+  for(i=0;i<8;i++){ b[0][3+i]={p:back[i],c:2}; b[1][3+i]={p:'P',c:2}; }
+  // Blau (1): col 0 back, col 1 peones, fila 3..10
+  for(i=0;i<8;i++){ b[3+i][0]={p:back[i],c:1}; b[3+i][1]={p:'P',c:1}; }
+  // Verd (3): col 13 back, col 12 peones
+  for(i=0;i<8;i++){ b[3+i][13]={p:back[i],c:3}; b[3+i][12]={p:'P',c:3}; }
+  return {board:b, turn:0, active:[true,true,true,true], points:[0,0,0,0],
+          ep:null, status:'playing', winner:-1, lastMove:null, log:[]};
+}
+
+function kingPos(b,col){ for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var p=b[r][c]; if(p&&p.c===col&&p.p==='K'&&!p.dead) return [r,c]; } return null; }
+
+/* ¿(tr,tc) atacada por alguna pieza viva de color != defColor? */
+function isAttacked(b,tr,tc,defColor){
+  // caballos
+  var kn=[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
+  for(var i=0;i<kn.length;i++){ var r=tr+kn[i][0],c=tc+kn[i][1]; if(inB(r,c)){ var p=b[r][c]; if(p&&!p.dead&&p.c!==defColor&&p.p==='N') return true; } }
+  // rey
+  for(var dr=-1;dr<=1;dr++)for(var dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; var rr=tr+dr,cc=tc+dc; if(inB(rr,cc)){ var q=b[rr][cc]; if(q&&!q.dead&&q.c!==defColor&&q.p==='K') return true; } }
+  // peones: un peón de color k ataca (tr,tc) si está en una de sus casillas de captura inversa
+  for(var k=0;k<4;k++){ if(k===defColor) continue;
+    // casillas desde las que un peón de color k atacaría (tr,tc)
+    var srcs=pawnAttackSources(k,tr,tc);
+    for(var s=0;s<srcs.length;s++){ var sr=srcs[s][0],sc=srcs[s][1]; if(inB(sr,sc)){ var pp=b[sr][sc]; if(pp&&!pp.dead&&pp.c===k&&pp.p==='P') return true; } }
+  }
+  // deslizantes
+  var diag=[[-1,-1],[-1,1],[1,-1],[1,1]], orth=[[-1,0],[1,0],[0,-1],[0,1]];
+  if(rayHit(b,tr,tc,diag,defColor,['B','Q'])) return true;
+  if(rayHit(b,tr,tc,orth,defColor,['R','Q'])) return true;
+  return false;
+}
+function rayHit(b,tr,tc,dirs,defColor,types){
+  for(var d=0;d<dirs.length;d++){ var r=tr+dirs[d][0],c=tc+dirs[d][1];
+    while(playable(r,c)){ var p=b[r][c]; if(p){ if(!p.dead&&p.c!==defColor&&types.indexOf(p.p)>=0) return true; break; } r+=dirs[d][0]; c+=dirs[d][1]; }
+  }
+  return false;
+}
+function pawnAttackSources(col,tr,tc){
+  // un peón de color col que avanza FWD captura en diagonales; devolvemos las casillas de origen
+  var f=FWD[col]; var out=[];
+  if(f[0]!==0){ // vertical: ataca (r+f0, c±1) => origen (tr-f0, tc∓1)
+    out.push([tr-f[0],tc-1]); out.push([tr-f[0],tc+1]);
+  } else { // horizontal: ataca (r±1, c+f1) => origen (tr∓1, tc-f1)
+    out.push([tr-1,tc-f[1]]); out.push([tr+1,tc-f[1]]);
+  }
+  return out;
+}
+
+/* movimientos pseudolegales de un color (sin filtrar jaque propio) */
+function pseudo(st,col){
+  var b=st.board, mv=[];
+  function add(fr,fc,tr,tc,extra){ var m={from:[fr,fc],to:[tr,tc],cap:!!(b[tr][tc])}; if(extra)for(var k in extra)m[k]=extra[k]; mv.push(m); }
+  for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var p=b[r][c]; if(!p||p.dead||p.c!==col) continue;
+    if(p.p==='P'){ pawnMoves(st,col,r,c,add); }
+    else if(p.p==='N'){ [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(function(d){ var tr=r+d[0],tc=c+d[1]; if(!playable(tr,tc))return; var q=b[tr][tc]; if(q&&(q.c===col||q.p==='K'))return; add(r,c,tr,tc); }); }
+    else if(p.p==='K'){ for(var dr=-1;dr<=1;dr++)for(var dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; var tr=r+dr,tc=c+dc; if(!playable(tr,tc))continue; var q=b[tr][tc]; if(q&&(q.c===col||q.p==='K'))continue; add(r,c,tr,tc); }
+      castleMoves(st,col,r,c,add); }
+    else { var dirs = p.p==='B'?[[-1,-1],[-1,1],[1,-1],[1,1]] : p.p==='R'?[[-1,0],[1,0],[0,-1],[0,1]] : [[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]];
+      dirs.forEach(function(d){ var tr=r+d[0],tc=c+d[1]; while(playable(tr,tc)){ var q=b[tr][tc]; if(!q){ add(r,c,tr,tc); } else { if(q.c!==col&&q.p!=='K') add(r,c,tr,tc); break; } tr+=d[0];tc+=d[1]; } }); }
+  }
+  return mv;
+}
+function pawnMoves(st,col,r,c,add){
+  var b=st.board, f=FWD[col], tr=r+f[0], tc=c+f[1];
+  if(playable(tr,tc)&&!b[tr][tc]){ var pr=promoRank(col,tr,tc); add(r,c,tr,tc,pr?{promo:true}:null);
+    if(pawnStart(col,r,c)){ var tr2=r+2*f[0],tc2=c+2*f[1]; if(playable(tr2,tc2)&&!b[tr2][tc2]) add(r,c,tr2,tc2,{dbl:true}); }
+  }
+  // capturas diagonales
+  var caps = f[0]!==0 ? [[f[0],-1],[f[0],1]] : [[-1,f[1]],[1,f[1]]];
+  caps.forEach(function(d){ var xr=r+d[0],xc=c+d[1]; if(!playable(xr,xc))return;
+    var q=b[xr][xc];
+    if(q&&q.c!==col&&q.p!=='K'){ var pr=promoRank(col,xr,xc); add(r,c,xr,xc,pr?{promo:true}:null); }
+    else if(!q&&st.ep&&st.ep.target[0]===xr&&st.ep.target[1]===xc&&st.ep.color!==col){ add(r,c,xr,xc,{ep:true}); }
+  });
+}
+function castleMoves(st,col,r,c,add){
+  var b=st.board, p=b[r][c]; if(p.moved) return;
+  if(isAttacked(b,r,c,col)) return;
+  // eje del back-rank según color: vermell/groc horizontal (misma fila), blau/verd vertical (misma col)
+  var horiz=(col===0||col===2);
+  var dirs = horiz?[[0,-1],[0,1]]:[[-1,0],[1,0]];
+  dirs.forEach(function(d){
+    // busca torre en esa dirección sobre el back-rank
+    var rr=r+d[0],cc=c+d[1], steps=0, between=[];
+    while(playable(rr,cc)){ var q=b[rr][cc];
+      if(q){ if(q.p==='R'&&q.c===col&&!q.moved){ // candidato
+               if(steps>=2){ // espacio suficiente
+                 // casillas que cruza el rey: 2 en dirección d
+                 var k1=[r+d[0],c+d[1]], k2=[r+2*d[0],c+2*d[1]];
+                 if(!isAttacked(b,k1[0],k1[1],col)&&!isAttacked(b,k2[0],k2[1],col)) add(r,c,k2[0],k2[1],{castle:[rr,cc]});
+               }
+             }
+             return; }
+      between.push([rr,cc]); steps++; rr+=d[0]; cc+=d[1];
+    }
+  });
+}
+
+function cloneState(st){
+  var b=[]; for(var r=0;r<N;r++){ var row=new Array(N); for(var c=0;c<N;c++){ var p=st.board[r][c]; row[c]=p?{p:p.p,c:p.c,dead:p.dead,moved:p.moved}:null; } b.push(row); }
+  return {board:b,turn:st.turn,active:st.active.slice(),points:st.points.slice(),ep:st.ep?{target:st.ep.target.slice(),pawn:st.ep.pawn.slice(),color:st.ep.color}:null,status:st.status,winner:st.winner,lastMove:st.lastMove,log:st.log.slice()};
+}
+
+/* aplica un movimiento al estado (muta). No cambia turno ni resuelve mates. */
+function applyMove(st,m,promoPiece){
+  var b=st.board, fr=m.from[0],fc=m.from[1],tr=m.to[0],tc=m.to[1], p=b[fr][fc], col=p.c;
+  // captura normal
+  var target=b[tr][tc];
+  if(target){ st.points[col]+=VAL[target.p]; }
+  // al paso
+  if(m.ep&&st.ep){ var pr=st.ep.pawn; var cap=b[pr[0]][pr[1]]; if(cap){ st.points[col]+=VAL[cap.p]; b[pr[0]][pr[1]]=null; } }
+  b[tr][tc]={p:p.p,c:col,moved:true}; b[fr][fc]=null;
+  if(m.promo) b[tr][tc].p=promoPiece||'Q';
+  // enroque: mover la torre al lado del rey
+  if(m.castle){ var rr=m.castle[0],rc=m.castle[1]; var dir=[Math.sign(tr-fr),Math.sign(tc-fc)]; var rookTo=[tr-dir[0],tc-dir[1]]; b[rookTo[0]][rookTo[1]]={p:'R',c:col,moved:true}; b[rr][rc]=null; }
+  // ep nuevo
+  st.ep = m.dbl ? {target:[(fr+tr)/2,(fc+tc)/2],pawn:[tr,tc],color:col} : null;
+  st.lastMove={from:m.from,to:m.to,c:col};
+}
+
+/* movimientos legales (no dejar rey propio en jaque) */
+function legalMoves(st,col){
+  if(!st.active[col]) return [];
+  var out=[], ms=pseudo(st,col);
+  for(var i=0;i<ms.length;i++){ var s=cloneState(st); applyMove(s,ms[i],'Q'); var kp=kingPos(s.board,col); if(kp&&!isAttacked(s.board,kp[0],kp[1],col)) out.push(ms[i]); }
+  return out;
+}
+function inCheck(st,col){ var kp=kingPos(st.board,col); return kp?isAttacked(st.board,kp[0],kp[1],col):false; }
+
+/* elimina a un jugador: mate -> rey fuera y piezas muertas; ahogado -> piezas muertas (rey queda) */
+function eliminate(st,col,mate,byCol){
+  st.active[col]=false;
+  for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var p=st.board[r][c]; if(p&&p.c===col){ if(mate&&p.p==='K'){ st.board[r][c]=null; } else { p.dead=true; } } }
+  if(mate&&byCol!=null&&byCol!==col) st.points[byCol]+=MATE_BONUS;
+  st.log.push((mate?'mate':'ahogado')+':'+col);
+}
+
+/* avanza turno y resuelve mates/ahogados de los siguientes jugadores */
+function advance(st, moverCol){
+  var guard=0;
+  while(guard++<8){
+    // ¿fin? solo 1 activo
+    var act=[0,1,2,3].filter(function(k){return st.active[k];});
+    if(act.length<=1){ st.status='over'; st.winner=act.length?act[0]:-1; return; }
+    // siguiente activo
+    var n=st.turn;
+    do{ n=(n+1)%4; }while(!st.active[n]);
+    st.turn=n;
+    var lm=legalMoves(st,n);
+    if(lm.length>0) return;         // puede jugar
+    // sin movimientos:
+    if(inCheck(st,n)){ eliminate(st,n,true,moverCol); }
+    else { eliminate(st,n,false,null); st.points[n]+=0; }
+    // vuelve a comprobar fin / siguiente
+  }
+}
+
+/* API de alto nivel: ejecutar un movimiento del jugador en turno */
+function doMove(st,m,promoPiece){
+  var col=st.turn;
+  applyMove(st,m,promoPiece);
+  advance(st,col);
+  return st;
+}
+
+G.CH4={N:N,newGame:newGame,playable:playable,legalMoves:legalMoves,pseudo:pseudo,inCheck:inCheck,
+  isAttacked:isAttacked,kingPos:kingPos,cloneState:cloneState,applyMove:applyMove,doMove:doMove,
+  advance:advance,eliminate:eliminate,FWD:FWD,VAL:VAL,promoRank:promoRank,pawnStart:pawnStart};
+})(typeof window!=='undefined'?window:global);
+</script>
+<script>
+"use strict";
+var C=window.CH4, N=C.N;
+var COL=['var(--c0)','var(--c1)','var(--c2)','var(--c3)'];
+var HEX=['#d8463f','#3f7fd6','#e3b53a','#43ad64'];
+var NAME=['Vermell','Blau','Groc','Verd'];
+var $=function(id){return document.getElementById(id);};
+
+/* ---------- piezas SVG (silueta tintada por color) ---------- */
+function P(type){
+  var s='<svg viewBox="0 0 45 45" fill="currentColor">';
+  if(type==='P'){ s+='<circle cx="22.5" cy="15" r="5.3"/><path d="M17.5 24c0-3 2.2-5 5-5s5 2 5 5z"/><path d="M15.5 38c0-7.5 3.2-10 7-10s7 2.5 7 10z"/><rect x="13" y="36" width="19" height="5" rx="2"/>'; }
+  else if(type==='R'){ s+='<path d="M13 37h19v4H13z"/><path d="M15 21h15l-1.3 15h-12.4z"/><path d="M14 14h17v7H14z"/><path d="M14 11h3.2v4H14zM20.9 11h3.2v4h-3.2zM27.8 11h3.2v4h-3.2z"/>'; }
+  else if(type==='N'){ s+='<path d="M13 38h19v3.3H13z"/><path d="M16.5 36c-1.8-6 .2-11.5 6-15 .8-.5 1-1.3.3-2.2l1.8-3.3c3.8 1.1 9.5 4.6 10.2 13.2.3 3.6.2 7.3.2 7.3z"/><circle cx="18.8" cy="19.5" r="1.1" fill="#15181c"/>'; }
+  else if(type==='B'){ s+='<path d="M14 38h17v3.3H14z"/><path d="M16 35c0-4 2-6 2.5-7.5C16.5 25 15.5 22 17 19c1.4-2.8 4.3-5.5 5.5-7 1.2 1.5 4.1 4.2 5.5 7 1.5 3 .5 6-1.5 8.5C27 29 29 31 29 35z"/><circle cx="22.5" cy="10.5" r="2.1"/><path d="M22.5 19l2.2 4.3h-4.4z" fill="#15181c" stroke="none"/>'; }
+  else if(type==='Q'){ s+='<path d="M13 38h19v3.3H13z"/><path d="M15 36c-.6-4-1.3-9-1.3-13l4 6 3.3-8 3.3 8 4-6c0 4-.7 9-1.3 13z"/><circle cx="13.5" cy="21" r="2.3"/><circle cx="22.5" cy="14.5" r="2.5"/><circle cx="31.5" cy="21" r="2.3"/>'; }
+  else { s+='<path d="M13 38h19v3.3H13z"/><path d="M15.5 36c-.8-5-1-9.5-1-13 0-2 2-3.5 4.3-3.5 1.6 0 3 .7 3.7 1.8.7-1.1 2.1-1.8 3.7-1.8 2.3 0 4.3 1.5 4.3 3.5 0 3.5-.2 8-1 13z"/><rect x="20.8" y="5.5" width="3.4" height="10" rx="1"/><rect x="17.5" y="8.8" width="10" height="3.4" rx="1"/>'; }
+  return s+'</svg>';
+}
+
+var ST=C.newGame();
+var sel=null, legalSel=[];
+
+function build(){
+  var bd=$('board'); bd.innerHTML='';
+  for(var r=0;r<N;r++)for(var c=0;c<N;c++){
+    var cell=document.createElement('div');
+    if(!C.playable(r,c)){ cell.className='cell void'; bd.appendChild(cell); continue; }
+    cell.className='cell '+(((r+c)%2===0)?'l':'d');
+    var z=zone(r,c); if(z>=0) cell.classList.add('z'+z);
+    cell.dataset.r=r; cell.dataset.c=c;
+    cell.addEventListener('click',onCell);
+    bd.appendChild(cell);
+  }
+  render();
+}
+function zone(r,c){ // franja de inicio de cada color (para tinte suave)
+  if(r>=12&&c>=3&&c<=10) return 0; if(c<=1&&r>=3&&r<=10) return 1;
+  if(r<=1&&c>=3&&c<=10) return 2; if(c>=12&&r>=3&&r<=10) return 3; return -1;
+}
+function cellAt(r,c){ return $('board').children[r*N+c]; }
+
+function render(){
+  // limpiar marcas y pintar piezas
+  for(var r=0;r<N;r++)for(var c=0;c<N;c++){ if(!C.playable(r,c))continue; var cell=cellAt(r,c);
+    cell.classList.remove('sel','chk','cap');
+    var old=cell.querySelector('svg,.dot'); while(cell.firstChild) cell.removeChild(cell.firstChild);
+    var p=ST.board[r][c];
+    if(p){ var sp=document.createElement('div'); sp.style.width='86%';sp.style.height='86%';sp.style.color=HEX[p.c];
+      sp.innerHTML=P(p.p); sp.className=p.dead?'dead':''; sp.style.display='grid'; sp.style.placeItems='center';
+      cell.appendChild(sp); }
+  }
+  // reyes en jaque
+  for(var k=0;k<4;k++){ if(ST.active[k]&&C.inCheck(ST,k)){ var kp=C.kingPos(ST.board,k); if(kp) cellAt(kp[0],kp[1]).classList.add('chk'); } }
+  // selección y destinos
+  if(sel){ cellAt(sel[0],sel[1]).classList.add('sel');
+    legalSel.forEach(function(m){ var cell=cellAt(m.to[0],m.to[1]);
+      if(ST.board[m.to[0]][m.to[1]]||m.ep) cell.classList.add('cap');
+      else { var d=document.createElement('div'); d.className='dot'; cell.appendChild(d); }
+    });
+  }
+  // barra de turno
+  $('turnSw').style.background=HEX[ST.turn];
+  $('turnName').textContent='Torn: '+NAME[ST.turn];
+  $('checkWarn').classList.toggle('on', C.inCheck(ST,ST.turn));
+  renderPlayers();
+  if(ST.status==='over') showWin();
+}
+function renderPlayers(){
+  var box=$('players'); box.innerHTML='';
+  for(var k=0;k<4;k++){ var row=document.createElement('div');
+    row.className='pl'+(ST.turn===k&&ST.status!=='over'?' turn':'')+(ST.active[k]?'':' out');
+    var st= ST.active[k]? (C.inCheck(ST,k)?'en escac':'en joc') : 'eliminat';
+    row.innerHTML='<span class="sw" style="background:'+HEX[k]+'"></span>'+
+      '<span class="nm">'+NAME[k]+'<small>'+st+'</small></span>'+
+      '<span class="pts">'+ST.points[k]+'</span>';
+    box.appendChild(row);
+  }
+}
+
+function onCell(e){
+  if(ST.status==='over') return;
+  var r=+this.dataset.r, c=+this.dataset.c, col=ST.turn;
+  // ¿clic en destino legal?
+  if(sel){ var mv=legalSel.find(function(m){return m.to[0]===r&&m.to[1]===c;});
+    if(mv){ doMove(mv); return; }
+  }
+  var p=ST.board[r][c];
+  if(p&&!p.dead&&p.c===col){ sel=[r,c]; legalSel=C.legalMoves(ST,col).filter(function(m){return m.from[0]===r&&m.from[1]===c;}); render(); }
+  else { sel=null; legalSel=[]; render(); }
+}
+function doMove(mv){
+  if(mv.promo){ askPromo(ST.turn,function(pp){ sel=null;legalSel=[]; C.doMove(ST,mv,pp); logMove(mv); render(); }); return; }
+  sel=null; legalSel=[];
+  var before=ST.active.slice();
+  C.doMove(ST,mv,'Q'); logMove(mv,before); render();
+}
+function logMove(mv,before){
+  var el=$('log'); var who=NAME[ST.lastMove?ST.lastMove.c:0];
+  var txt='<div><b style="color:'+HEX[(ST.lastMove?ST.lastMove.c:0)]+'">'+who+'</b> '+sq(mv.from)+'→'+sq(mv.to)+(mv.castle?' (enroc)':mv.promo?' (coronació)':mv.ep?' (al pas)':'')+'</div>';
+  el.insertAdjacentHTML('afterbegin',txt);
+  if(before){ for(var k=0;k<4;k++){ if(before[k]&&!ST.active[k]){ el.insertAdjacentHTML('afterbegin','<div style="color:#ffb3b3">— '+NAME[k]+' eliminat</div>'); } } }
+}
+function sq(a){ return String.fromCharCode(97+a[1])+(N-a[0]); }
+
+function askPromo(col,cb){
+  var m=$('modal'); m.innerHTML='<h2 style="color:'+HEX[col]+'">Coronació</h2><p>Tria la peça</p><div class="row"></div>';
+  var row=m.querySelector('.row');
+  ['Q','R','B','N'].forEach(function(t){ var b=document.createElement('button'); b.className='pc'; b.style.color=HEX[col]; b.innerHTML=P(t);
+    b.onclick=function(){ $('overlay').classList.remove('on'); cb(t); }; row.appendChild(b); });
+  $('overlay').classList.add('on');
+}
+function showWin(){
+  var m=$('modal');
+  var rank=[0,1,2,3].slice().sort(function(a,b){return ST.points[b]-ST.points[a];});
+  var w=ST.winner;
+  m.innerHTML='<h2 style="color:'+(w>=0?HEX[w]:'#fff')+'">'+(w>=0?('Guanya '+NAME[w]+'!'):'Partida acabada')+'</h2>'+
+    '<p>Classificació per punts</p>'+
+    '<div style="text-align:left;margin-bottom:16px">'+rank.map(function(k,i){return '<div style="display:flex;gap:8px;align-items:center;padding:4px 0"><span class="sw" style="width:13px;height:13px;border-radius:4px;background:'+HEX[k]+'"></span><span style="flex:1">'+(i+1)+'. '+NAME[k]+'</span><b>'+ST.points[k]+'</b></div>';}).join('')+'</div>'+
+    '<button class="btn" onclick="location.reload()">Nova partida</button>';
+  $('overlay').classList.add('on');
+}
+
+$('newBtn').onclick=function(){ ST=C.newGame(); sel=null;legalSel=[]; $('log').innerHTML=''; $('overlay').classList.remove('on'); render(); };
+build();
+</script>
+</body>
+</html>
